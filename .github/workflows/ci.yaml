@@ -24,13 +24,6 @@ jobs:
       - name: Checkout 🛎️
         uses: actions/checkout@v6
 
-      # - name: Setup Java JDK 🔧
-      #   uses: actions/setup-java@v4.5.0
-      #   if: startsWith(matrix.platform, 'apk')
-      #   with:
-      #     distribution: "oracle"
-      #     java-version: "17"
-
       - name: Get FVM Configuration 🔧
         uses: kuhnroyal/flutter-fvm-config-action@v3
         id: fvm-config-action
