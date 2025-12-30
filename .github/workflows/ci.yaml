@@ -1,0 +1,55 @@
+name: CI
+on:
+  push:
+  pull_request:
+    types: [opened, reopened]
+
+jobs:
+  build-and-test:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: apk --debug
+          - os: ubuntu-latest
+            platform: web
+          - os: macos-latest
+            platform: ios --no-codesign
+          - os: macos-latest
+            platform: macos
+          - os: windows-latest
+            platform: windows
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v6
+
+      # - name: Setup Java JDK 🔧
+      #   uses: actions/setup-java@v4.5.0
+      #   if: startsWith(matrix.platform, 'apk')
+      #   with:
+      #     distribution: "oracle"
+      #     java-version: "17"
+
+      - name: Get FVM Configuration 🔧
+        uses: kuhnroyal/flutter-fvm-config-action@v3
+        id: fvm-config-action
+
+      - name: Setup Flutter 📦
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ steps.fvm-config-action.outputs.FLUTTER_VERSION }}
+          channel: ${{ steps.fvm-config-action.outputs.FLUTTER_CHANNEL }}
+          cache: true
+
+      - name: API Generation 🧬
+        run: dart run swagger_parser
+
+      - name: Code Generation 🧬
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Build 🏗️
+        run: flutter build ${{ matrix.platform }}
+
+      - name: Test 🧪
+        run: flutter test
