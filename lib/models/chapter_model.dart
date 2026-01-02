@@ -19,7 +19,7 @@ sealed class ChapterModel with _$ChapterModel {
     return ChapterModel(
       id: dto.id,
       volumeId: dto.volumeId,
-      title: dto.title ?? 'Untitled',
+      title: dto.titleName ?? 'Untitled',
     );
   }
 }

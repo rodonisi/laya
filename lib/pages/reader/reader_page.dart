@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:laya/pages/reader/epub_reader.dart';
 import 'package:laya/pages/reader/image_reader.dart';
+import 'package:laya/pages/reader/reader_controls.dart';
+import 'package:laya/pages/reader/reader_header.dart';
 import 'package:laya/riverpod/reader.dart';
 import 'package:laya/widgets/async_value.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -16,76 +19,109 @@ class ReaderPage extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final uiVisible = useState(false);
 
-    final book = ref.watch(
-      readerProvider(seriesId: seriesId, chapterId: chapterId),
+    final provider = readerProvider(
+      seriesId: seriesId,
+      chapterId: chapterId,
     );
 
-    return Async(
-      asyncValue: book,
-      data: (book) => Scaffold(
-        appBar: uiVisible.value
-            ? AppBar(
-                title: Text(book.title),
-              )
-            : null,
-        body: GestureDetector(
-          onPanEnd: (details) {
-            if (details.velocity.pixelsPerSecond.dx < 0) {
-              ref.read(readerProvider(seriesId: seriesId).notifier).nextPage();
-            }
-            if (details.velocity.pixelsPerSecond.dx > 0) {
-              ref
-                  .read(readerProvider(seriesId: seriesId).notifier)
-                  .previousPage();
-            }
-          },
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: switch (book.series.format) {
+    final book = ref.watch(provider);
+
+    final readDirection = ref.watch(
+      readDirectionProvider(seriesId: seriesId, chapterId: chapterId),
+    );
+
+    // useEffect(() {
+    //   if (uiVisible.value) {
+    //     final timer = Timer(const Duration(seconds: 5), () {
+    //       uiVisible.value = false;
+    //     });
+    //     return timer.cancel;
+    //   }
+    //   return null;
+    // }, [uiVisible.value]);
+
+    return Scaffold(
+      body: GestureDetector(
+        onPanEnd: (details) {
+          if (details.velocity.pixelsPerSecond.dx < 0) {
+            readDirection == .rightToLeft
+                ? ref.read(provider.notifier).nextPage()
+                : ref.read(provider.notifier).previousPage();
+          } else if (details.velocity.pixelsPerSecond.dx > 0) {
+            readDirection == .rightToLeft
+                ? ref.read(provider.notifier).previousPage()
+                : ref.read(provider.notifier).nextPage();
+          }
+        },
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: Async(
+                asyncValue: book,
+                data: (book) => switch (book.series.format) {
                   .epub => EpubReader(
-                    chapterId: book.chapterId,
+                    chapterId: book.chapter.id,
                     page: book.currentPage,
                   ),
                   .cbz => ImageReader(
-                    chapterId: book.chapterId,
+                    chapterId: book.chapter.id,
                     page: book.currentPage,
+                    totalPages: book.totalPages,
                   ),
                   .unknown => const Center(
                     child: Text('Unsupported format'),
                   ),
                 },
               ),
-              Positioned.fill(
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.translucent,
-                        onTap: () => ref
-                            .read(readerProvider(seriesId: seriesId).notifier)
-                            .previousPage(),
-                      ),
+            ),
+            Positioned.fill(
+              child: Row(
+                children: [
+                  Flexible(
+                    flex: 1,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.translucent,
+                      onTap: () => readDirection == .rightToLeft
+                          ? ref.read(provider.notifier).previousPage()
+                          : ref.read(provider.notifier).nextPage(),
                     ),
-                    Expanded(
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.translucent,
-                        onTap: () => uiVisible.value = !uiVisible.value,
-                      ),
+                  ),
+                  Flexible(
+                    flex: 2,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.translucent,
+                      onTap: () => uiVisible.value = !uiVisible.value,
                     ),
-                    Expanded(
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.translucent,
-                        onTap: () => ref
-                            .read(readerProvider(seriesId: seriesId).notifier)
-                            .nextPage(),
-                      ),
+                  ),
+                  Flexible(
+                    flex: 1,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.translucent,
+                      onTap: () => readDirection == .rightToLeft
+                          ? ref.read(provider.notifier).nextPage()
+                          : ref.read(provider.notifier).previousPage(),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+            Align(
+              alignment: .topCenter,
+              child:
+                  ReaderHeader(
+                        seriesId: seriesId,
+                        chapterId: chapterId,
+                      )
+                      .animate(target: uiVisible.value ? 1.0 : 0.0)
+                      .fadeIn(duration: 100.ms),
+            ),
+            Align(
+              alignment: .bottomCenter,
+              child: ReaderControls(chapterId: chapterId, seriesId: seriesId)
+                  .animate(target: uiVisible.value ? 1.0 : 0.0)
+                  .fadeIn(duration: 100.ms),
+            ),
+          ],
         ),
       ),
     );

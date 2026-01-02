@@ -9,27 +9,45 @@ class HomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    _invalidateProviders(ref);
     return Scaffold(
       extendBody: true,
       body: SafeArea(
         bottom: false,
-        child: CustomScrollView(
-          slivers: [
-            OnDeck(),
-            RecentlyUpdated(),
-            RecentlyAdded(),
-            // bottom padding for scrolling past the navigation bar
-            SliverToBoxAdapter(
-              child: SizedBox(
-                height:
-                    LayoutConstants.mediumPadding +
-                    MediaQuery.of(context).padding.bottom,
+        child: RefreshIndicator(
+          onRefresh: () async {
+            _invalidateProviders(ref);
+            // wait for all providers to refresh
+            await Future.wait([
+              ref.watch(onDeckProvider.future),
+              ref.watch(recentlyUpdatedProvider.future),
+              ref.watch(recentlyAddedProvider.future),
+            ]);
+          },
+          child: CustomScrollView(
+            slivers: [
+              OnDeck(),
+              RecentlyUpdated(),
+              RecentlyAdded(),
+              // bottom padding for scrolling past the navigation bar
+              SliverToBoxAdapter(
+                child: SizedBox(
+                  height:
+                      LayoutConstants.mediumPadding +
+                      MediaQuery.of(context).padding.bottom,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  Future<void> _invalidateProviders(WidgetRef ref) async {
+    final _ = await ref.refresh(onDeckProvider.future);
+    final _ = await ref.refresh(recentlyUpdatedProvider.future);
+    final _ = await ref.refresh(recentlyAddedProvider.future);
   }
 }
 

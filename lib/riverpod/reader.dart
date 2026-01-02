@@ -1,11 +1,14 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:laya/api/models/progress_dto.dart';
+import 'package:laya/models/chapter_model.dart';
 import 'package:laya/models/series_model.dart';
 import 'package:laya/riverpod/api/book.dart';
 import 'package:laya/riverpod/api/chapter.dart';
 import 'package:laya/riverpod/api/client.dart';
 import 'package:laya/riverpod/api/reader.dart';
 import 'package:laya/riverpod/api/series.dart';
+import 'package:laya/riverpod/image_reader_settings.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'reader.freezed.dart';
@@ -18,8 +21,8 @@ sealed class ReaderState with _$ReaderState {
   const factory ReaderState({
     required int libraryId,
     required SeriesModel series,
+    required ChapterModel chapter,
     required int volumeId,
-    required int chapterId,
     required String title,
     required int totalPages,
     required int currentPage,
@@ -50,7 +53,7 @@ class Reader extends _$Reader {
       libraryId: info.libraryId,
       series: series,
       volumeId: info.volumeId,
-      chapterId: chapter.id,
+      chapter: chapter,
       title: info.seriesName ?? 'Untitled',
       totalPages: info.pages,
       currentPage: progress.pageNum,
@@ -59,18 +62,24 @@ class Reader extends _$Reader {
 
   Future<void> nextPage() async {
     final current = await future;
-    await _gotoPage(current.currentPage + 1);
+
+    if (current.currentPage < current.totalPages) {
+      await gotoPage(current.currentPage + 1);
+    }
   }
 
   Future<void> previousPage() async {
     final current = await future;
-    if (current.currentPage == 0) return;
-    await _gotoPage(current.currentPage - 1);
+    if (current.currentPage > 0) {
+      await gotoPage(current.currentPage - 1);
+    }
   }
 
-  Future<void> _gotoPage(int page) async {
+  Future<void> gotoPage(int page) async {
     if (state.isLoading) return;
     final current = await future;
+
+    if (page < 0 || page >= current.totalPages) return;
 
     state = AsyncValue.loading();
 
@@ -80,7 +89,7 @@ class Reader extends _$Reader {
         libraryId: current.libraryId,
         seriesId: current.series.id,
         volumeId: current.volumeId,
-        chapterId: current.chapterId,
+        chapterId: current.chapter.id,
         pageNum: page,
       ),
     );
@@ -89,4 +98,25 @@ class Reader extends _$Reader {
       current.copyWith(currentPage: page),
     );
   }
+}
+
+@riverpod
+ReadDirection readDirection(
+  Ref ref, {
+  required int seriesId,
+  int? chapterId,
+}) {
+  final format =
+      ref.watch(
+        readerProvider(seriesId: seriesId, chapterId: chapterId).select(
+          (state) => state.value?.series.format,
+        ),
+      ) ??
+      .unknown;
+
+  return switch (format) {
+    .epub => ReadDirection.leftToRight,
+    .cbz => ref.watch(imageReaderSettingsProvider).readDirection,
+    .unknown => ReadDirection.leftToRight,
+  };
 }
