@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:laya/riverpod/api/book.dart';
-import 'package:laya/utils/layout_constants.dart';
+import 'package:laya/riverpod/epub_reader_settings.dart';
 import 'package:laya/widgets/async_value.dart';
 
 class EpubReader extends ConsumerWidget {
@@ -17,6 +17,8 @@ class EpubReader extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(epubReaderSettingsProvider);
+
     return Async(
       asyncValue: ref.watch(
         bookPageProvider(chapterId: chapterId, page: page),
@@ -25,8 +27,14 @@ class EpubReader extends ConsumerWidget {
         child: LayoutBuilder(
           builder: (context, constraints) {
             return Padding(
-              padding: LayoutConstants.largeEdgeInsets,
-              child: HtmlWidget(data),
+              padding: EdgeInsetsGeometry.all(settings.marginSize),
+              child: HtmlWidget(
+                data,
+                textStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontSize: settings.fontSize,
+                  height: settings.lineHeight,
+                ),
+              ),
             );
           },
         ),

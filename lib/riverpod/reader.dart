@@ -2,6 +2,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:laya/api/models/progress_dto.dart';
 import 'package:laya/models/chapter_model.dart';
+import 'package:laya/models/read_direction.dart';
 import 'package:laya/models/series_model.dart';
 import 'package:laya/riverpod/api/book.dart';
 import 'package:laya/riverpod/api/chapter.dart';
@@ -115,8 +116,8 @@ ReadDirection readDirection(
       .unknown;
 
   return switch (format) {
-    .epub => ReadDirection.leftToRight,
+    .epub => .rightToLeft,
     .cbz => ref.watch(imageReaderSettingsProvider).readDirection,
-    .unknown => ReadDirection.leftToRight,
+    .unknown => .rightToLeft,
   };
 }

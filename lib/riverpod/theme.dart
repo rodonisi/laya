@@ -9,7 +9,9 @@ import 'package:riverpod_annotation/experimental/persist.dart';
 part 'theme.freezed.dart';
 part 'theme.g.dart';
 
-final _lightTheme = MaterialTheme(Typography.material2021().black).lightHighContrast();
+final _lightTheme = MaterialTheme(
+  Typography.material2021().black,
+).lightHighContrast();
 final _darkTheme = MaterialTheme(
   Typography.material2021().white,
 ).darkMediumContrast();

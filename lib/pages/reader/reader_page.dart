@@ -30,16 +30,6 @@ class ReaderPage extends HookConsumerWidget {
       readDirectionProvider(seriesId: seriesId, chapterId: chapterId),
     );
 
-    // useEffect(() {
-    //   if (uiVisible.value) {
-    //     final timer = Timer(const Duration(seconds: 5), () {
-    //       uiVisible.value = false;
-    //     });
-    //     return timer.cancel;
-    //   }
-    //   return null;
-    // }, [uiVisible.value]);
-
     return Scaffold(
       body: GestureDetector(
         onPanEnd: (details) {
@@ -80,7 +70,7 @@ class ReaderPage extends HookConsumerWidget {
                   Flexible(
                     flex: 1,
                     child: GestureDetector(
-                      behavior: HitTestBehavior.translucent,
+                      behavior: .translucent,
                       onTap: () => readDirection == .rightToLeft
                           ? ref.read(provider.notifier).previousPage()
                           : ref.read(provider.notifier).nextPage(),
@@ -89,14 +79,14 @@ class ReaderPage extends HookConsumerWidget {
                   Flexible(
                     flex: 2,
                     child: GestureDetector(
-                      behavior: HitTestBehavior.translucent,
+                      behavior: .translucent,
                       onTap: () => uiVisible.value = !uiVisible.value,
                     ),
                   ),
                   Flexible(
                     flex: 1,
                     child: GestureDetector(
-                      behavior: HitTestBehavior.translucent,
+                      behavior: .translucent,
                       onTap: () => readDirection == .rightToLeft
                           ? ref.read(provider.notifier).nextPage()
                           : ref.read(provider.notifier).previousPage(),

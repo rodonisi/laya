@@ -1,20 +1,16 @@
 import 'package:flutter_riverpod/experimental/persist.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:laya/models/read_direction.dart';
 import 'package:laya/riverpod/storage.dart';
 import 'package:riverpod_annotation/experimental/json_persist.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-part 'image_reader_settings.g.dart';
 part 'image_reader_settings.freezed.dart';
+part 'image_reader_settings.g.dart';
 
 enum ImageScaleType {
   fitWidth,
   fitHeight,
-}
-
-enum ReadDirection {
-  leftToRight,
-  rightToLeft,
 }
 
 enum ReaderMode {
@@ -24,8 +20,6 @@ enum ReaderMode {
 
 @freezed
 sealed class ImageReaderSettingsState with _$ImageReaderSettingsState {
-  const ImageReaderSettingsState._();
-
   const factory ImageReaderSettingsState({
     required ImageScaleType scaleType,
     required ReadDirection readDirection,
@@ -44,33 +38,29 @@ class ImageReaderSettings extends _$ImageReaderSettings {
     persist(ref.watch(storageProvider.future));
 
     return ImageReaderSettingsState(
-      scaleType: ImageScaleType.fitWidth,
-      readDirection: ReadDirection.leftToRight,
-      readerMode: ReaderMode.horizontal,
+      scaleType: .fitWidth,
+      readDirection: .leftToRight,
+      readerMode: .horizontal,
     );
   }
 
   void toggleScaleType() {
     state = state.copyWith(
-      scaleType: state.scaleType == ImageScaleType.fitWidth
-          ? ImageScaleType.fitHeight
-          : ImageScaleType.fitWidth,
+      scaleType: state.scaleType == .fitWidth ? .fitHeight : .fitWidth,
     );
   }
 
   void toggleReadDirection() {
     state = state.copyWith(
-      readDirection: state.readDirection == ReadDirection.leftToRight
-          ? ReadDirection.rightToLeft
-          : ReadDirection.leftToRight,
+      readDirection: state.readDirection == .leftToRight
+          ? .rightToLeft
+          : .leftToRight,
     );
   }
 
   void toggleReaderMode() {
     state = state.copyWith(
-      readerMode: state.readerMode == ReaderMode.horizontal
-          ? ReaderMode.vertical
-          : ReaderMode.horizontal,
+      readerMode: state.readerMode == .horizontal ? .vertical : .horizontal,
     );
   }
 }

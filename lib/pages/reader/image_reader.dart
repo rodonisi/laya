@@ -13,7 +13,7 @@ class ImageReader extends ConsumerWidget {
     super.key,
     required this.chapterId,
     required this.page,
-    required this.totalPages, 
+    required this.totalPages,
   });
 
   @override
@@ -25,26 +25,10 @@ class ImageReader extends ConsumerWidget {
         readerImageProvider(chapterId: chapterId, page: page),
       ),
       data: (data) {
-        return switch (settings.readerMode) {
-          .horizontal => Image.memory(
-            data,
-            fit: settings.scaleType == .fitWidth ? .fitWidth : .fitHeight,
-          ),
-          .vertical => ListView.builder(
-            itemCount: totalPages,
-            itemBuilder: (context, index) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Async(
-                  asyncValue: ref.watch(
-                    readerImageProvider(chapterId: chapterId, page: index),
-                  ),
-                  data: (data) => Image.memory(data),
-                ),
-              );
-            },
-          ),
-        };
+        return Image.memory(
+          data,
+          fit: settings.scaleType == .fitWidth ? .fitWidth : .fitHeight,
+        );
       },
     );
   }
