@@ -18,3 +18,4 @@ swagger_parser:
     - Series
     - Book
     - Reader
+    - Image

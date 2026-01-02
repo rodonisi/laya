@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:html/dom.dart';
@@ -39,14 +40,6 @@ Dio authenticatedDio(Ref ref) {
     dio.options.baseUrl = settings!.url!;
   }
 
-  // dio.interceptors.add(
-  //   LogInterceptor(
-  //     requestHeader: true,
-  //     requestBody: true,
-  //     responseBody: true,
-  //   ),
-  // );
-
   dio.interceptors.add(
     InterceptorsWrapper(
       onRequest: (options, handler) async {
@@ -68,22 +61,6 @@ RestClient restClient(Ref ref) {
 }
 
 @riverpod
-AccountClient accountClient(Ref ref) {
-  final dio = ref.watch(dioProvider);
-  return RestClient(dio).account;
-}
-
-@riverpod
-LibraryClient libraryClient(Ref ref) {
-  return ref.watch(restClientProvider).library;
-}
-
-@riverpod
-SeriesClient seriesClient(Ref ref) {
-  return ref.watch(restClientProvider).series;
-}
-
-@riverpod
 Future<UserDto?> currentUser(Ref ref) async {
   final settings = ref.watch(settingsProvider).value;
   final apiKey = settings?.apiKey;
@@ -92,7 +69,9 @@ Future<UserDto?> currentUser(Ref ref) async {
     return null;
   }
 
-  final client = ref.watch(accountClientProvider);
+  final dio = ref.watch(dioProvider);
+  final client = RestClient(dio).account;
+
   final user = await client.postApiAccountLogin(
     body: LoginDto(apiKey: apiKey, username: '', password: ''),
   );
@@ -102,13 +81,13 @@ Future<UserDto?> currentUser(Ref ref) async {
 
 @riverpod
 Future<List<LibraryDto>> libraries(Ref ref) async {
-  final client = ref.watch(libraryClientProvider);
+  final client = ref.watch(restClientProvider).library;
   return await client.getApiLibraryLibraries();
 }
 
 @riverpod
 Future<List<SeriesDto>> series(Ref ref, int libraryId) async {
-  final client = ref.watch(seriesClientProvider);
+  final client = ref.watch(restClientProvider).series;
   return await client.postApiSeriesV2(
     body: FilterV2Dto(
       id: 0,
@@ -128,8 +107,26 @@ Future<List<SeriesDto>> series(Ref ref, int libraryId) async {
 
 @riverpod
 Future<SeriesDetailDto> seriesDetail(Ref ref, int seriesID) async {
-  final client = ref.watch(seriesClientProvider);
+  final client = ref.watch(restClientProvider).series;
   return await client.getApiSeriesSeriesDetail(seriesId: seriesID);
+}
+
+@riverpod
+Future<List<SeriesDto>> onDeck(Ref ref) async {
+  final client = ref.watch(restClientProvider).series;
+  return await client.postApiSeriesOnDeck();
+}
+
+@riverpod
+Future<List<RecentlyAddedItemDto>> recentlyUpdated(Ref ref) async {
+  final client = ref.watch(restClientProvider).series;
+  return await client.postApiSeriesRecentlyUpdatedSeries();
+}
+
+@riverpod
+Future<List<SeriesDto>> recentlyAdded(Ref ref) async {
+  final client = ref.watch(restClientProvider).series;
+  return await client.postApiSeriesRecentlyAddedV2();
 }
 
 @riverpod
@@ -245,4 +242,27 @@ Future<String> page(Ref ref, {required int seriesId}) async {
       page: progress.pageNum,
     ).future,
   );
+}
+
+@riverpod
+Future<Uint8List> coverImage(Ref ref, {required int seriesId}) async {
+  // final client = ref.watch(restClientProvider).image;
+  final dio = ref.watch(authenticatedDioProvider);
+  final key = ref.watch(currentUserProvider).value?.apiKey;
+
+  final res = await dio.get(
+    '/api/Image/series-cover',
+    queryParameters: {
+      'seriesId': seriesId,
+      'apiKey': key,
+    },
+    options: Options(
+      responseType: .bytes,
+      headers: {
+        'Accept': 'image/*',
+      },
+    ),
+  );
+  // final res = await client.getApiImageSeriesCover(seriesId: seriesId);
+  return res.data;
 }
