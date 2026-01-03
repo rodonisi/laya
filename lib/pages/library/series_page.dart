@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fluvita/utils/layout_constants.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:fluvita/riverpod/api/library.dart';
 import 'package:fluvita/riverpod/api/series.dart';
@@ -22,9 +23,11 @@ class SeriesPage extends ConsumerWidget {
             SliverAppBar.large(title: Text(data.name)),
             AsyncSliver(
               asyncValue: series,
-              data: (data) => SeriesSliverGrid(
-                series: data,
-                childCount: data.length,
+              data: (data) => SliverPadding(
+                padding: LayoutConstants.smallEdgeInsets,
+                sliver: SeriesSliverGrid(
+                  series: data,
+                ),
               ),
             ),
             SliverBottomPadding(),

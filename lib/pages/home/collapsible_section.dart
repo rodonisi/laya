@@ -20,15 +20,14 @@ class CollapsibleSection extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final showAll = useState(false);
 
-    final collapsedCount = 2;
     final total = series.value?.length ?? 0;
-    final toShow = showAll.value ? total : collapsedCount;
+    final toShow = showAll.value ? total : 1;
 
     return SliverMainAxisGroup(
       slivers: [
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: LayoutConstants.mediumEdgeInsets,
+        SliverPadding(
+          padding: LayoutConstants.smallEdgeInsets,
+          sliver: SliverToBoxAdapter(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -36,13 +35,12 @@ class CollapsibleSection extends HookConsumerWidget {
                   title,
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
-                if (total > collapsedCount)
-                  TextButton(
-                    onPressed: () {
-                      showAll.value = !showAll.value;
-                    },
-                    child: Text(showAll.value ? 'Show Less' : 'Show All'),
-                  ),
+                TextButton(
+                  onPressed: () {
+                    showAll.value = !showAll.value;
+                  },
+                  child: Text(showAll.value ? 'Show Less' : 'Show All'),
+                ),
               ],
             ),
           ),
@@ -52,9 +50,9 @@ class CollapsibleSection extends HookConsumerWidget {
           data: (data) {
             return SliverPadding(
               padding: EdgeInsetsGeometry.symmetric(
-                horizontal: LayoutConstants.mediumPadding,
+                horizontal: LayoutConstants.smallPadding,
               ),
-              sliver: SeriesSliverGrid(series: data, childCount: toShow),
+              sliver: SeriesSliverGrid(series: data, rowCount: toShow),
             );
           },
         ),

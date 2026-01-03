@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:fluvita/widgets/adaptive_sliver_grid.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:fluvita/models/chapter_model.dart';
 import 'package:fluvita/models/series_model.dart';
@@ -142,14 +143,9 @@ class _VolumeGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SliverGrid(
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 3 / 5,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-      ),
-      delegate: SliverChildBuilderDelegate((context, index) {
+    return AdaptiveSliverGrid(
+      itemCount: volumes.length,
+      builder: (context, index) {
         final volume = volumes[index];
         return Card(
           clipBehavior: Clip.antiAlias,
@@ -184,7 +180,7 @@ class _VolumeGrid extends StatelessWidget {
             ),
           ),
         );
-      }, childCount: volumes.length),
+      },
     );
   }
 }
@@ -197,14 +193,9 @@ class _ChapterGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SliverGrid(
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 3 / 5,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-      ),
-      delegate: SliverChildBuilderDelegate((context, index) {
+    return AdaptiveSliverGrid(
+      itemCount: chapters.length,
+      builder: (context, index) {
         final chapter = chapters[index];
         return Card(
           clipBehavior: Clip.antiAlias,
@@ -237,7 +228,7 @@ class _ChapterGrid extends StatelessWidget {
             ),
           ),
         );
-      }, childCount: chapters.length),
+      },
     );
   }
 }

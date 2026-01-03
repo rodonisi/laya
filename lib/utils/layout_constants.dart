@@ -19,3 +19,10 @@ sealed class LayoutConstants {
   static const double largeIcon = 32.0;
   static const double largerIcon = 48.0;
 }
+
+sealed class Breakpoints {
+  static const double compact = 600.0;
+  static const double medium = 840.0;
+  static const double expanded = 1200.0;
+  static const double large = 1600.0;
+}

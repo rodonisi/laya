@@ -10,19 +10,14 @@ class HomePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     _invalidateProviders(ref);
+
     return Scaffold(
       extendBody: true,
       body: SafeArea(
         bottom: false,
         child: RefreshIndicator(
           onRefresh: () async {
-            _invalidateProviders(ref);
-            // wait for all providers to refresh
-            await Future.wait([
-              ref.watch(onDeckProvider.future),
-              ref.watch(recentlyUpdatedProvider.future),
-              ref.watch(recentlyAddedProvider.future),
-            ]);
+            await _invalidateProviders(ref);
           },
           child: CustomScrollView(
             slivers: [
