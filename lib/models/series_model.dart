@@ -1,6 +1,9 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:laya/api/models/recently_added_item_dto.dart';
+import 'package:laya/api/models/series_detail_dto.dart';
 import 'package:laya/api/models/series_dto.dart';
+import 'package:laya/models/chapter_model.dart';
+import 'package:laya/models/volume_model.dart';
 
 part 'series_model.freezed.dart';
 part 'series_model.g.dart';
@@ -44,6 +47,26 @@ sealed class SeriesModel with _$SeriesModel {
         .value1 => Format.cbz,
         _ => Format.unknown,
       },
+    );
+  }
+}
+
+@freezed
+sealed class SeriesDetailModel with _$SeriesDetailModel {
+  const factory SeriesDetailModel({
+    required List<VolumeModel> volumes,
+    required List<ChapterModel> chapters,
+    required List<ChapterModel> specials,
+  }) = _SeriesDetailModel;
+
+  factory SeriesDetailModel.fromJson(Map<String, Object?> json) =>
+      _$SeriesDetailModelFromJson(json);
+
+  factory SeriesDetailModel.fromSeriesDetailDto(SeriesDetailDto dto) {
+    return SeriesDetailModel(
+      volumes: dto.volumes?.map(VolumeModel.fromVolumeDto).toList() ?? [],
+      chapters: dto.chapters?.map(ChapterModel.fromChapterDto).toList() ?? [],
+      specials: dto.specials?.map(ChapterModel.fromChapterDto).toList() ?? [],
     );
   }
 }

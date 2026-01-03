@@ -47,17 +47,17 @@ sealed class ThemeModel with _$ThemeModel {
 @JsonPersist()
 class Theme extends _$Theme {
   @override
-  Future<ThemeModel> build() async {
-    await persist(ref.watch(storageProvider.future)).future;
+  ThemeModel build() {
+    persist(ref.watch(storageProvider.future));
 
-    return state.value ?? ThemeModel();
+    return ThemeModel();
   }
 
   void setMode(ThemeMode mode) {
-    state = AsyncData(ThemeModel(mode: mode));
+    state = ThemeModel(mode: mode);
   }
 
   void reset() {
-    state = AsyncData(ThemeModel(mode: ThemeMode.system));
+    state = ThemeModel(mode: ThemeMode.system);
   }
 }

@@ -1,6 +1,5 @@
 import 'package:laya/api/models/filter_statement_dto.dart';
 import 'package:laya/api/models/filter_v2_dto.dart';
-import 'package:laya/api/models/series_detail_dto.dart';
 import 'package:laya/api/models/sort_options.dart';
 import 'package:laya/models/series_model.dart';
 import 'package:laya/riverpod/api/client.dart';
@@ -39,9 +38,11 @@ Future<List<SeriesModel>> allSeries(Ref ref, int libraryId) async {
 }
 
 @riverpod
-Future<SeriesDetailDto> seriesDetail(Ref ref, int seriesId) async {
+Future<SeriesDetailModel> seriesDetail(Ref ref, {required int seriesId}) async {
   final client = ref.watch(restClientProvider).series;
-  return await client.getApiSeriesSeriesDetail(seriesId: seriesId);
+  final res = await client.getApiSeriesSeriesDetail(seriesId: seriesId);
+
+  return SeriesDetailModel.fromSeriesDetailDto(res);
 }
 
 @riverpod

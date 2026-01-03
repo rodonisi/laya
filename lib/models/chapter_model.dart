@@ -15,7 +15,7 @@ sealed class ChapterModel with _$ChapterModel {
   factory ChapterModel.fromJson(Map<String, Object?> json) =>
       _$ChapterModelFromJson(json);
 
-  factory ChapterModel.fromDto(ChapterDto dto) {
+  factory ChapterModel.fromChapterDto(ChapterDto dto) {
     return ChapterModel(
       id: dto.id,
       volumeId: dto.volumeId,

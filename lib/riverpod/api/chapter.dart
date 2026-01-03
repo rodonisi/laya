@@ -9,5 +9,5 @@ Future<ChapterModel> chapter(Ref ref, {required int chapterId}) async {
   final client = ref.watch(restClientProvider).chapter;
   final res = await client.getApiChapter(chapterId: chapterId);
 
-  return ChapterModel.fromDto(res);
+  return ChapterModel.fromChapterDto(res);
 }

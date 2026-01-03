@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:laya/pages/home/home_page.dart';
-import 'package:laya/pages/library/chapters_page.dart';
 import 'package:laya/pages/library/library_page.dart';
+import 'package:laya/pages/library/series_detail_page.dart';
 import 'package:laya/pages/library/series_page.dart';
 import 'package:laya/pages/reader/reader_page.dart';
 import 'package:laya/pages/settings/settings_page.dart';
@@ -34,7 +34,7 @@ GoRouter router(Ref ref) {
             TypedGoRoute<SeriesRoute>(
               path: ':libraryId/series',
               routes: [
-                TypedGoRoute<ChaptersRoute>(path: ':seriesId/chapters'),
+                TypedGoRoute<SeriesDetailRoute>(path: ':seriesId'),
               ],
             ),
           ],
@@ -98,15 +98,15 @@ class SeriesRoute extends GoRouteData with $SeriesRoute {
       SeriesPage(libraryId: libraryId);
 }
 
-class ChaptersRoute extends GoRouteData with $ChaptersRoute {
-  const ChaptersRoute({required this.libraryId, required this.seriesId});
+class SeriesDetailRoute extends GoRouteData with $SeriesDetailRoute {
+  const SeriesDetailRoute({required this.libraryId, required this.seriesId});
 
   final int libraryId;
   final int seriesId;
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      ChaptersPage(seriesId: seriesId);
+      SeriesDetailPage(seriesId: seriesId);
 }
 
 class SettingsRoute extends GoRouteData with $SettingsRoute {

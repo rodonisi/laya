@@ -13,7 +13,7 @@ Future<ChapterModel> continuePoint(Ref ref, {required int seriesId}) async {
   final client = ref.watch(restClientProvider).reader;
   final res = await client.getApiReaderContinuePoint(seriesId: seriesId);
 
-  return ChapterModel.fromDto(res);
+  return ChapterModel.fromChapterDto(res);
 }
 
 @riverpod

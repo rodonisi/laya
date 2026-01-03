@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:laya/models/series_model.dart';
-import 'package:laya/riverpod/router.dart';
+import 'package:laya/widgets/async_value.dart';
+import 'package:laya/widgets/series_sliver_grid.dart';
 import 'package:laya/utils/layout_constants.dart';
-import 'package:laya/widgets/cover_image.dart';
 
 class CollapsibleSection extends HookConsumerWidget {
   final String title;
@@ -48,84 +47,16 @@ class CollapsibleSection extends HookConsumerWidget {
             ),
           ),
         ),
-        series.when(
+        AsyncSliver(
+          asyncValue: series,
           data: (data) {
             return SliverPadding(
               padding: EdgeInsetsGeometry.symmetric(
                 horizontal: LayoutConstants.mediumPadding,
               ),
-              sliver: SliverGrid(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 3 / 5,
-                ),
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final series = data[index];
-                    return Card(
-                      child: Column(
-                        children: [
-                          Expanded(
-                            child: Stack(
-                              children: [
-                                Positioned.fill(
-                                  child: CoverImage(seriesId: series.id),
-                                ),
-                                Align(
-                                  child: IconButton.filled(
-                                    iconSize: LayoutConstants.mediumIcon,
-                                    onPressed: () {
-                                      ReaderRoute(
-                                        seriesId: series.id,
-                                      ).push(context);
-                                    },
-                                    icon: FaIcon(FontAwesomeIcons.book),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          GestureDetector(
-                            onTap: () {},
-                            child: Padding(
-                              padding: LayoutConstants.smallEdgeInsets,
-                              child: Row(
-                                mainAxisSize: .min,
-                                spacing: LayoutConstants.smallPadding,
-                                children: [
-                                  Icon(
-                                    switch (series.format) {
-                                      .epub => FontAwesomeIcons.book,
-                                      .cbz => FontAwesomeIcons.fileZipper,
-                                      .unknown => FontAwesomeIcons.question,
-                                    },
-                                    size: LayoutConstants.smallIcon,
-                                  ),
-                                  Expanded(
-                                    child: Text(
-                                      series.name,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                  childCount: toShow,
-                ),
-              ),
+              sliver: SeriesSliverGrid(series: data, childCount: toShow),
             );
           },
-          loading: () => const SliverToBoxAdapter(
-            child: Center(child: CircularProgressIndicator()),
-          ),
-          error: (error, stack) => SliverToBoxAdapter(
-            child: Center(child: Text('Error: $error')),
-          ),
         ),
       ],
     );

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:laya/pages/home/collapsible_section.dart';
 import 'package:laya/riverpod/api/series.dart';
-import 'package:laya/utils/layout_constants.dart';
+import 'package:laya/widgets/sliver_bottom_padding.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -29,14 +29,7 @@ class HomePage extends ConsumerWidget {
               OnDeck(),
               RecentlyUpdated(),
               RecentlyAdded(),
-              // bottom padding for scrolling past the navigation bar
-              SliverToBoxAdapter(
-                child: SizedBox(
-                  height:
-                      LayoutConstants.mediumPadding +
-                      MediaQuery.of(context).padding.bottom,
-                ),
-              ),
+              SliverBottomPadding(),
             ],
           ),
         ),

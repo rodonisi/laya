@@ -3,21 +3,99 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:laya/riverpod/api/image.dart';
 import 'package:laya/widgets/async_value.dart';
 
-class CoverImage extends ConsumerWidget {
+class SeriesCoverImage extends ConsumerWidget {
   final int seriesId;
-  const CoverImage({super.key, required this.seriesId});
+  final double? width;
+  final double? height;
+  final BoxFit fit;
+  final BorderRadius? borderRadius;
+
+  const SeriesCoverImage({
+    super.key,
+    required this.seriesId,
+    this.width,
+    this.height,
+    this.fit = BoxFit.cover,
+    this.borderRadius,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Async(
-      asyncValue: ref.watch(coverImageProvider(seriesId: seriesId)),
+      asyncValue: ref.watch(seriesCoverProvider(seriesId: seriesId)),
       data: (imageData) => ClipRRect(
-        borderRadius: BorderRadius.circular(8.0),
+        borderRadius: borderRadius ?? BorderRadius.circular(8.0),
         child: Image.memory(
           imageData,
-          fit: BoxFit.cover,
-          height: 150,
-          width: double.infinity,
+          fit: fit,
+          height: height,
+          width: width,
+        ),
+      ),
+    );
+  }
+}
+
+class VolumeCoverImage extends ConsumerWidget {
+  final int volumeId;
+  final double? width;
+  final double? height;
+  final BoxFit fit;
+  final BorderRadius? borderRadius;
+
+  const VolumeCoverImage({
+    super.key,
+    required this.volumeId,
+    this.width,
+    this.height,
+    this.fit = BoxFit.cover,
+    this.borderRadius,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Async(
+      asyncValue: ref.watch(volumeCoverProvider(volumeId: volumeId)),
+      data: (imageData) => ClipRRect(
+        borderRadius: borderRadius ?? BorderRadius.circular(8.0),
+        child: Image.memory(
+          imageData,
+          fit: fit,
+          height: height,
+          width: width,
+        ),
+      ),
+    );
+  }
+}
+
+class ChapterCoverImage extends ConsumerWidget {
+  final int chapterId;
+  final double? width;
+  final double? height;
+  final BoxFit fit;
+  final BorderRadius? borderRadius;
+
+  const ChapterCoverImage({
+    super.key,
+    required this.chapterId,
+    this.width,
+    this.height,
+    this.fit = BoxFit.cover,
+    this.borderRadius,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Async(
+      asyncValue: ref.watch(chapterCoverProvider(chapterId: chapterId)),
+      data: (imageData) => ClipRRect(
+        borderRadius: borderRadius ?? BorderRadius.circular(8.0),
+        child: Image.memory(
+          imageData,
+          fit: fit,
+          height: height,
+          width: width,
         ),
       ),
     );
