@@ -5,6 +5,7 @@ import 'package:html/dom.dart';
 import 'package:html/parser.dart';
 import 'package:laya/api/models/book_info_dto.dart';
 import 'package:laya/riverpod/api/client.dart';
+import 'package:laya/utils/html_xpath.dart';
 import 'package:laya/utils/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -91,6 +92,5 @@ Future<String> bookPage(Ref ref, {required int chapterId, int? page}) async {
       }
     }
   }
-
   return doc.outerHtml;
 }

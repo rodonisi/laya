@@ -54,6 +54,7 @@ dependencies:
   font_awesome_flutter: ^10.12.0
   equatable: ^2.0.7
   flutter_animate: ^4.5.2
+  go_router_builder: ^4.1.3
 
 dev_dependencies:
   flutter_test:

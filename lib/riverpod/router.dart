@@ -1,106 +1,141 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:laya/pages/home/home_page.dart';
 import 'package:laya/pages/library/chapters_page.dart';
 import 'package:laya/pages/library/library_page.dart';
-import 'package:laya/pages/reader/reader_page.dart';
 import 'package:laya/pages/library/series_page.dart';
+import 'package:laya/pages/reader/reader_page.dart';
 import 'package:laya/pages/settings/settings_page.dart';
 import 'package:laya/widgets/navigator_container.dart';
-import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'router.g.dart';
 
-sealed class Routes {
-  static const String home = '/';
-  static const String library = '/library';
-  static const String settings = '/settings';
-  static const String seriesPath = '/series/:libraryId';
-  static String series({required int libraryId}) => '/series/$libraryId';
-
-  static const String readerPath = '/reader/:seriesId';
-  static String reader({required int seriesId}) => '/reader/$seriesId';
-
-  static const String chaptersPath = '/chapters/:seriesId';
-  static String chapters({required int seriesId}) => '/chapters/$seriesId';
-}
-
 @riverpod
 GoRouter router(Ref ref) {
   return GoRouter(
-    initialLocation: Routes.home,
-    routes: [
-      StatefulShellRoute.indexedStack(
-        branches: [
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: Routes.home,
-                builder: (context, state) => HomePage(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: Routes.library,
-                builder: (context, state) => LibraryPage(),
-                routes: [
-                  GoRoute(
-                    path: Routes.seriesPath,
-                    builder: (context, state) {
-                      final libraryId = int.parse(
-                        state.pathParameters['libraryId']!,
-                      );
-                      return SeriesPage(libraryId: libraryId);
-                    },
-                    routes: [],
-                  ),
-                ],
-              ),
-              GoRoute(
-                path: Routes.chaptersPath,
-                builder: (context, state) {
-                  final seriesId = int.parse(
-                    state.pathParameters['seriesId']!,
-                  );
-                  return ChaptersPage(seriesId: seriesId);
-                },
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: Routes.settings,
-                builder: (context, state) => SettingsPage(),
-              ),
-            ],
-          ),
-        ],
-        builder: (context, state, navigationShell) => NavigatorContainer(
-          navigationShell: navigationShell,
-        ),
-      ),
-      GoRoute(
-        path: Routes.readerPath,
-        pageBuilder: (context, state) {
-          final seriesId = int.parse(
-            state.pathParameters['seriesId']!,
-          );
-          return MaterialPage(
-            key: state.pageKey,
-            fullscreenDialog: true,
-            child: ReaderPage(seriesId: seriesId),
-          );
-        },
-        // builder: (context, state) {
-        //   final seriesId = int.parse(
-        //     state.pathParameters['seriesId']!,
-        //   );
-        //   return ReaderPage(seriesId: seriesId);
-        // },
-      ),
-    ],
+    initialLocation: '/',
+    routes: $appRoutes,
   );
+}
+
+@TypedStatefulShellRoute<AppShellRoute>(
+  branches: [
+    TypedStatefulShellBranch<HomeBranch>(
+      routes: [
+        TypedGoRoute<HomeRoute>(path: '/'),
+      ],
+    ),
+    TypedStatefulShellBranch<LibraryBranch>(
+      routes: [
+        TypedGoRoute<LibraryRoute>(
+          path: '/library',
+          routes: [
+            TypedGoRoute<SeriesRoute>(
+              path: ':libraryId/series',
+              routes: [
+                TypedGoRoute<ChaptersRoute>(path: ':seriesId/chapters'),
+              ],
+            ),
+          ],
+        ),
+      ],
+    ),
+    TypedStatefulShellBranch<SettingsBranch>(
+      routes: [
+        TypedGoRoute<SettingsRoute>(path: '/settings'),
+      ],
+    ),
+  ],
+)
+class AppShellRoute extends StatefulShellRouteData {
+  const AppShellRoute();
+
+  @override
+  Widget builder(
+    BuildContext context,
+    GoRouterState state,
+    StatefulNavigationShell navigationShell,
+  ) {
+    return NavigatorContainer(navigationShell: navigationShell);
+  }
+}
+
+class HomeBranch extends StatefulShellBranchData {
+  const HomeBranch();
+}
+
+class LibraryBranch extends StatefulShellBranchData {
+  const LibraryBranch();
+}
+
+class SettingsBranch extends StatefulShellBranchData {
+  const SettingsBranch();
+}
+
+class HomeRoute extends GoRouteData with $HomeRoute {
+  const HomeRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) => const HomePage();
+}
+
+class LibraryRoute extends GoRouteData with $LibraryRoute {
+  const LibraryRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const LibraryPage();
+}
+
+class SeriesRoute extends GoRouteData with $SeriesRoute {
+  final int libraryId;
+
+  const SeriesRoute({required this.libraryId});
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      SeriesPage(libraryId: libraryId);
+}
+
+class ChaptersRoute extends GoRouteData with $ChaptersRoute {
+  const ChaptersRoute({required this.libraryId, required this.seriesId});
+
+  final int libraryId;
+  final int seriesId;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      ChaptersPage(seriesId: seriesId);
+}
+
+class SettingsRoute extends GoRouteData with $SettingsRoute {
+  const SettingsRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const SettingsPage();
+}
+
+@TypedGoRoute<ReaderRoute>(path: '/reader/:seriesId')
+class ReaderRoute extends GoRouteData with $ReaderRoute {
+  final int seriesId;
+  final int? chapterId;
+
+  const ReaderRoute({
+    required this.seriesId,
+    this.chapterId,
+  });
+
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) {
+    return MaterialPage(
+      key: state.pageKey,
+      fullscreenDialog: true,
+      child: ReaderPage(
+        seriesId: seriesId,
+        chapterId: chapterId,
+      ),
+    );
+  }
 }

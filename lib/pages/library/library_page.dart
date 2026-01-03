@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:laya/riverpod/api/library.dart';
 import 'package:laya/riverpod/router.dart';
-import 'package:go_router/go_router.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 class LibraryPage extends ConsumerWidget {
   const LibraryPage({super.key});
@@ -17,9 +16,9 @@ class LibraryPage extends ConsumerWidget {
         itemBuilder: (context, index) {
           final lib = libraries[index];
           return ListTile(
-            title: Text(lib.name ?? 'missing name'),
-            subtitle: Text(lib.id.toString()),
-            onTap: () => context.go(Routes.series(libraryId: lib.id)),
+            title: Text(lib.name),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => SeriesRoute(libraryId: lib.id).push(context),
           );
         },
       ),

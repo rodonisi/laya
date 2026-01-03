@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:laya/riverpod/api/series.dart';
 import 'package:laya/riverpod/router.dart';
-import 'package:go_router/go_router.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 class SeriesPage extends ConsumerWidget {
   final int libraryId;
@@ -23,7 +22,8 @@ class SeriesPage extends ConsumerWidget {
             return ListTile(
               title: Text(s.name),
               subtitle: Text(s.id.toString()),
-              onTap: () => context.push(Routes.chapters(seriesId: s.id)),
+              onTap: () => ChaptersRoute(libraryId: libraryId, seriesId: s.id)
+                  .push(context),
             );
           },
         ),

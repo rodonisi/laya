@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:laya/models/series_model.dart';
 import 'package:laya/riverpod/router.dart';
@@ -76,9 +75,9 @@ class CollapsibleSection extends HookConsumerWidget {
                                   child: IconButton.filled(
                                     iconSize: LayoutConstants.mediumIcon,
                                     onPressed: () {
-                                      context.push(
-                                        Routes.reader(seriesId: series.id),
-                                      );
+                                      ReaderRoute(
+                                        seriesId: series.id,
+                                      ).push(context);
                                     },
                                     icon: FaIcon(FontAwesomeIcons.book),
                                   ),
