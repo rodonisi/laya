@@ -29,6 +29,7 @@ class NavigatorContainer extends StatelessWidget {
               selectedIndex: navigationShell.currentIndex,
               onDestinationSelected: (index) => navigationShell.goBranch(
                 index,
+                initialLocation: true,
               ),
               destinations: const [
                 NavigationDestination(
