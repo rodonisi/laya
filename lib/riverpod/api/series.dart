@@ -49,6 +49,7 @@ Future<SeriesDetailModel> seriesDetail(Ref ref, {required int seriesId}) async {
 Future<List<SeriesModel>> onDeck(Ref ref) async {
   final client = ref.watch(restClientProvider).series;
   final res = await client.postApiSeriesOnDeck();
+
   return res.map(SeriesModel.fromSeriesDto).toList();
 }
 
@@ -56,12 +57,19 @@ Future<List<SeriesModel>> onDeck(Ref ref) async {
 Future<List<SeriesModel>> recentlyUpdated(Ref ref) async {
   final client = ref.watch(restClientProvider).series;
   final res = await client.postApiSeriesRecentlyUpdatedSeries();
-  return res.map(SeriesModel.fromRecentlyAddedItemDto).toList();
+
+  final seriesModels = res
+      .map(
+        (dto) async => await ref.watch(seriesProvider(seriesId: dto.seriesId).future),
+      )
+      .toList();
+  return await Future.wait(seriesModels);
 }
 
 @riverpod
 Future<List<SeriesModel>> recentlyAdded(Ref ref) async {
   final client = ref.watch(restClientProvider).series;
   final res = await client.postApiSeriesRecentlyAddedV2();
+
   return res.map(SeriesModel.fromSeriesDto).toList();
 }

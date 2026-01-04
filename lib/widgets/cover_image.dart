@@ -23,14 +23,11 @@ class SeriesCoverImage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Async(
       asyncValue: ref.watch(seriesCoverProvider(seriesId: seriesId)),
-      data: (imageData) => ClipRRect(
-        borderRadius: borderRadius ?? BorderRadius.circular(8.0),
-        child: Image.memory(
-          imageData,
-          fit: fit,
-          height: height,
-          width: width,
-        ),
+      data: (imageData) => Image.memory(
+        imageData,
+        fit: fit,
+        height: height,
+        width: width,
       ),
     );
   }

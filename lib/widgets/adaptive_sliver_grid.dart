@@ -19,10 +19,10 @@ class AdaptiveSliverGrid extends StatelessWidget {
       builder: (context, constraints) {
         final crossAxisCount = switch (constraints.crossAxisExtent) {
           final width when width >= Breakpoints.large => 10,
-          final width when width >= Breakpoints.expanded => 6,
-          final width when width >= Breakpoints.medium => 4,
-          final width when width >= Breakpoints.compact => 3,
-          _ => 2,
+          final width when width >= Breakpoints.expanded => 8,
+          final width when width >= Breakpoints.medium => 6,
+          final width when width >= Breakpoints.compact => 4,
+          _ => 3,
         };
 
         final items = rowCount != null

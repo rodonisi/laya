@@ -8,6 +8,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:fluvita/riverpod/api/book.dart';
 import 'package:fluvita/riverpod/epub_reader_settings.dart';
 import 'package:fluvita/widgets/async_value.dart';
+import 'package:html/parser.dart';
 
 class EpubReader extends HookConsumerWidget {
   final int seriesId;
@@ -81,25 +82,34 @@ class EpubReader extends HookConsumerWidget {
                         page: index,
                       ),
                     ),
-                    data: (data) => SingleChildScrollView(
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          return Padding(
-                            padding: EdgeInsetsGeometry.all(
-                              settings.marginSize,
-                            ),
-                            child: HtmlWidget(
-                              data,
-                              textStyle: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(
-                                    fontSize: settings.fontSize,
-                                    height: settings.lineHeight,
-                                  ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
+                    data: (data) {
+                      final doc = parse(data);
+                      final chunks = useState<List<String>>([]);
+
+                      // split into chunks filling the screen height
+
+                      return SingleChildScrollView(
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            return Padding(
+                              padding: EdgeInsetsGeometry.all(
+                                settings.marginSize,
+                              ),
+                              child: HtmlWidget(
+                                data,
+                                textStyle: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(
+                                      fontSize: settings.fontSize,
+                                      height: settings.lineHeight,
+                                    ),
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    },
                   );
                 },
               ),

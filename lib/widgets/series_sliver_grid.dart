@@ -23,37 +23,46 @@ class SeriesSliverGrid extends StatelessWidget {
       rowCount: rowCount,
       builder: (context, index) {
         final series = this.series[index];
-        return Card(
-          child: Column(
-            children: [
-              Expanded(
-                child: Stack(
-                  children: [
-                    Positioned.fill(
-                      child: SeriesCoverImage(seriesId: series.id),
-                    ),
-                    Align(
-                      child: IconButton.filled(
-                        iconSize: LayoutConstants.mediumIcon,
-                        onPressed: () {
-                          ReaderRoute(
-                            seriesId: series.id,
-                          ).push(context);
-                        },
-                        icon: FaIcon(FontAwesomeIcons.book),
+        return GestureDetector(
+          onTap: () {
+            SeriesDetailRoute(
+              libraryId: series.libraryId,
+              seriesId: series.id,
+            ).push(context);
+          },
+          child: Card(
+            clipBehavior: .antiAlias,
+            child: Column(
+              children: [
+                Expanded(
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: SeriesCoverImage(seriesId: series.id),
                       ),
-                    ),
-                  ],
+                      Align(
+                        alignment: .topRight,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: FilledButton.icon(
+                            // iconSize: LayoutConstants.mediumIcon,
+                            label: Text('Continue'),
+                            onPressed: () {
+                              ReaderRoute(
+                                seriesId: series.id,
+                              ).push(context);
+                            },
+                            icon: FaIcon(FontAwesomeIcons.play),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              GestureDetector(
-                onTap: () {
-                  SeriesDetailRoute(
-                    libraryId: series.libraryId,
-                    seriesId: series.id,
-                  ).push(context);
-                },
-                child: Padding(
+                LinearProgressIndicator(
+                  value: (series.pagesRead / series.pages).clamp(0.0, 1.0),
+                ),
+                Padding(
                   padding: LayoutConstants.smallEdgeInsets,
                   child: Row(
                     mainAxisSize: .min,
@@ -76,8 +85,8 @@ class SeriesSliverGrid extends StatelessWidget {
                     ],
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },
