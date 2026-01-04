@@ -57,24 +57,30 @@ class ReaderOverlay extends HookWidget {
         ),
         Align(
           alignment: .topCenter,
-          child:
-              ReaderHeader(
-                    seriesId: seriesId,
-                    chapterId: chapterId,
-                  )
-                  .animate(target: uiVisible.value ? 1.0 : 0.0)
-                  .fadeIn(duration: 100.ms),
+          child: IgnorePointer(
+            ignoring: !uiVisible.value,
+            child:
+                ReaderHeader(
+                      seriesId: seriesId,
+                      chapterId: chapterId,
+                    )
+                    .animate(target: uiVisible.value ? 1.0 : 0.0)
+                    .fadeIn(duration: 100.ms),
+          ),
         ),
         Align(
           alignment: .bottomCenter,
-          child:
-              ReaderControls(
-                    chapterId: chapterId,
-                    seriesId: seriesId,
-                    onJumpToPage: onJumpToPage,
-                  )
-                  .animate(target: uiVisible.value ? 1.0 : 0.0)
-                  .fadeIn(duration: 100.ms),
+          child: IgnorePointer(
+            ignoring: !uiVisible.value,
+            child:
+                ReaderControls(
+                      chapterId: chapterId,
+                      seriesId: seriesId,
+                      onJumpToPage: onJumpToPage,
+                    )
+                    .animate(target: uiVisible.value ? 1.0 : 0.0)
+                    .fadeIn(duration: 100.ms),
+          ),
         ),
       ],
     );
