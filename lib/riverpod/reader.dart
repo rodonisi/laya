@@ -1,5 +1,3 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:fluvita/api/models/progress_dto.dart';
 import 'package:fluvita/models/chapter_model.dart';
 import 'package:fluvita/models/read_direction.dart';
@@ -10,6 +8,9 @@ import 'package:fluvita/riverpod/api/client.dart';
 import 'package:fluvita/riverpod/api/reader.dart';
 import 'package:fluvita/riverpod/api/series.dart';
 import 'package:fluvita/riverpod/image_reader_settings.dart';
+import 'package:fluvita/utils/logging.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'reader.freezed.dart';
@@ -27,6 +28,7 @@ sealed class ReaderState with _$ReaderState {
     required String title,
     required int totalPages,
     required int currentPage,
+    String? bookScrollId,
   }) = _ReaderState;
 
   factory ReaderState.fromJson(Map<String, Object?> json) =>
@@ -58,6 +60,7 @@ class Reader extends _$Reader {
       title: info.seriesName ?? 'Untitled',
       totalPages: info.pages,
       currentPage: progress.pageNum,
+      bookScrollId: progress.bookScrollId,
     );
   }
 
@@ -99,6 +102,25 @@ class Reader extends _$Reader {
 
     state = AsyncValue.data(
       current.copyWith(currentPage: page),
+    );
+  }
+
+  Future<void> reportProgress({int? page, String? scrollId}) async {
+    if (state.isLoading) return;
+    final current = await future;
+
+    log.d('Reporting progress: page=$page, xpath=$scrollId');
+
+    final readerClient = ref.read(restClientProvider).reader;
+    await readerClient.postApiReaderProgress(
+      body: ProgressDto(
+        libraryId: current.libraryId,
+        seriesId: current.series.id,
+        volumeId: current.volumeId,
+        chapterId: current.chapter.id,
+        pageNum: page ?? current.currentPage,
+        bookScrollId: scrollId,
+      ),
     );
   }
 

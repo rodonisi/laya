@@ -1,8 +1,8 @@
 import 'package:html/dom.dart';
 
-extension XPathExtension on Element {
+extension ScrollIdExtension on Element {
   /// Computes the XPath of this element relative to the root of the document.
-  String get xpath {
+  String get scrollId {
     final List<String> paths = [];
     Element? current = this;
 

@@ -1,13 +1,10 @@
+import 'package:fluvita/riverpod/epub_reader.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:fluvita/pages/reader/reader_overlay.dart';
-import 'package:fluvita/riverpod/reader.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:fluvita/riverpod/api/book.dart';
 import 'package:fluvita/riverpod/epub_reader_settings.dart';
 import 'package:fluvita/widgets/async_value.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 class EpubReader extends HookConsumerWidget {
   final int seriesId;
@@ -21,92 +18,117 @@ class EpubReader extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(epubReaderSettingsProvider);
+    final reader = epubReaderProvider(
+      seriesId: seriesId,
+      chapterId: chapterId,
+    );
 
-    return Async(
-      asyncValue: ref.watch(
-        readerProvider(seriesId: seriesId, chapterId: chapterId),
+    return ReaderOverlay(
+      seriesId: seriesId,
+      chapterId: chapterId,
+      onNextPage: () {
+        ref.read(reader.notifier).nextPage();
+      },
+      onPreviousPage: () {
+        ref.read(reader.notifier).previousPage();
+      },
+      onJumpToPage: (page) {
+        ref.read(reader.notifier).jumpToPage(page);
+      },
+      child: Async(
+        asyncValue: ref.watch(reader),
+        data: (data) {
+          return data.when(
+            measuring: (data) {
+              return MeasureContent(
+                state: data,
+                seriesId: seriesId,
+                chapterId: chapterId,
+              );
+            },
+            display: (data) => RenderContent(html: data.currentPage),
+          );
+        },
       ),
-      data: (data) {
-        return HookBuilder(
-          builder: (context) {
-            final controller = usePageController();
-            return ReaderOverlay(
-              seriesId: seriesId,
-              chapterId: chapterId,
-              onNextPage: () {
-                settings.readDirection == .rightToLeft
-                    ? controller.previousPage(
-                        duration: 100.ms,
-                        curve: Curves.easeInOut,
-                      )
-                    : controller.nextPage(
-                        duration: 100.ms,
-                        curve: Curves.easeInOut,
-                      );
-              },
-              onPreviousPage: () {
-                settings.readDirection == .rightToLeft
-                    ? controller.nextPage(
-                        duration: 100.ms,
-                        curve: Curves.easeInOut,
-                      )
-                    : controller.previousPage(
-                        duration: 100.ms,
-                        curve: Curves.easeInOut,
-                      );
-              },
-              onJumpToPage: (page) {
-                controller.jumpToPage(page);
-              },
-              child: PageView.builder(
-                allowImplicitScrolling: true,
-                itemCount: data.totalPages,
-                controller: controller,
-                onPageChanged: (page) {
-                  ref
-                      .read(
-                        readerProvider(
-                          seriesId: seriesId,
-                          chapterId: chapterId,
-                        ).notifier,
-                      )
-                      .gotoPage(page);
-                },
-                itemBuilder: (context, index) {
-                  return Async(
-                    asyncValue: ref.watch(
-                      bookPageProvider(
-                        chapterId: chapterId,
-                        page: index,
-                      ),
-                    ),
-                    data: (data) => SingleChildScrollView(
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          return Padding(
-                            padding: EdgeInsetsGeometry.all(
-                              settings.marginSize,
-                            ),
-                            child: HtmlWidget(
-                              data,
-                              textStyle: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(
-                                    fontSize: settings.fontSize,
-                                    height: settings.lineHeight,
-                                  ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  );
-                },
+    );
+  }
+}
+
+class MeasureContent extends ConsumerWidget {
+  final int seriesId;
+  final int chapterId;
+  final Measuring state;
+  const MeasureContent({
+    super.key,
+    required this.state,
+    required this.seriesId,
+    required this.chapterId,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final provider = epubReaderProvider(
+      seriesId: seriesId,
+      chapterId: chapterId,
+    );
+    final key = GlobalKey();
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final renderBox =
+              key.currentContext?.findRenderObject() as RenderBox?;
+          if (renderBox == null) {
+            return;
+          }
+
+          if (renderBox.size.height > constraints.maxHeight) {
+            ref.read(provider.notifier).finishMeasuring();
+          } else {
+            ref.read(provider.notifier).addElement();
+          }
+        });
+
+        return Stack(
+          children: [
+            Positioned.fill(
+              child: Offstage(
+                child: SingleChildScrollView(
+                  child: RenderContent(
+                    key: key,
+                    html: state.currentPage,
+                  ),
+                ),
               ),
-            );
-          },
+            ),
+            Align(
+              alignment: .center,
+              child: CircularProgressIndicator(),
+            ),
+          ],
         );
       },
+    );
+  }
+}
+
+class RenderContent extends ConsumerWidget {
+  final String html;
+
+  const RenderContent({super.key, required this.html});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final epubSettings = ref.watch(epubReaderSettingsProvider);
+    return Padding(
+      padding: EdgeInsets.all(epubSettings.marginSize),
+      child: HtmlWidget(
+        html,
+        textStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+          fontSize: epubSettings.fontSize,
+          height: epubSettings.lineHeight,
+        ),
+      ),
     );
   }
 }
