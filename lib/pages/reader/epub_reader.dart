@@ -125,13 +125,12 @@ class RenderContent extends ConsumerWidget {
       child: Column(
         mainAxisSize: .min,
         children: [
-          Flexible(
-            child: HtmlWidget(
-              html,
-              textStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontSize: epubSettings.fontSize,
-                height: epubSettings.lineHeight,
-              ),
+          HtmlWidget(
+            html,
+
+            textStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              fontSize: epubSettings.fontSize,
+              height: epubSettings.lineHeight,
             ),
           ),
         ],
