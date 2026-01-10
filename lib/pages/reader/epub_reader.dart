@@ -120,20 +120,21 @@ class RenderContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final epubSettings = ref.watch(epubReaderSettingsProvider);
-    return Padding(
-      padding: EdgeInsets.all(epubSettings.marginSize),
-      child: Column(
-        mainAxisSize: .min,
-        children: [
-          HtmlWidget(
-            html,
-
-            textStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              fontSize: epubSettings.fontSize,
-              height: epubSettings.lineHeight,
+    return Align(
+      alignment: Alignment.topCenter,
+      child: SafeArea(
+        child: IntrinsicWidth(
+          child: Padding(
+            padding: EdgeInsets.all(epubSettings.marginSize),
+            child: HtmlWidget(
+              html,
+              textStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                fontSize: epubSettings.fontSize,
+                height: epubSettings.lineHeight,
+              ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
