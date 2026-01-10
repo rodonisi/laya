@@ -60,7 +60,8 @@ Future<List<SeriesModel>> recentlyUpdated(Ref ref) async {
 
   final seriesModels = res
       .map(
-        (dto) async => await ref.watch(seriesProvider(seriesId: dto.seriesId).future),
+        (dto) async =>
+            await ref.watch(seriesProvider(seriesId: dto.seriesId).future),
       )
       .toList();
   return await Future.wait(seriesModels);
