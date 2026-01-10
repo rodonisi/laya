@@ -80,7 +80,12 @@ sealed class EpubReaderState with _$EpubReaderState {
   String get currentPage {
     final (:start, :end) = when(
       measuring: (data) {
-        return (start: pageStart, end: data.currentIndex);
+        // Clamp currentIndex to valid range for sublist
+        final endIndex = data.currentIndex.clamp(
+          0,
+          pageElements.elements.length,
+        );
+        return (start: pageStart, end: endIndex);
       },
       display: (data) {
         return (start: pageStart, end: pageEnd);
@@ -159,9 +164,10 @@ class EpubReader extends _$EpubReader {
           return;
         }
 
-        if (measuring.currentIndex >= measuring.pageElements.elements.length) {
-          log.d('all elements measured');
-          finishMeasuring(includeLast: true);
+        // Check if we've already incremented past all elements and confirmed no overflow
+        if (measuring.currentIndex > measuring.pageElements.elements.length) {
+          log.d('all elements measured and fit on current page');
+          finishMeasuring(overflow: false);
           return;
         }
 
@@ -174,14 +180,17 @@ class EpubReader extends _$EpubReader {
     );
   }
 
-  Future<void> finishMeasuring({bool includeLast = false}) async {
+  Future<void> finishMeasuring({bool overflow = true}) async {
     final current = await future;
     current.whenOrNull(
       measuring: (measuring) {
         final scrollIdIdx = measuring.scrollIdIndex;
+
+        // Only add a page break if the page overflowed
+        // If overflow is false, all remaining elements fit on the current page
         final pageBreaks = <int>[
           ...measuring.pageBreaks,
-          if (!includeLast) measuring.currentIndex - 1,
+          if (overflow) measuring.currentIndex - 1,
         ];
 
         if ((measuring.fromLast &&
@@ -196,6 +205,7 @@ class EpubReader extends _$EpubReader {
             measuring.copyWith(
               pageBreaks: pageBreaks,
               subpageIndex: pageBreaks.length - 1,
+              currentIndex: pageBreaks.last,
             ),
           );
           return;
