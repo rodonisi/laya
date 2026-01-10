@@ -75,7 +75,7 @@ class MeasureContent extends ConsumerWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
           final renderBox =
               key.currentContext?.findRenderObject() as RenderBox?;
           if (renderBox == null) {
@@ -83,9 +83,9 @@ class MeasureContent extends ConsumerWidget {
           }
 
           if (renderBox.size.height > constraints.maxHeight) {
-            ref.read(provider.notifier).finishMeasuring();
+            await ref.read(provider.notifier).finishMeasuring();
           } else {
-            ref.read(provider.notifier).addElement();
+            await ref.read(provider.notifier).addElement();
           }
         });
 
@@ -123,15 +123,14 @@ class RenderContent extends ConsumerWidget {
     return Align(
       alignment: Alignment.topCenter,
       child: SafeArea(
-        child: IntrinsicWidth(
-          child: Padding(
-            padding: EdgeInsets.all(epubSettings.marginSize),
-            child: HtmlWidget(
-              html,
-              textStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontSize: epubSettings.fontSize,
-                height: epubSettings.lineHeight,
-              ),
+        child: Padding(
+          padding: EdgeInsets.all(epubSettings.marginSize),
+          child: HtmlWidget(
+            html,
+            enableCaching: true,
+            textStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              fontSize: epubSettings.fontSize,
+              height: epubSettings.lineHeight,
             ),
           ),
         ),
