@@ -1,7 +1,7 @@
-import 'package:fluvita/riverpod/epub_reader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:fluvita/pages/reader/reader_overlay.dart';
+import 'package:fluvita/riverpod/epub_reader.dart';
 import 'package:fluvita/riverpod/epub_reader_settings.dart';
 import 'package:fluvita/widgets/async_value.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -122,12 +122,19 @@ class RenderContent extends ConsumerWidget {
     final epubSettings = ref.watch(epubReaderSettingsProvider);
     return Padding(
       padding: EdgeInsets.all(epubSettings.marginSize),
-      child: HtmlWidget(
-        html,
-        textStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
-          fontSize: epubSettings.fontSize,
-          height: epubSettings.lineHeight,
-        ),
+      child: Column(
+        mainAxisSize: .min,
+        children: [
+          Flexible(
+            child: HtmlWidget(
+              html,
+              textStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                fontSize: epubSettings.fontSize,
+                height: epubSettings.lineHeight,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
