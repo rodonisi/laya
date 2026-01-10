@@ -1,12 +1,12 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
-import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:html/dom.dart';
-import 'package:html/parser.dart';
 import 'package:fluvita/api/models/book_info_dto.dart';
 import 'package:fluvita/riverpod/api/client.dart';
 import 'package:fluvita/utils/logging.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:html/dom.dart';
+import 'package:html/parser.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'book.freezed.dart';
@@ -19,7 +19,7 @@ Future<BookInfoDto> bookInfo(Ref ref, {required int chapterId}) async {
 }
 
 @riverpod
-Future<String> bookPage(Ref ref, {required int chapterId, int? page}) async {
+Future<Document> bookPage(Ref ref, {required int chapterId, int? page}) async {
   final dio = ref.watch(authenticatedDioProvider);
   final client = ref.watch(restClientProvider).book;
   final html = await client.getApiBookChapterIdBookPage(
@@ -48,6 +48,14 @@ Future<String> bookPage(Ref ref, {required int chapterId, int? page}) async {
         log.d(mimeType);
 
         img.attributes['src'] = 'data:$mimeType;base64,$base64img';
+
+        // Ensure images have defined sizes for proper rendering
+        if (!img.attributes.containsKey('width')) {
+          img.attributes['width'] = '100%';
+        }
+        if (!img.attributes.containsKey('height')) {
+          img.attributes['height'] = 'auto';
+        }
       }
     }
   }
@@ -93,7 +101,7 @@ Future<String> bookPage(Ref ref, {required int chapterId, int? page}) async {
       }
     }
   }
-  return doc.outerHtml;
+  return doc;
 }
 
 @freezed
@@ -111,13 +119,13 @@ Future<BookPageElementsResult> bookPageElements(
   int? page,
   int chunkSize = 5,
 }) async {
-  final client = ref.watch(restClientProvider).book;
-  final html = await client.getApiBookChapterIdBookPage(
-    chapterId: chapterId,
-    page: page,
+  final doc = await ref.watch(
+    bookPageProvider(
+      chapterId: chapterId,
+      page: page,
+    ).future,
   );
 
-  final doc = parse(html);
   final body = doc.body;
   if (body == null) {
     throw Exception('No body found in HTML');
@@ -126,7 +134,9 @@ Future<BookPageElementsResult> bookPageElements(
   final paragraphs = body.getElementsByTagName('p');
 
   if (paragraphs.isEmpty) {
-    return BookPageElementsResult(wrapper: body, elements: body.children);
+    // For pages without paragraphs (image-only, etc.),
+    // return as single element to preserve structure and prevent rendering issues
+    return BookPageElementsResult(wrapper: body, elements: []);
   }
 
   final contentParent = paragraphs.first.parent;

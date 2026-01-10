@@ -78,6 +78,12 @@ sealed class EpubReaderState with _$EpubReaderState {
       : pageElements.elements.length;
 
   String get currentPage {
+    // If we have a single element that is the body itself, render it directly
+    // to avoid double-nesting
+    if (pageElements.elements.isEmpty) {
+      return containerElement.outerHtml;
+    }
+
     final (:start, :end) = when(
       measuring: (data) {
         // Clamp currentIndex to valid range for sublist
@@ -101,6 +107,10 @@ sealed class EpubReaderState with _$EpubReaderState {
   }
 
   String? get firstScrollId {
+    if (pageElements.elements.isEmpty) {
+      return null;
+    }
+
     final firstElement = pageElements.elements[pageStart];
     return firstElement.scrollId;
   }
@@ -129,6 +139,16 @@ class EpubReader extends _$EpubReader {
         page: readerState.currentPage,
       ).future,
     );
+
+    if (page.elements.isEmpty) {
+      // skip measuring for pages without elements
+      return EpubReaderState.display(
+        pageIndex: readerState.currentPage,
+        totalPages: readerState.totalPages,
+        pageElements: HtmlElementsList([]),
+        containerElement: page.wrapper,
+      );
+    }
 
     final hadState = state.value != null;
     final fromLast = (state.value != null)
