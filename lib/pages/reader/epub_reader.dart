@@ -46,7 +46,9 @@ class EpubReader extends HookConsumerWidget {
                 chapterId: chapterId,
               );
             },
-            display: (data) => RenderContent(html: data.currentPage),
+            display: (data) => SingleChildScrollView(
+              child: RenderContent(html: data.currentPage),
+            ),
           );
         },
       ),
@@ -93,11 +95,14 @@ class MeasureContent extends ConsumerWidget {
           children: [
             Positioned.fill(
               child: Offstage(
-                child: SingleChildScrollView(
-                  child: RenderContent(
-                    key: key,
-                    html: state.currentPage,
-                  ),
+                child: Column(
+                  mainAxisSize: .min,
+                  children: [
+                    RenderContent(
+                      key: key,
+                      html: state.currentPage,
+                    ),
+                  ],
                 ),
               ),
             ),

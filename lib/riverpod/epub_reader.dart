@@ -183,7 +183,7 @@ class EpubReader extends _$EpubReader {
         // Check if we've already incremented past all elements and confirmed no overflow
         if (measuring.currentIndex >= measuring.pageElements.elements.length) {
           log.d('all elements measured and fit on current page');
-          finishMeasuring();
+          finishMeasuring(overflow: false);
           return;
         }
 
@@ -196,7 +196,7 @@ class EpubReader extends _$EpubReader {
     );
   }
 
-  Future<void> finishMeasuring() async {
+  Future<void> finishMeasuring({bool overflow = true}) async {
     final current = await future;
     current.whenOrNull(
       measuring: (measuring) {
@@ -206,15 +206,19 @@ class EpubReader extends _$EpubReader {
         // If overflow is false, all remaining elements fit on the current page
         final pageBreaks = <int>[
           ...measuring.pageBreaks,
-          measuring.currentIndex - 1,
+          if (overflow) measuring.currentIndex - 1,
+          if (overflow &&
+              measuring.pageBreaks.isNotEmpty &&
+              measuring.pageBreaks.last == measuring.currentIndex - 1)
+            measuring.currentIndex,
         ];
 
         if ((measuring.fromLast &&
                 measuring.currentIndex <
-                    measuring.pageElements.elements.length - 1) ||
+                    measuring.pageElements.elements.length) ||
             (measuring.scrollId != null &&
                 scrollIdIdx != null &&
-                scrollIdIdx > pageBreaks.last - 1)) {
+                scrollIdIdx >= pageBreaks.last)) {
           log.d('fast forward, measuring next page');
 
           state = AsyncData(
@@ -227,7 +231,9 @@ class EpubReader extends _$EpubReader {
           return;
         }
 
-        log.d('finishing measuring at ${measuring.currentIndex}');
+        log.d(
+          'finishing measuring at ${measuring.currentIndex}/${measuring.pageElements.elements.length}',
+        );
 
         state = AsyncData(
           EpubReaderState.display(
