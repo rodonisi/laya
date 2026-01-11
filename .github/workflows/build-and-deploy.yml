@@ -1,0 +1,79 @@
+name: Build & Deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.VERSION }}
+      build_number: ${{ steps.version.outputs.BUILD_NUMBER }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get semantic version
+        id: versioning
+        uses: PaulHatch/semantic-version@v5.4.0
+        with:
+          bump_each_commit: false
+          bump_each_commit_patch_pattern: "fix"
+          minor_pattern: "feat"
+          major_pattern: "feat!"
+          version_format: "${major}.${minor}.${patch}"
+          tag_prefix: ""
+
+      - name: Set version and build number
+        id: version
+        run: |
+          echo "VERSION=${{ steps.versioning.outputs.version }}" >> $GITHUB_OUTPUT
+          echo "BUILD_NUMBER=${{ github.run_number }}" >> $GITHUB_OUTPUT
+
+  build-and-deploy-ios:
+    name: Build & Deploy iOS
+    needs: version
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get FVM Configuration 🔧
+        uses: kuhnroyal/flutter-fvm-config-action@v3
+        id: fvm-config-action
+
+      - name: Setup Flutter 📦
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ steps.fvm-config-action.outputs.FLUTTER_VERSION }}
+          channel: ${{ steps.fvm-config-action.outputs.FLUTTER_CHANNEL }}
+          cache: true
+
+      - name: Install dependencies
+        run: |
+          flutter pub get
+          cd ios && pod install --repo-update
+
+      - name: Codegen
+        run: |
+          dart run swagger_parser
+          dart run build_runner build --delete-conflicting-outputs
+
+      - name: Build and Publish Testflight
+        run: |
+          cd ios
+          fastlane beta version:${{ needs.version.outputs.version }} build_number:${{ needs.version.outputs.build_number }} > /dev/null 2>&1 || (echo "Fastlane failed" && exit 1)
+        env:
+          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
+          APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY }}
+          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
