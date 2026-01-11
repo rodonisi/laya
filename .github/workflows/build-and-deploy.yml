@@ -45,11 +45,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Get FVM Configuration 🔧
+      - name: Get FVM Configuration
         uses: kuhnroyal/flutter-fvm-config-action@v3
         id: fvm-config-action
 
-      - name: Setup Flutter 📦
+      - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ steps.fvm-config-action.outputs.FLUTTER_VERSION }}
@@ -77,3 +77,62 @@ jobs:
           MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
           MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
+
+  build-web:
+    name: Build Web
+    needs: version
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get FVM Configuration
+        uses: kuhnroyal/flutter-fvm-config-action@v3
+        id: fvm-config-action
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ steps.fvm-config-action.outputs.FLUTTER_VERSION }}
+          channel: ${{ steps.fvm-config-action.outputs.FLUTTER_CHANNEL }}
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Codegen
+        run: |
+          dart run swagger_parser
+          dart run build_runner build --delete-conflicting-outputs
+
+      - name: Build web
+        run: |
+          flutter build web \
+            --release \
+            --base-href /fluvita/ \
+            --build-name ${{ needs.version.outputs.version }} \
+            --build-number ${{ needs.version.outputs.build_number }} \
+            --wasm
+
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v4.0.0
+        with:
+          path: build/web
+
+  deploy-web:
+    name: Deploy Web
+    needs: build-web
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write # to deploy to Pages
+      id-token: write # to verify the deployment originates from an appropriate source
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
