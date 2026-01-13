@@ -99,6 +99,7 @@ Future<Document> bookPage(Ref ref, {required int chapterId, int? page}) async {
 sealed class BookPageElementsResult with _$BookPageElementsResult {
   const factory BookPageElementsResult({
     required Element wrapper,
+    required Map<String, Map<String, String>> styles,
     required List<Element> elements,
   }) = _BookPageElementsResult;
 }
@@ -134,12 +135,35 @@ Future<BookPageElementsResult> bookPageElements(
     // return as single element to preserve structure and prevent rendering issues
     return BookPageElementsResult(
       wrapper: container,
+      styles: _parseStyles(styles.innerHtml),
       elements: container.children,
     );
   }
 
   return BookPageElementsResult(
     wrapper: body,
+    styles: {},
     elements: [],
   );
+}
+
+Map<String, Map<String, String>> _parseStyles(String css) {
+  final Map<String, Map<String, String>> stylesMap = {};
+  final RegExp ruleRegExp = RegExp(r'([^{]+)\{([^}]+)\}');
+  final RegExp propRegExp = RegExp(r'([^:]+):([^;]+);?');
+
+  for (final ruleMatch in ruleRegExp.allMatches(css)) {
+    final selector = ruleMatch.group(1)!.trim();
+    final properties = ruleMatch.group(2)!;
+    final Map<String, String> propsMap = {};
+
+    for (final propMatch in propRegExp.allMatches(properties)) {
+      final prop = propMatch.group(1)!.trim();
+      final value = propMatch.group(2)!.trim();
+      propsMap[prop] = value;
+    }
+
+    stylesMap[selector] = propsMap;
+  }
+  return stylesMap;
 }

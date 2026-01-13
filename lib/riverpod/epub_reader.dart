@@ -12,10 +12,10 @@ part 'epub_reader.g.dart';
 
 typedef HtmlElement = dom.Element;
 
-class HtmlElementsList {
-  final List<dom.Element> elements;
-  const HtmlElementsList(this.elements);
-}
+// class HtmlElementsList {
+//   final List<dom.Element> elements;
+//   const HtmlElementsList(this.elements);
+// }
 
 @freezed
 sealed class EpubReaderState with _$EpubReaderState {
@@ -24,9 +24,8 @@ sealed class EpubReaderState with _$EpubReaderState {
   const factory EpubReaderState.measuring({
     required int pageIndex,
     required int totalPages,
-    required HtmlElementsList pageElements,
-    required HtmlElement containerElement,
-    String? scrollId,
+    required BookPageElementsResult pageElements,
+    required String? scrollId,
     @Default(0) currentIndex,
     @Default([0]) List<int> pageBreaks,
     @Default(0) int subpageIndex,
@@ -36,8 +35,7 @@ sealed class EpubReaderState with _$EpubReaderState {
   const factory EpubReaderState.display({
     required int pageIndex,
     required int totalPages,
-    required HtmlElementsList pageElements,
-    required HtmlElement containerElement,
+    required BookPageElementsResult pageElements,
     String? scrollId,
     @Default([0]) List<int> pageBreaks,
     @Default(0) int subpageIndex,
@@ -81,7 +79,7 @@ sealed class EpubReaderState with _$EpubReaderState {
     // If we have a single element that is the body itself, render it directly
     // to avoid double-nesting
     if (pageElements.elements.isEmpty) {
-      return containerElement.outerHtml;
+      return pageElements.wrapper.outerHtml;
     }
 
     final (:start, :end) = when(
@@ -94,7 +92,7 @@ sealed class EpubReaderState with _$EpubReaderState {
       },
     );
 
-    final container = containerElement.clone(false)
+    final container = pageElements.wrapper.clone(false)
       ..children.addAll(
         pageElements.elements.sublist(start, end).map((e) => e.clone(true)),
       );
@@ -141,8 +139,7 @@ class EpubReader extends _$EpubReader {
       return EpubReaderState.display(
         pageIndex: readerState.currentPage,
         totalPages: readerState.totalPages,
-        pageElements: HtmlElementsList([]),
-        containerElement: page.wrapper,
+        pageElements: page,
       );
     }
 
@@ -154,8 +151,7 @@ class EpubReader extends _$EpubReader {
     return EpubReaderState.measuring(
       pageIndex: readerState.currentPage,
       totalPages: readerState.totalPages,
-      pageElements: HtmlElementsList(page.elements),
-      containerElement: page.wrapper,
+      pageElements: page,
       scrollId: hadState ? null : readerState.bookScrollId,
       fromLast: fromLast,
     );
@@ -172,7 +168,6 @@ class EpubReader extends _$EpubReader {
               pageIndex: measuring.pageIndex,
               totalPages: measuring.totalPages,
               pageElements: measuring.pageElements,
-              containerElement: measuring.containerElement,
               subpageIndex: measuring.subpageIndex,
               pageBreaks: measuring.pageBreaks,
             ),
@@ -240,7 +235,6 @@ class EpubReader extends _$EpubReader {
             pageIndex: measuring.pageIndex,
             totalPages: measuring.totalPages,
             pageElements: measuring.pageElements,
-            containerElement: measuring.containerElement,
             scrollId: null,
             pageBreaks: pageBreaks,
             subpageIndex: measuring.subpageIndex,
@@ -273,7 +267,6 @@ class EpubReader extends _$EpubReader {
           pageIndex: display.pageIndex,
           totalPages: display.totalPages,
           pageElements: display.pageElements,
-          containerElement: display.containerElement,
           scrollId: display.scrollId,
           pageBreaks: display.pageBreaks,
           subpageIndex: display.subpageIndex + 1,
