@@ -1,12 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluvita/pages/reader/reader_controls.dart';
 import 'package:fluvita/pages/reader/reader_header.dart';
+import 'package:fluvita/riverpod/api/reader.dart';
 import 'package:fluvita/riverpod/reader.dart';
+import 'package:fluvita/riverpod/router.dart';
+import 'package:fluvita/utils/layout_constants.dart';
+import 'package:fluvita/utils/logging.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-class ReaderOverlay extends HookWidget {
+enum ShowSnackbar {
+  previous,
+  next,
+  none,
+}
+
+class ReaderOverlay extends HookConsumerWidget {
   final void Function()? onNextPage;
   final void Function()? onPreviousPage;
   final void Function(int page)? onJumpToPage;
@@ -25,8 +35,50 @@ class ReaderOverlay extends HookWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final uiVisible = useState(false);
+    final showSnackbar = useState(ShowSnackbar.none);
+    final provider = readerProvider(seriesId: seriesId, chapterId: chapterId);
+
+    final state = ref.watch(provider).value;
+    if (state == null) {
+      return Center(
+        child: Text('Failed to load reader state.'),
+      );
+    }
+
+    final prevChapter = ref.watch(
+      prevChapterProvider(
+        seriesId: seriesId,
+        volumeId: state.volumeId,
+        chapterId: chapterId,
+      ),
+    );
+
+    final nextChapter = ref.watch(
+      nextChapterProvider(
+        seriesId: seriesId,
+        volumeId: state.volumeId,
+        chapterId: chapterId,
+      ),
+    );
+
+    ref.listen(
+      provider.select((value) => value.value),
+      (previous, next) {
+        if (next == null) return;
+
+        if (next.currentPage <= 0 && prevChapter.asData?.value != null) {
+          showSnackbar.value = .previous;
+        } else if (next.currentPage >= next.totalPages - 1 &&
+            nextChapter.asData?.value != null) {
+          showSnackbar.value = .next;
+        } else {
+          showSnackbar.value = .none;
+        }
+      },
+    );
+
     return Stack(
       children: [
         Positioned.fill(
@@ -71,36 +123,93 @@ class ReaderOverlay extends HookWidget {
         ),
         Align(
           alignment: .topCenter,
-          child: IgnorePointer(
-            ignoring: !uiVisible.value,
-            child:
-                ReaderHeader(
-                      seriesId: seriesId,
-                      chapterId: chapterId,
-                    )
-                    .animate(target: uiVisible.value ? 1.0 : 0.0)
-                    .fadeIn(duration: 100.ms),
-          ),
+          child:
+              ReaderHeader(
+                    seriesId: seriesId,
+                    chapterId: chapterId,
+                  )
+                  .animate(target: uiVisible.value ? 1.0 : 0.0)
+                  .show(duration: 10.ms, maintain: false)
+                  .fadeIn(duration: 100.ms),
         ),
         Align(
           alignment: .bottomCenter,
-          child: IgnorePointer(
-            ignoring: !uiVisible.value,
-            child:
-                ReaderControls(
-                      chapterId: chapterId,
-                      seriesId: seriesId,
-                      onJumpToPage: onJumpToPage,
-                    )
-                    .animate(target: uiVisible.value ? 1.0 : 0.0)
-                    .fadeIn(duration: 100.ms),
-          ),
+          child:
+              Card.filled(
+                    margin: LayoutConstants.mediumEdgeInsets,
+                    child: Padding(
+                      padding: LayoutConstants.mediumEdgeInsets,
+                      child: Row(
+                        mainAxisAlignment: .spaceBetween,
+                        children: [
+                          Text('Move to previous chapter'),
+                          FilledButton(
+                            onPressed: () {
+                              log.d(
+                                'Navigating to prev chapter ${prevChapter.value}',
+                              );
+                              ReaderRoute(
+                                seriesId: seriesId,
+                                chapterId: prevChapter.value!,
+                              ).replace(context);
+                            },
+                            child: Text('Go'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                  .animate(target: showSnackbar.value == .previous ? 1.0 : 0.0)
+                  .show(duration: 10.ms, maintain: false)
+                  .fade(duration: 100.ms)
+                  .animate(target: uiVisible.value ? 1.0 : 0.0)
+                  .moveY(end: -110.0, duration: 100.ms),
         ),
-        // if (uiVisible.value == false)
-        //   Align(
-        //     alignment: .bottomCenter,
-        //     child: ReaderProgress(chapterId: chapterId, seriesId: seriesId),
-        //   ),
+        Align(
+          alignment: .bottomCenter,
+          child:
+              Card.filled(
+                    margin: LayoutConstants.mediumEdgeInsets,
+                    child: Padding(
+                      padding: LayoutConstants.mediumEdgeInsets,
+                      child: Row(
+                        mainAxisAlignment: .spaceBetween,
+                        children: [
+                          Text('Move to next chapter'),
+                          FilledButton(
+                            onPressed: () {
+                              log.d(
+                                'Navigating to next chapter ${nextChapter.value}',
+                              );
+                              ReaderRoute(
+                                seriesId: seriesId,
+                                chapterId: nextChapter.value!,
+                              ).replace(context);
+                            },
+                            child: Text('Go'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                  .animate(target: showSnackbar.value == .next ? 1.0 : 0.0)
+                  .show(duration: 10.ms, maintain: false)
+                  .fade(duration: 100.ms)
+                  .animate(target: uiVisible.value ? 1.0 : 0.0)
+                  .moveY(end: -110.0, duration: 100.ms),
+        ),
+        Align(
+          alignment: .bottomCenter,
+          child:
+              ReaderControls(
+                    chapterId: chapterId,
+                    seriesId: seriesId,
+                    onJumpToPage: onJumpToPage,
+                  )
+                  .animate(target: uiVisible.value ? 1.0 : 0.0)
+                  .show(duration: 10.ms, maintain: false)
+                  .fade(duration: 100.ms),
+        ),
       ],
     );
   }
@@ -123,7 +232,7 @@ class ReaderProgress extends ConsumerWidget {
     );
     return reader.maybeWhen(
       data: (data) {
-        final progress = data.currentPage / data.totalPages;
+        final progress = data.currentPage / (data.totalPages - 1);
         return LinearProgressIndicator(
           value: progress,
         );
