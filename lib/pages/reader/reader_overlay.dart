@@ -135,29 +135,17 @@ class ReaderOverlay extends HookConsumerWidget {
         Align(
           alignment: .bottomCenter,
           child:
-              Card.filled(
-                    margin: LayoutConstants.mediumEdgeInsets,
-                    child: Padding(
-                      padding: LayoutConstants.mediumEdgeInsets,
-                      child: Row(
-                        mainAxisAlignment: .spaceBetween,
-                        children: [
-                          Text('Move to previous chapter'),
-                          FilledButton(
-                            onPressed: () {
-                              log.d(
-                                'Navigating to prev chapter ${prevChapter.value}',
-                              );
-                              ReaderRoute(
-                                seriesId: seriesId,
-                                chapterId: prevChapter.value!,
-                              ).replace(context);
-                            },
-                            child: Text('Go'),
-                          ),
-                        ],
-                      ),
-                    ),
+              ChapterSnackbar(
+                    title: 'Move to previous chapter',
+                    onNavigate: () {
+                      log.d(
+                        'Navigating to prev chapter ${prevChapter.value}',
+                      );
+                      ReaderRoute(
+                        seriesId: seriesId,
+                        chapterId: prevChapter.value!,
+                      ).replace(context);
+                    },
                   )
                   .animate(target: showSnackbar.value == .previous ? 1.0 : 0.0)
                   .show(duration: 10.ms, maintain: false)
@@ -168,29 +156,17 @@ class ReaderOverlay extends HookConsumerWidget {
         Align(
           alignment: .bottomCenter,
           child:
-              Card.filled(
-                    margin: LayoutConstants.mediumEdgeInsets,
-                    child: Padding(
-                      padding: LayoutConstants.mediumEdgeInsets,
-                      child: Row(
-                        mainAxisAlignment: .spaceBetween,
-                        children: [
-                          Text('Move to next chapter'),
-                          FilledButton(
-                            onPressed: () {
-                              log.d(
-                                'Navigating to next chapter ${nextChapter.value}',
-                              );
-                              ReaderRoute(
-                                seriesId: seriesId,
-                                chapterId: nextChapter.value!,
-                              ).replace(context);
-                            },
-                            child: Text('Go'),
-                          ),
-                        ],
-                      ),
-                    ),
+              ChapterSnackbar(
+                    title: 'Move to next chapter',
+                    onNavigate: () {
+                      log.d(
+                        'Navigating to next chapter ${nextChapter.value}',
+                      );
+                      ReaderRoute(
+                        seriesId: seriesId,
+                        chapterId: nextChapter.value!,
+                      ).replace(context);
+                    },
                   )
                   .animate(target: showSnackbar.value == .next ? 1.0 : 0.0)
                   .show(duration: 10.ms, maintain: false)
@@ -238,6 +214,32 @@ class ReaderProgress extends ConsumerWidget {
         );
       },
       orElse: () => SizedBox.shrink(),
+    );
+  }
+}
+
+class ChapterSnackbar extends StatelessWidget {
+  final String title;
+  final void Function()? onNavigate;
+  const ChapterSnackbar({super.key, required this.title, this.onNavigate});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card.filled(
+      margin: LayoutConstants.mediumEdgeInsets,
+      child: Padding(
+        padding: LayoutConstants.mediumEdgeInsets,
+        child: Row(
+          mainAxisAlignment: .spaceBetween,
+          children: [
+            Text(title),
+            FilledButton(
+              onPressed: onNavigate,
+              child: Text('Go'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
