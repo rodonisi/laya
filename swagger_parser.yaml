@@ -1,5 +1,5 @@
 swagger_parser:
-  schema_url: https://raw.githubusercontent.com/Kareadita/Kavita/refs/tags/v0.8.8.3/openapi.json
+  schema_url: https://raw.githubusercontent.com/Kareadita/Kavita/refs/tags/v0.8.9/openapi.json
   output_directory: lib/api
   json_serializer: freezed
   client_postfix: Client
