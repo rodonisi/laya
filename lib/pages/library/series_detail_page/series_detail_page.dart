@@ -1,29 +1,26 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:fluvita/pages/library/series_detail_page/series_info.dart';
 import 'package:fluvita/widgets/adaptive_sliver_grid.dart';
 import 'package:fluvita/widgets/chapter_card.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:fluvita/models/chapter_model.dart';
-import 'package:fluvita/models/series_model.dart';
 import 'package:fluvita/models/volume_model.dart';
-import 'package:fluvita/riverpod/api/image.dart';
 import 'package:fluvita/riverpod/api/series.dart';
 import 'package:fluvita/riverpod/router.dart';
 import 'package:fluvita/widgets/async_value.dart';
 import 'package:fluvita/widgets/cover_image.dart';
 import 'package:fluvita/widgets/sliver_bottom_padding.dart';
 
-class SeriesDetailPage extends ConsumerWidget {
+class SeriesDetailPage extends HookConsumerWidget {
   final int seriesId;
 
   const SeriesDetailPage({super.key, required this.seriesId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final series = ref.watch(seriesProvider(seriesId: seriesId));
     final details = ref.watch(seriesDetailProvider(seriesId: seriesId));
-    final cover = ref.watch(seriesCoverProvider(seriesId: seriesId));
 
     return Scaffold(
       body: Async(
@@ -31,6 +28,13 @@ class SeriesDetailPage extends ConsumerWidget {
         data: (detailsData) {
           final tabs = <Widget>[];
           final views = <Widget>[];
+
+          if (detailsData.storyline.isNotEmpty) {
+            tabs.add(const Tab(text: 'Storyline'));
+            views.add(
+              _ChapterGrid(seriesId: seriesId, chapters: detailsData.storyline),
+            );
+          }
 
           if (detailsData.volumes.isNotEmpty) {
             tabs.add(const Tab(text: 'Volumes'));
@@ -54,7 +58,9 @@ class SeriesDetailPage extends ConsumerWidget {
           if (tabs.isEmpty) {
             return CustomScrollView(
               slivers: [
-                _buildAppBar(series, cover, null),
+                SeriesAppBar(
+                  seriesId: seriesId,
+                ),
                 const SliverFillRemaining(
                   child: Center(child: Text('No content available')),
                 ),
@@ -71,11 +77,9 @@ class SeriesDetailPage extends ConsumerWidget {
                     handle: NestedScrollView.sliverOverlapAbsorberHandleFor(
                       context,
                     ),
-                    sliver: _buildAppBar(
-                      series,
-                      cover,
-                      TabBar(tabs: tabs),
-                      forceElevated: innerBoxIsScrolled,
+                    sliver: SeriesAppBar(
+                      seriesId: seriesId,
+                      bottom: TabBar(tabs: tabs),
                     ),
                   ),
                 ];
@@ -108,7 +112,9 @@ class SeriesDetailPage extends ConsumerWidget {
         },
         loading: () => CustomScrollView(
           slivers: [
-            _buildAppBar(series, cover, null),
+            SeriesAppBar(
+              seriesId: seriesId,
+            ),
             const SliverFillRemaining(
               child: Center(child: CircularProgressIndicator()),
             ),
@@ -117,19 +123,58 @@ class SeriesDetailPage extends ConsumerWidget {
       ),
     );
   }
+}
 
-  Widget _buildAppBar(
-    AsyncValue<SeriesModel> series,
-    AsyncValue<Uint8List> cover,
-    PreferredSizeWidget? bottom, {
-    bool forceElevated = false,
-  }) {
+class SeriesAppBar extends HookConsumerWidget {
+  static const height = 500.0;
+  static const expandedSummaryHeight = 800.0;
+
+  final int seriesId;
+  final PreferredSizeWidget? bottom;
+
+  const SeriesAppBar({
+    super.key,
+    required this.seriesId,
+    this.bottom,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final series = ref.watch(seriesProvider(seriesId: seriesId));
+    final isCollapsed = useState(false);
+    final expandedHeight = useState(height);
+
     return AsyncSliver(
       asyncValue: series,
       data: (data) {
-        return SliverAppBar.large(
-          forceElevated: forceElevated,
-          title: Text(data.name),
+        return SliverAppBar(
+          title: isCollapsed.value
+              ? Text(
+                  data.name,
+                ).animate(target: isCollapsed.value ? 1 : 0).fade()
+              : null,
+          pinned: true,
+          expandedHeight: expandedHeight.value,
+          flexibleSpace: LayoutBuilder(
+            builder: (context, constraints) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                isCollapsed.value =
+                    constraints.biggest.height <=
+                    kToolbarHeight + (bottom?.preferredSize.height ?? .0);
+              });
+
+              final value =
+                  (constraints.biggest.height - kToolbarHeight) /
+                  (expandedHeight.value - kToolbarHeight);
+
+              return Opacity(
+                opacity: value.clamp(0.0, 1.0),
+                child: FlexibleSpaceBar(
+                  background: SeriesInfo(seriesId: data.id),
+                ),
+              );
+            },
+          ),
           bottom: bottom,
         );
       },

@@ -6,6 +6,8 @@ part 'chapter_model.g.dart';
 
 @freezed
 sealed class ChapterModel with _$ChapterModel {
+  const ChapterModel._();
+
   const factory ChapterModel({
     required int id,
     required int volumeId,
@@ -25,5 +27,10 @@ sealed class ChapterModel with _$ChapterModel {
       pages: dto.pages!,
       pagesRead: dto.pagesRead!,
     );
+  }
+
+  double get progress {
+    if (pages == 0) return 0.0;
+    return pagesRead / pages;
   }
 }

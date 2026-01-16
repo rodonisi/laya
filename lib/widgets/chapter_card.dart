@@ -7,6 +7,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 class ChapterCard extends StatelessWidget {
   final String title;
   final Icon? icon;
+  final String actionLabel;
+  final Icon actionIcon;
   final double progress;
   final Widget coverImage;
   final void Function()? onTap;
@@ -16,6 +18,8 @@ class ChapterCard extends StatelessWidget {
     super.key,
     required this.title,
     this.icon,
+    this.actionLabel = 'Read',
+    this.actionIcon = const FaIcon(FontAwesomeIcons.bookOpen),
     required this.progress,
     required this.coverImage,
     this.onTap,
@@ -55,10 +59,10 @@ class ChapterCard extends StatelessWidget {
                     Align(
                       alignment: .bottomCenter,
                       child: Padding(
-                        padding: const EdgeInsets.all(8.0),
+                        padding: LayoutConstants.smallEdgeInsets,
                         child: FilledButton.icon(
-                          icon: FaIcon(FontAwesomeIcons.bookOpen),
-                          label: Text('Read'),
+                          icon: actionIcon,
+                          label: Text(actionLabel),
                           onPressed: onRead,
                         ),
                       ),
@@ -66,9 +70,9 @@ class ChapterCard extends StatelessWidget {
                 ],
               ),
             ),
-              LinearProgressIndicator(
-                value: progress.clamp(0.0, 1.0),
-              ),
+            LinearProgressIndicator(
+              value: progress.clamp(0.0, 1.0),
+            ),
             Padding(
               padding: LayoutConstants.smallEdgeInsets,
               child: Row(

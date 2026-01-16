@@ -9,14 +9,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "91.0.0"
+  analysis_server_plugin:
+    dependency: transitive
+    description:
+      name: analysis_server_plugin
+      sha256: "26844e7f977087567135d62532b67d5639fe206c5194c3f410ba75e1a04a2747"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.3"
   analyzer:
     dependency: transitive
     description:
       name: analyzer
-      sha256: f51c8499b35f9b26820cfe914828a6a98a94efd5cc78b37bb7d03debae3a1d08
+      sha256: a40a0cee526a7e1f387c6847bd8a5ccbf510a75952ef8a28338e989558072cb0
       url: "https://pub.dev"
     source: hosted
-    version: "8.4.1"
+    version: "8.4.0"
   analyzer_buffer:
     dependency: transitive
     description:
@@ -25,6 +33,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.1.11"
+  analyzer_plugin:
+    dependency: transitive
+    description:
+      name: analyzer_plugin
+      sha256: "08cfefa90b4f4dd3b447bda831cecf644029f9f8e22820f6ee310213ebe2dd53"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.13.10"
   ansicolor:
     dependency: transitive
     description:
@@ -1016,6 +1032,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.0.0+1"
+  riverpod_lint:
+    dependency: "direct dev"
+    description:
+      name: riverpod_lint
+      sha256: "4d2eb0d19bbe7e3323bd0ce4553b2e6170d161a13914bfdd85a3612329edcb43"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.1.0"
   rxdart:
     dependency: transitive
     description:
@@ -1517,6 +1541,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.3"
+  yaml_edit:
+    dependency: transitive
+    description:
+      name: yaml_edit
+      sha256: ec709065bb2c911b336853b67f3732dd13e0336bd065cc2f1061d7610ddf45e3
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.2.3"
   yaml_writer:
     dependency: transitive
     description:

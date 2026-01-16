@@ -23,4 +23,4 @@ analyzer:
     - riverpod_lint
 
 plugins:
-  riverpod_lint: ^3.0.3
+  riverpod_lint: ^3.1.0

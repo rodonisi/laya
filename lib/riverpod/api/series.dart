@@ -46,6 +46,17 @@ Future<SeriesDetailModel> seriesDetail(Ref ref, {required int seriesId}) async {
 }
 
 @riverpod
+Future<SeriesMetadataModel> seriesMetadata(
+  Ref ref, {
+  required int seriesId,
+}) async {
+  final client = ref.watch(restClientProvider).series;
+  final res = await client.getApiSeriesMetadata(seriesId: seriesId);
+
+  return SeriesMetadataModel.fromSeriesMetadataDto(res);
+}
+
+@riverpod
 Future<List<SeriesModel>> onDeck(Ref ref) async {
   final client = ref.watch(restClientProvider).series;
   final res = await client.postApiSeriesOnDeck();

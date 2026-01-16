@@ -31,4 +31,9 @@ sealed class VolumeModel with _$VolumeModel {
       pagesRead: dto.pagesRead!,
     );
   }
+
+  double get progress {
+    if (pages == 0) return 0.0;
+    return pagesRead / pages;
+  }
 }

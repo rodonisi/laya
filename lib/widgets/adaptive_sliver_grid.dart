@@ -32,7 +32,7 @@ class AdaptiveSliverGrid extends StatelessWidget {
         return SliverGrid(
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: crossAxisCount,
-            childAspectRatio: 3 / 5,
+            childAspectRatio: LayoutConstants.chapterCardAspectRatio,
           ),
           delegate: SliverChildBuilderDelegate(
             builder,
