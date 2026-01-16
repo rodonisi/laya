@@ -1,5 +1,6 @@
 swagger_parser:
-  schema_url: https://raw.githubusercontent.com/Kareadita/Kavita/refs/tags/v0.8.8.3/openapi.json
+  schema_path: openapi.json
+  # schema_url: https://raw.githubusercontent.com/Kareadita/Kavita/refs/tags/v0.8.9/openapi.json
   output_directory: lib/api
   json_serializer: freezed
   client_postfix: Client
@@ -9,7 +10,7 @@ swagger_parser:
   use_freezed3: true
   unknown_enum_value: true
   enums_to_json: false
-  infer_required_from_nullable: true
+  infer_required_from_nullable: false
   include_if_null: false
 
   include_tags:
@@ -20,3 +21,7 @@ swagger_parser:
     - Library
     - Reader
     - Series
+    - Plugin
+
+  exclude_tags:
+    - exclude

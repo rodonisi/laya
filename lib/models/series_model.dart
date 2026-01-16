@@ -27,16 +27,16 @@ sealed class SeriesModel with _$SeriesModel {
 
   factory SeriesModel.fromSeriesDto(SeriesDto dto) {
     return SeriesModel(
-      id: dto.id,
-      libraryId: dto.libraryId,
+      id: dto.id!,
+      libraryId: dto.libraryId!,
       name: dto.name ?? 'Untitled',
       format: switch (dto.format) {
         .value3 => Format.epub,
         .value1 => Format.cbz,
         _ => Format.unknown,
       },
-      pages: dto.pages,
-      pagesRead: dto.pagesRead,
+      pages: dto.pages!,
+      pagesRead: dto.pagesRead!,
     );
   }
 }

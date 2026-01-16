@@ -2,8 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:fluvita/api/models/progress_dto.dart';
 import 'package:fluvita/models/chapter_model.dart';
-import 'package:fluvita/riverpod/api/auth.dart';
 import 'package:fluvita/riverpod/api/client.dart';
+import 'package:fluvita/riverpod/settings.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'reader.g.dart';
@@ -29,7 +29,7 @@ Future<Uint8List> readerImage(
   required int page,
 }) async {
   final dio = ref.watch(authenticatedDioProvider);
-  final key = ref.watch(currentUserProvider).value?.apiKey;
+  final key = ref.watch(apiKeyProvider);
 
   final res = await dio.get(
     '/api/reader/image',

@@ -51,7 +51,7 @@ class CredentialsSettings extends HookConsumerWidget {
                     SizedBox.square(dimension: LayoutConstants.smallPadding),
                     Async(
                       asyncValue: currentUser,
-                      data: (data) => Icon(
+                      data: (_) => Icon(
                         FontAwesomeIcons.solidCircleCheck,
                         color: Theme.of(context).colorScheme.primary,
                       ),

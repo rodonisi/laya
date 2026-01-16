@@ -53,12 +53,12 @@ class Reader extends _$Reader {
     );
 
     return ReaderState(
-      libraryId: info.libraryId,
+      libraryId: info.libraryId!,
       series: series,
-      volumeId: info.volumeId,
+      volumeId: info.volumeId!,
       chapter: chapter,
       title: info.seriesName ?? 'Untitled',
-      totalPages: info.pages,
+      totalPages: info.pages!,
       currentPage: progress.pageNum,
       bookScrollId: progress.bookScrollId,
     );

@@ -18,7 +18,7 @@ sealed class LibraryModel with _$LibraryModel {
 
   factory LibraryModel.fromLibraryDto(LibraryDto dto) {
     return LibraryModel(
-      id: dto.id,
+      id: dto.id!,
       name: dto.name ?? 'Unnamed Library',
     );
   }

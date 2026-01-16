@@ -32,3 +32,9 @@ class Settings extends _$Settings {
     state = AsyncValue.data(settings);
   }
 }
+
+@riverpod
+String? apiKey(Ref ref) {
+  final settings = ref.watch(settingsProvider).value;
+  return settings?.apiKey;
+}

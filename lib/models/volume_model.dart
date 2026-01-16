@@ -21,8 +21,8 @@ sealed class VolumeModel with _$VolumeModel {
 
   factory VolumeModel.fromVolumeDto(VolumeDto dto) {
     return VolumeModel(
-      id: dto.id,
-      seriesId: dto.seriesId,
+      id: dto.id!,
+      seriesId: dto.seriesId!,
       name: dto.name ?? 'Unnamed Volume',
       chapters: dto.chapters?.map(ChapterModel.fromChapterDto).toList() ?? [],
     );

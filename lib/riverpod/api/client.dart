@@ -1,27 +1,15 @@
 import 'package:dio/dio.dart';
 import 'package:fluvita/api/rest_client.dart';
-import 'package:fluvita/riverpod/api/auth.dart';
 import 'package:fluvita/riverpod/settings.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'client.g.dart';
 
 @riverpod
-Dio dio(Ref ref) {
-  final dio = Dio();
-  final settings = ref.watch(settingsProvider).value;
-  if (settings?.url != null) {
-    dio.options.baseUrl = settings!.url!;
-  }
-
-  return dio;
-}
-
-@riverpod
 Dio authenticatedDio(Ref ref) {
   final dio = Dio();
   final settings = ref.watch(settingsProvider).value;
-  final jwt = ref.watch(jwtProvider);
+  final key = ref.watch(apiKeyProvider);
 
   if (settings?.url != null) {
     dio.options.baseUrl = settings!.url!;
@@ -30,8 +18,8 @@ Dio authenticatedDio(Ref ref) {
   dio.interceptors.add(
     InterceptorsWrapper(
       onRequest: (options, handler) async {
-        if (jwt != null && jwt.isNotEmpty) {
-          options.headers['Authorization'] = 'Bearer $jwt';
+        if (key != null && key.isNotEmpty) {
+          options.headers['x-api-key'] = key;
         }
         handler.next(options);
       },

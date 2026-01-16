@@ -54,4 +54,4 @@ app.*.map.json
 *.g.*
 *.freezed.dart
 /lib/api
-openapi.json
+# openapi.json

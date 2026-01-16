@@ -17,8 +17,8 @@ sealed class ChapterModel with _$ChapterModel {
 
   factory ChapterModel.fromChapterDto(ChapterDto dto) {
     return ChapterModel(
-      id: dto.id,
-      volumeId: dto.volumeId,
+      id: dto.id!,
+      volumeId: dto.volumeId!,
       title: dto.titleName ?? 'Untitled',
     );
   }
