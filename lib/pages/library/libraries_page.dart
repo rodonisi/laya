@@ -14,6 +14,16 @@ class LibraryPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return CustomScrollView(
       slivers: [
+        SliverPadding(
+          padding: LayoutConstants.mediumEdgeInsets,
+          sliver: SliverToBoxAdapter(
+            child: AppListTile(
+              title: 'All Series',
+              icon: FaIcon(FontAwesomeIcons.solidRectangleList),
+              onTap: () => AllSeriesRoute().push(context),
+            ),
+          ),
+        ),
         SliverSection(title: 'Libraries'),
         SliverLibraries(),
       ],
@@ -80,6 +90,39 @@ class SliverSection extends StatelessWidget {
   }
 }
 
+class AppListTile extends StatelessWidget {
+  const AppListTile({
+    super.key,
+    required this.title,
+    this.icon,
+    this.onTap,
+  });
+
+  final String title;
+  final Widget? icon;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card.filled(
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        leading: icon != null
+            ? CircleAvatar(
+                child: icon,
+              )
+            : null,
+        title: Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: onTap,
+      ),
+    );
+  }
+}
+
 class LibraryListTile extends StatelessWidget {
   const LibraryListTile({
     super.key,
@@ -90,26 +133,16 @@ class LibraryListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card.filled(
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: CircleAvatar(
-          // backgroundColor: Theme.of(
-          //   context,
-          // ).colorScheme.primaryContainer,
-          child: FaIcon(switch (lib.type) {
-            .book || .lightNovel => FontAwesomeIcons.book,
-            .manga || .comic => FontAwesomeIcons.bookOpen,
-            _ => FontAwesomeIcons.question,
-          }),
-        ),
-        title: Text(
-          lib.name,
-          style: const TextStyle(fontWeight: FontWeight.w600),
-        ),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: () => SeriesRoute(libraryId: lib.id).push(context),
-      ),
+    final leading = FaIcon(switch (lib.type) {
+      .book || .lightNovel => FontAwesomeIcons.book,
+      .manga || .comic => FontAwesomeIcons.bookOpen,
+      _ => FontAwesomeIcons.question,
+    });
+
+    return AppListTile(
+      title: lib.name,
+      icon: leading,
+      onTap: () => SeriesRoute(libraryId: lib.id).push(context),
     );
   }
 }
