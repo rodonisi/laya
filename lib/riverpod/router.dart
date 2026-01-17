@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:fluvita/pages/home/home_page.dart';
-import 'package:fluvita/pages/library/libraries_page.dart';
+import 'package:fluvita/pages/library/libraries_page/libraries_page.dart';
 import 'package:fluvita/pages/library/series_detail_page/series_detail_page.dart';
 import 'package:fluvita/pages/library/series_page.dart';
 import 'package:fluvita/pages/reader/reader_page.dart';
