@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fluvita/widgets/login_guard.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:fluvita/pages/home/collapsible_section.dart';
 import 'package:fluvita/riverpod/api/series.dart';
@@ -9,24 +10,33 @@ class HomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    _invalidateProviders(ref);
-
     return Scaffold(
       extendBody: true,
-      body: SafeArea(
-        bottom: false,
-        child: RefreshIndicator(
-          onRefresh: () async {
-            await _invalidateProviders(ref);
-          },
-          child: CustomScrollView(
-            slivers: [
-              OnDeck(),
-              RecentlyUpdated(),
-              RecentlyAdded(),
-              SliverBottomPadding(),
-            ],
-          ),
+      body: LoginGuard(child: HomePageContent()),
+    );
+  }
+}
+
+class HomePageContent extends ConsumerWidget {
+  const HomePageContent({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    _invalidateProviders(ref);
+
+    return SafeArea(
+      bottom: false,
+      child: RefreshIndicator(
+        onRefresh: () async {
+          await _invalidateProviders(ref);
+        },
+        child: CustomScrollView(
+          slivers: [
+            OnDeck(),
+            RecentlyUpdated(),
+            RecentlyAdded(),
+            SliverBottomPadding(),
+          ],
         ),
       ),
     );

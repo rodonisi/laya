@@ -1,3 +1,4 @@
+import 'package:fluvita/riverpod/api/auth.dart';
 import 'package:fluvita/riverpod/storage.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/experimental/json_persist.dart';
@@ -37,4 +38,28 @@ class Settings extends _$Settings {
 String? apiKey(Ref ref) {
   final settings = ref.watch(settingsProvider).value;
   return settings?.apiKey;
+}
+
+enum LoginStatus { noCredentials, loading, loggedIn, error }
+
+@riverpod
+LoginStatus loginStatus(Ref ref) {
+  final settings = ref.watch(settingsProvider);
+  final user = ref.watch(currentUserProvider);
+
+  if (settings.isLoading) return .loading;
+
+  if (settings.hasError) return .error;
+
+  final settingsState = settings.value!;
+  if ((settingsState.url?.isEmpty ?? false) ||
+      (settingsState.apiKey?.isEmpty ?? false)) {
+    return .noCredentials;
+  }
+
+  if (user.isLoading) return .loading;
+
+  if (user.hasError) return .error;
+
+  return .loggedIn;
 }
