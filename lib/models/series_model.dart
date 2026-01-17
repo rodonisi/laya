@@ -25,6 +25,8 @@ sealed class SeriesModel with _$SeriesModel {
     required int pagesRead,
     required double avgHoursToRead,
     required int? wordCount,
+    required String? primaryColor,
+    required String? secondaryColor,
   }) = _SeriesModel;
 
   factory SeriesModel.fromJson(Map<String, Object?> json) =>
@@ -44,6 +46,8 @@ sealed class SeriesModel with _$SeriesModel {
       pagesRead: dto.pagesRead!,
       avgHoursToRead: dto.avgHoursToRead!,
       wordCount: dto.wordCount,
+      primaryColor: dto.primaryColor,
+      secondaryColor: dto.secondaryColor,
     );
   }
 

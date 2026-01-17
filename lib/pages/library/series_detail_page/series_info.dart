@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fluvita/riverpod/api/reader.dart';
 import 'package:fluvita/riverpod/api/series.dart';
 import 'package:fluvita/riverpod/router.dart';
+import 'package:fluvita/utils/extensions/color.dart';
 import 'package:fluvita/utils/extensions/int.dart';
 import 'package:fluvita/utils/layout_constants.dart';
 import 'package:fluvita/widgets/async_value.dart';
@@ -26,22 +27,39 @@ class SeriesInfo extends ConsumerWidget {
       asyncValue: metadata,
       data: (metadata) => Async(
         asyncValue: series,
-
-        data: (series) => Padding(
-          padding: EdgeInsets.only(
-            top: kToolbarHeight,
-            left: LayoutConstants.largePadding,
-            right: LayoutConstants.largePadding,
-          ),
-          child: Stack(
-            children: [
-              Positioned.fill(
+        data: (series) => Stack(
+          children: [
+            Positioned.fill(
+              child: Opacity(
+                opacity: 0.2,
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: .topLeft,
+                      end: .bottomRight,
+                      colors: [
+                        if (series.primaryColor != null)
+                          series.primaryColor!.toColor(),
+                        if (series.secondaryColor != null)
+                          series.secondaryColor!.toColor(),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Positioned.fill(
+              child: Padding(
+                padding: EdgeInsetsGeometry.symmetric(
+                  horizontal: LayoutConstants.largePadding,
+                ),
                 child: Column(
                   spacing: LayoutConstants.largePadding,
                   crossAxisAlignment: .start,
                   mainAxisAlignment: .start,
                   mainAxisSize: .min,
                   children: [
+                    SizedBox.square(dimension: kToolbarHeight),
                     Text(
                       series.name,
                       style: Theme.of(context).textTheme.headlineMedium,
@@ -68,7 +86,9 @@ class SeriesInfo extends ConsumerWidget {
                                   if ((series.wordCount ?? 0) > 0)
                                     WordCount(wordCount: series.wordCount!),
                                   Pages(pages: series.pages),
-                                  RemainingHours(hours: series.avgHoursToRead),
+                                  RemainingHours(
+                                    hours: series.avgHoursToRead,
+                                  ),
                                   if (metadata.releaseYear != null)
                                     ReleaseYear(
                                       releaseYear: metadata.releaseYear!,
@@ -102,8 +122,8 @@ class SeriesInfo extends ConsumerWidget {
                   ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
