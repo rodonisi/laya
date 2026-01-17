@@ -17,6 +17,8 @@ enum ShowSnackbar {
 }
 
 class ReaderOverlay extends HookConsumerWidget {
+  static const double snackbarOffset = 120.0;
+
   final void Function()? onNextPage;
   final void Function()? onPreviousPage;
   final void Function(int page)? onJumpToPage;
@@ -151,7 +153,7 @@ class ReaderOverlay extends HookConsumerWidget {
                   .show(duration: 10.ms, maintain: false)
                   .fade(duration: 100.ms)
                   .animate(target: uiVisible.value ? 1.0 : 0.0)
-                  .moveY(end: -110.0, duration: 100.ms),
+                  .moveY(end: -snackbarOffset, duration: 100.ms),
         ),
         Align(
           alignment: .bottomCenter,
@@ -172,7 +174,7 @@ class ReaderOverlay extends HookConsumerWidget {
                   .show(duration: 10.ms, maintain: false)
                   .fade(duration: 100.ms)
                   .animate(target: uiVisible.value ? 1.0 : 0.0)
-                  .moveY(end: -110.0, duration: 100.ms),
+                  .moveY(end: -snackbarOffset, duration: 100.ms),
         ),
         Align(
           alignment: .bottomCenter,
