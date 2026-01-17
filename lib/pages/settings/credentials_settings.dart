@@ -13,6 +13,7 @@ class CredentialsSettings extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
     final currentUser = ref.watch(currentUserProvider);
+    final loginStatus = ref.watch(loginStatusProvider);
 
     return Card(
       margin: LayoutConstants.mediumEdgeInsets,
@@ -34,16 +35,18 @@ class CredentialsSettings extends HookConsumerWidget {
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
                 TextField(
+                  enabled: loginStatus != .loading,
                   controller: urlController,
                   decoration: InputDecoration(labelText: 'Base URL'),
                 ),
                 TextField(
+                  enabled: loginStatus != .loading,
                   controller: apiKeyController,
                   decoration: InputDecoration(labelText: 'API Key'),
                 ),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: .spaceBetween,
+                  mainAxisAlignment: .spaceBetween,
                   children: [
                     Async(
                       asyncValue: currentUser,
