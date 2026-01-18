@@ -49,77 +49,79 @@ class SeriesInfo extends ConsumerWidget {
               ),
             ),
             Positioned.fill(
-              child: Padding(
-                padding: EdgeInsetsGeometry.symmetric(
-                  horizontal: LayoutConstants.largePadding,
-                ),
-                child: Column(
-                  spacing: LayoutConstants.largePadding,
-                  crossAxisAlignment: .start,
-                  mainAxisAlignment: .start,
-                  mainAxisSize: .min,
-                  children: [
-                    SizedBox.square(dimension: kToolbarHeight),
-                    Text(
-                      series.name,
-                      style: Theme.of(context).textTheme.headlineMedium,
-                      maxLines: 2,
-                      overflow: .ellipsis,
-                    ),
-                    Row(
-                      spacing: LayoutConstants.largePadding,
-                      children: [
-                        SizedBox(
-                          height: 250,
-                          child: Cover(seriesId: series.id),
-                        ),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: .start,
-                            spacing: LayoutConstants.largePadding,
-                            children: [
-                              Wrap(
-                                spacing: LayoutConstants.mediumPadding,
-                                runSpacing: LayoutConstants.mediumPadding,
-                                alignment: .spaceBetween,
-                                children: [
-                                  if ((series.wordCount ?? 0) > 0)
-                                    WordCount(wordCount: series.wordCount!),
-                                  Pages(pages: series.pages),
-                                  RemainingHours(
-                                    hours: series.avgHoursToRead,
-                                  ),
-                                  if (metadata.releaseYear != null)
-                                    ReleaseYear(
-                                      releaseYear: metadata.releaseYear!,
-                                    ),
-                                ],
-                              ),
-                              Wrap(
-                                spacing: LayoutConstants.mediumPadding,
-                                runSpacing: LayoutConstants.mediumPadding,
-                                alignment: .spaceBetween,
-                                children: [
-                                  LimitedList(
-                                    title: 'Writers',
-                                    items: metadata.writers
-                                        .map((w) => w.name)
-                                        .toList(),
-                                  ),
-                                  LimitedList(
-                                    title: 'Genres',
-                                    items: metadata.genres
-                                        .map((a) => a.name)
-                                        .toList(),
-                                  ),
-                                ],
-                              ),
-                            ],
+              child: SafeArea(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: LayoutConstants.largePadding,
+                  ),
+                  child: Column(
+                    spacing: LayoutConstants.largePadding,
+                    crossAxisAlignment: .start,
+                    mainAxisAlignment: .start,
+                    mainAxisSize: .min,
+                    children: [
+                      SizedBox.square(dimension: kToolbarHeight),
+                      Text(
+                        series.name,
+                        style: Theme.of(context).textTheme.headlineMedium,
+                        maxLines: 2,
+                        overflow: .ellipsis,
+                      ),
+                      Row(
+                        spacing: LayoutConstants.largePadding,
+                        children: [
+                          SizedBox(
+                            height: 250,
+                            child: Cover(seriesId: series.id),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: .start,
+                              spacing: LayoutConstants.largePadding,
+                              children: [
+                                Wrap(
+                                  spacing: LayoutConstants.mediumPadding,
+                                  runSpacing: LayoutConstants.mediumPadding,
+                                  alignment: .spaceBetween,
+                                  children: [
+                                    if ((series.wordCount ?? 0) > 0)
+                                      WordCount(wordCount: series.wordCount!),
+                                    Pages(pages: series.pages),
+                                    RemainingHours(
+                                      hours: series.avgHoursToRead,
+                                    ),
+                                    if (metadata.releaseYear != null)
+                                      ReleaseYear(
+                                        releaseYear: metadata.releaseYear!,
+                                      ),
+                                  ],
+                                ),
+                                Wrap(
+                                  spacing: LayoutConstants.mediumPadding,
+                                  runSpacing: LayoutConstants.mediumPadding,
+                                  alignment: .spaceBetween,
+                                  children: [
+                                    LimitedList(
+                                      title: 'Writers',
+                                      items: metadata.writers
+                                          .map((w) => w.name)
+                                          .toList(),
+                                    ),
+                                    LimitedList(
+                                      title: 'Genres',
+                                      items: metadata.genres
+                                          .map((a) => a.name)
+                                          .toList(),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

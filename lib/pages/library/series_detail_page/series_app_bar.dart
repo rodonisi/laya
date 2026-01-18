@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fluvita/pages/library/series_detail_page/series_info.dart';
 import 'package:fluvita/riverpod/api/series.dart';
+import 'package:fluvita/utils/logging.dart';
 import 'package:fluvita/widgets/async_value.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -38,15 +39,21 @@ class SeriesAppBar extends HookConsumerWidget {
           expandedHeight: expandedHeight.value,
           flexibleSpace: LayoutBuilder(
             builder: (context, constraints) {
+              final topPadding = MediaQuery.of(context).padding.top;
+              log.d(
+                'height: ${constraints.maxHeight}, top padding: $topPadding',
+              );
+              final value =
+                  (constraints.maxHeight - kToolbarHeight) /
+                  (expandedHeight.value - kToolbarHeight - topPadding);
+
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 isCollapsed.value =
-                    constraints.biggest.height <=
-                    kToolbarHeight + (bottom?.preferredSize.height ?? .0);
+                    constraints.maxHeight <=
+                    kToolbarHeight +
+                        topPadding +
+                        (bottom?.preferredSize.height ?? .0);
               });
-
-              final value =
-                  (constraints.biggest.height - kToolbarHeight) /
-                  (expandedHeight.value - kToolbarHeight);
 
               return Opacity(
                 opacity: value.clamp(0.0, 1.0),
