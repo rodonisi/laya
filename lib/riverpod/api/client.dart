@@ -6,7 +6,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'client.g.dart';
 
 @riverpod
-ChopperClient authenticatedDio(Ref ref) {
+ChopperClient authenticatedClient(Ref ref) {
   final settings = ref.watch(settingsProvider).value;
   final key = ref.watch(apiKeyProvider);
 
@@ -19,7 +19,7 @@ ChopperClient authenticatedDio(Ref ref) {
     throw Exception('Invalid URL in settings');
   }
 
-  final dio = ChopperClient(
+  final client = ChopperClient(
     baseUrl: uri,
     interceptors: [
       HeadersInterceptor({
@@ -29,11 +29,11 @@ ChopperClient authenticatedDio(Ref ref) {
     converter: $JsonSerializableConverter(),
   );
 
-  return dio;
+  return client;
 }
 
 @riverpod
 Openapi restClient(Ref ref) {
-  final dio = ref.watch(authenticatedDioProvider);
-  return Openapi.create(client: dio);
+  final client = ref.watch(authenticatedClientProvider);
+  return Openapi.create(client: client);
 }

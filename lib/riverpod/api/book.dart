@@ -15,11 +15,11 @@ part 'book.g.dart';
 Future<BookInfoModel> bookInfo(Ref ref, {required int chapterId}) async {
   final client = ref.watch(restClientProvider);
   final res = await client.apiBookChapterIdBookInfoGet(chapterId: chapterId);
-  
+
   if (!res.isSuccessful || res.body == null) {
     throw Exception('Failed to load book info: ${res.error}');
   }
-  
+
   return BookInfoModel.fromBookInfoDto(res.body!);
 }
 
@@ -60,7 +60,9 @@ Future<Document> bookPage(Ref ref, {required int chapterId, int? page}) async {
     final src = 'https:${attr.value}';
     final imageData = await _fetchImageData(ref, src);
     if (imageData != null) {
-      final base64img = base64Encode(imageData.bytes).replaceAll(RegExp(r'\s+'), '');
+      final base64img = base64Encode(
+        imageData.bytes,
+      ).replaceAll(RegExp(r'\s+'), '');
 
       // Replace <svg><image></image></svg> with <img> with embedded base64
       final imgTag = doc.createElement('img');
@@ -188,7 +190,7 @@ Future<({Uint8List bytes, String mimeType})?> _fetchImageData(
   String imageUrl,
 ) async {
   try {
-    final chopperClient = ref.watch(authenticatedDioProvider);
+    final chopperClient = ref.watch(authenticatedClientProvider);
 
     final res = await chopperClient.get(
       Uri.parse(imageUrl),
