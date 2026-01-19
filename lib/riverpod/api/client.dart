@@ -14,7 +14,11 @@ ChopperClient authenticatedDio(Ref ref) {
     throw Exception('Credentials not set in settings');
   }
 
-  final uri = Uri.dataFromString(settings!.url!);
+  final uri = Uri.tryParse(settings!.url!);
+  if (uri == null) {
+    throw Exception('Invalid URL in settings');
+  }
+
   final dio = ChopperClient(
     baseUrl: uri,
     interceptors: [
@@ -22,18 +26,8 @@ ChopperClient authenticatedDio(Ref ref) {
         'x-api-key': key!,
       }),
     ],
+    converter: $JsonSerializableConverter(),
   );
-
-  // dio.interceptors.add(
-  //   InterceptorsWrapper(
-  //     onRequest: (options, handler) async {
-  //       if (key != null && key.isNotEmpty) {
-  //         options.headers['x-api-key'] = key;
-  //       }
-  //       handler.next(options);
-  //     },
-  //   ),
-  // );
 
   return dio;
 }
