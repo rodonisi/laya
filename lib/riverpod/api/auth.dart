@@ -1,4 +1,3 @@
-import 'package:fluvita/api/export.dart';
 import 'package:fluvita/models/user_model.dart';
 import 'package:fluvita/riverpod/api/client.dart';
 import 'package:fluvita/riverpod/settings.dart';
@@ -14,11 +13,10 @@ Duration? _retry(int retryCount, Object error) {
 
 @Riverpod(retry: _retry)
 Future<UserModel> currentUser(Ref ref) async {
-  final dio = ref.watch(authenticatedDioProvider);
-  final client = RestClient(dio).plugin;
+  final client = ref.watch(restClientProvider);
   final apiKey = ref.watch(apiKeyProvider);
 
-  final user = await client.postApiPluginAuthenticate(
+  final user = await client.apiPluginAuthenticatePost(
     apiKey: apiKey ?? '',
     pluginName: 'fluvita',
   );
