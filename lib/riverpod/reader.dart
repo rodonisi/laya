@@ -93,6 +93,7 @@ class Reader extends _$Reader {
         volumeId: current.volumeId,
         chapterId: current.chapter.id,
         pageNum: page,
+        lastModifiedUtc: DateTime.now().toUtc(),
       ),
     );
 
@@ -120,6 +121,7 @@ class Reader extends _$Reader {
         chapterId: current.chapter.id,
         pageNum: page ?? current.currentPage,
         bookScrollId: scrollId,
+        lastModifiedUtc: DateTime.now().toUtc(),
       ),
     );
   }
@@ -136,6 +138,7 @@ class Reader extends _$Reader {
         volumeId: current.volumeId,
         chapterId: current.chapter.id,
         pageNum: current.totalPages,
+        lastModifiedUtc: DateTime.now().toUtc(),
       ),
     );
   }

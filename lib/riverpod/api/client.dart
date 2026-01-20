@@ -24,6 +24,7 @@ ChopperClient authenticatedClient(Ref ref) {
     interceptors: [
       HeadersInterceptor({
         'x-api-key': key!,
+        "Content-Type": "application/json",
       }),
     ],
     converter: $JsonSerializableConverter(),
