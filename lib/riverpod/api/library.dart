@@ -6,16 +6,24 @@ part 'library.g.dart';
 
 @riverpod
 Future<LibraryModel> library(Ref ref, {required int libraryId}) async {
-  final client = ref.watch(restClientProvider).library;
-  final res = await client.getApiLibrary(libraryId: libraryId);
+  final client = ref.watch(restClientProvider);
+  final res = await client.apiLibraryGet(libraryId: libraryId);
 
-  return LibraryModel.fromLibraryDto(res);
+  if (!res.isSuccessful || res.body == null) {
+    throw Exception('Failed to load library: ${res.error}');
+  }
+
+  return LibraryModel.fromLibraryDto(res.body!);
 }
 
 @riverpod
 Future<List<LibraryModel>> libraries(Ref ref) async {
-  final client = ref.watch(restClientProvider).library;
-  final res = await client.getApiLibraryLibraries();
+  final client = ref.watch(restClientProvider);
+  final res = await client.apiLibraryLibrariesGet();
 
-  return res.map(LibraryModel.fromLibraryDto).toList();
+  if (!res.isSuccessful || res.body == null) {
+    throw Exception('Failed to load libraries: ${res.error}');
+  }
+
+  return res.body!.map(LibraryModel.fromLibraryDto).toList();
 }

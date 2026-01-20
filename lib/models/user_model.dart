@@ -1,4 +1,4 @@
-import 'package:fluvita/api/models/user_dto.dart';
+import 'package:fluvita/api/openapi.swagger.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'user_model.freezed.dart';

@@ -1,6 +1,4 @@
-import 'package:fluvita/api/models/filter_statement_dto.dart';
-import 'package:fluvita/api/models/filter_v2_dto.dart';
-import 'package:fluvita/api/models/sort_options.dart';
+import 'package:fluvita/api/openapi.swagger.dart';
 import 'package:fluvita/models/series_model.dart';
 import 'package:fluvita/riverpod/api/client.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -9,41 +7,56 @@ part 'series.g.dart';
 
 @riverpod
 Future<SeriesModel> series(Ref ref, {required int seriesId}) async {
-  final client = ref.watch(restClientProvider).series;
-  final res = await client.getApiSeriesSeriesId(seriesId: seriesId);
+  final client = ref.watch(restClientProvider);
+  final res = await client.apiSeriesSeriesIdGet(seriesId: seriesId);
 
-  return SeriesModel.fromSeriesDto(res);
+  if (!res.isSuccessful || res.body == null) {
+    throw Exception('Failed to load series: ${res.error}');
+  }
+
+  return SeriesModel.fromSeriesDto(res.body!);
 }
 
 @riverpod
 Future<List<SeriesModel>> allSeries(Ref ref, {int? libraryId}) async {
-  final client = ref.watch(restClientProvider).series;
-  final res = await client.postApiSeriesV2(
+  final client = ref.watch(restClientProvider);
+  final res = await client.apiSeriesV2Post(
     body: FilterV2Dto(
       id: 0,
-      combination: .value0,
-      sortOptions: SortOptions(sortField: .value1, isAscending: false),
+      combination: FilterV2DtoCombination.value_0.value,
+      sortOptions: SortOptions(
+        sortField: SortOptionsSortField.value_1.value,
+        isAscending: false,
+      ),
       limitTo: 0,
       statements: [
         if (libraryId != null)
           FilterStatementDto(
-            comparison: .value0,
-            field: .value19,
+            comparison: FilterStatementDtoComparison.value_0.value,
+            field: FilterStatementDtoField.value_19.value,
             value: libraryId.toString(),
           ),
       ],
     ),
   );
 
-  return res.map(SeriesModel.fromSeriesDto).toList();
+  if (!res.isSuccessful || res.body == null) {
+    throw Exception('Failed to load all series: ${res.error}');
+  }
+
+  return res.body!.map(SeriesModel.fromSeriesDto).toList();
 }
 
 @riverpod
 Future<SeriesDetailModel> seriesDetail(Ref ref, {required int seriesId}) async {
-  final client = ref.watch(restClientProvider).series;
-  final res = await client.getApiSeriesSeriesDetail(seriesId: seriesId);
+  final client = ref.watch(restClientProvider);
+  final res = await client.apiSeriesSeriesDetailGet(seriesId: seriesId);
 
-  return SeriesDetailModel.fromSeriesDetailDto(res);
+  if (!res.isSuccessful || res.body == null) {
+    throw Exception('Failed to load series detail: ${res.error}');
+  }
+
+  return SeriesDetailModel.fromSeriesDetailDto(res.body!);
 }
 
 @riverpod
@@ -51,26 +64,38 @@ Future<SeriesMetadataModel> seriesMetadata(
   Ref ref, {
   required int seriesId,
 }) async {
-  final client = ref.watch(restClientProvider).series;
-  final res = await client.getApiSeriesMetadata(seriesId: seriesId);
+  final client = ref.watch(restClientProvider);
+  final res = await client.apiSeriesMetadataGet(seriesId: seriesId);
 
-  return SeriesMetadataModel.fromSeriesMetadataDto(res);
+  if (!res.isSuccessful || res.body == null) {
+    throw Exception('Failed to load series metadata: ${res.error}');
+  }
+
+  return SeriesMetadataModel.fromSeriesMetadataDto(res.body!);
 }
 
 @riverpod
 Future<List<SeriesModel>> onDeck(Ref ref) async {
-  final client = ref.watch(restClientProvider).series;
-  final res = await client.postApiSeriesOnDeck();
+  final client = ref.watch(restClientProvider);
+  final res = await client.apiSeriesOnDeckPost();
 
-  return res.map(SeriesModel.fromSeriesDto).toList();
+  if (!res.isSuccessful || res.body == null) {
+    throw Exception('Failed to load on deck: ${res.error}');
+  }
+
+  return res.body!.map(SeriesModel.fromSeriesDto).toList();
 }
 
 @riverpod
 Future<List<SeriesModel>> recentlyUpdated(Ref ref) async {
-  final client = ref.watch(restClientProvider).series;
-  final res = await client.postApiSeriesRecentlyUpdatedSeries();
+  final client = ref.watch(restClientProvider);
+  final res = await client.apiSeriesRecentlyUpdatedSeriesPost();
 
-  final seriesModels = res
+  if (!res.isSuccessful || res.body == null) {
+    throw Exception('Failed to load recently updated: ${res.error}');
+  }
+
+  final seriesModels = res.body!
       .map(
         (dto) async =>
             await ref.watch(seriesProvider(seriesId: dto.seriesId!).future),
@@ -81,16 +106,23 @@ Future<List<SeriesModel>> recentlyUpdated(Ref ref) async {
 
 @riverpod
 Future<List<SeriesModel>> recentlyAdded(Ref ref) async {
-  final client = ref.watch(restClientProvider).series;
-  final res = await client.postApiSeriesRecentlyAddedV2();
+  final client = ref.watch(restClientProvider);
+  final res = await client.apiSeriesRecentlyAddedV2Post(
+    body: FilterV2Dto(
+      id: 0,
+      combination: FilterV2DtoCombination.value_0.value,
+      sortOptions: SortOptions(
+        sortField: SortOptionsSortField.value_1.value,
+        isAscending: false,
+      ),
+      limitTo: 0,
+      statements: [],
+    ),
+  );
 
-  return res.map(SeriesModel.fromSeriesDto).toList();
+  if (!res.isSuccessful || res.body == null) {
+    throw Exception('Failed to load recently added: ${res.error}');
+  }
+
+  return res.body!.map(SeriesModel.fromSeriesDto).toList();
 }
-
-// @riverpod
-// Future<List<SeriesModel>> allSeries(Ref ref) async {
-//   final client = ref.watch(restClientProvider).series;
-//   final res = await client.postApiSeriesAllV2();
-//
-//   return res.map(SeriesModel.fromSeriesDto).toList();
-// }

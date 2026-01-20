@@ -6,8 +6,12 @@ part 'chapter.g.dart';
 
 @riverpod
 Future<ChapterModel> chapter(Ref ref, {required int chapterId}) async {
-  final client = ref.watch(restClientProvider).chapter;
-  final res = await client.getApiChapter(chapterId: chapterId);
+  final client = ref.watch(restClientProvider);
+  final res = await client.apiChapterGet(chapterId: chapterId);
+  
+  if (!res.isSuccessful || res.body == null) {
+    throw Exception('Failed to load chapter: ${res.error}');
+  }
 
-  return ChapterModel.fromChapterDto(res);
+  return ChapterModel.fromChapterDto(res.body!);
 }

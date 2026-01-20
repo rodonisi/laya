@@ -1,5 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:fluvita/api/models/volume_dto.dart';
+import 'package:fluvita/api/openapi.swagger.dart';
 import 'package:fluvita/models/chapter_model.dart';
 
 part 'volume_model.freezed.dart';

@@ -1,4 +1,4 @@
-import 'package:fluvita/api/models/progress_dto.dart';
+import 'package:fluvita/api/openapi.swagger.dart';
 import 'package:fluvita/models/chapter_model.dart';
 import 'package:fluvita/models/read_direction.dart';
 import 'package:fluvita/models/series_model.dart';
@@ -85,8 +85,8 @@ class Reader extends _$Reader {
 
     if (page < 0 || page >= current.totalPages) return;
 
-    final readerClient = ref.read(restClientProvider).reader;
-    await readerClient.postApiReaderProgress(
+    final client = ref.read(restClientProvider);
+    await client.apiReaderProgressPost(
       body: ProgressDto(
         libraryId: current.libraryId,
         seriesId: current.series.id,
@@ -111,8 +111,8 @@ class Reader extends _$Reader {
 
     log.d('Reporting progress: page=$page, xpath=$scrollId');
 
-    final readerClient = ref.read(restClientProvider).reader;
-    await readerClient.postApiReaderProgress(
+    final client = ref.read(restClientProvider);
+    await client.apiReaderProgressPost(
       body: ProgressDto(
         libraryId: current.libraryId,
         seriesId: current.series.id,
@@ -128,8 +128,8 @@ class Reader extends _$Reader {
     if (state.isLoading) return;
     final current = await future;
 
-    final readerClient = ref.read(restClientProvider).reader;
-    await readerClient.postApiReaderProgress(
+    final client = ref.read(restClientProvider);
+    await client.apiReaderProgressPost(
       body: ProgressDto(
         libraryId: current.libraryId,
         seriesId: current.series.id,
@@ -153,7 +153,7 @@ ReadDirection readDirection(
           (state) => state.value?.series.format,
         ),
       ) ??
-      .unknown;
+      Format.unknown;
 
   return switch (format) {
     .epub => .rightToLeft,

@@ -1,5 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:fluvita/api/models/library_dto.dart';
+import 'package:fluvita/api/openapi.swagger.dart';
 
 part 'library_model.freezed.dart';
 part 'library_model.g.dart';
@@ -31,8 +31,8 @@ sealed class LibraryModel with _$LibraryModel {
       id: dto.id!,
       name: dto.name ?? 'Unnamed Library',
       type: switch (dto.type!) {
-        .value2 => .book,
-        .value0 => .manga,
+        2 => .book,
+        0 => .manga,
         _ => .unknown,
       },
     );

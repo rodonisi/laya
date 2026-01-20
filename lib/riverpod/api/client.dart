@@ -1,36 +1,39 @@
-import 'package:dio/dio.dart';
-import 'package:fluvita/api/rest_client.dart';
+import 'package:chopper/chopper.dart';
+import 'package:fluvita/api/openapi.swagger.dart';
 import 'package:fluvita/riverpod/settings.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'client.g.dart';
 
 @riverpod
-Dio authenticatedDio(Ref ref) {
-  final dio = Dio();
+ChopperClient authenticatedClient(Ref ref) {
   final settings = ref.watch(settingsProvider).value;
   final key = ref.watch(apiKeyProvider);
 
-  if (settings?.url != null) {
-    dio.options.baseUrl = settings!.url!;
+  if (settings?.url == null || settings?.apiKey == null) {
+    throw Exception('Credentials not set in settings');
   }
 
-  dio.interceptors.add(
-    InterceptorsWrapper(
-      onRequest: (options, handler) async {
-        if (key != null && key.isNotEmpty) {
-          options.headers['x-api-key'] = key;
-        }
-        handler.next(options);
-      },
-    ),
+  final uri = Uri.tryParse(settings!.url!);
+  if (uri == null) {
+    throw Exception('Invalid URL in settings');
+  }
+
+  final client = ChopperClient(
+    baseUrl: uri,
+    interceptors: [
+      HeadersInterceptor({
+        'x-api-key': key!,
+      }),
+    ],
+    converter: $JsonSerializableConverter(),
   );
 
-  return dio;
+  return client;
 }
 
 @riverpod
-RestClient restClient(Ref ref) {
-  final dio = ref.watch(authenticatedDioProvider);
-  return RestClient(dio);
+Openapi restClient(Ref ref) {
+  final client = ref.watch(authenticatedClientProvider);
+  return Openapi.create(client: client);
 }

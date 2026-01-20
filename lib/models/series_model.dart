@@ -1,9 +1,5 @@
-import 'package:fluvita/api/models/genre_tag_dto.dart';
-import 'package:fluvita/api/models/person_dto.dart';
-import 'package:fluvita/api/models/series_metadata_dto.dart';
+import 'package:fluvita/api/openapi.swagger.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:fluvita/api/models/series_detail_dto.dart';
-import 'package:fluvita/api/models/series_dto.dart';
 import 'package:fluvita/models/chapter_model.dart';
 import 'package:fluvita/models/volume_model.dart';
 
@@ -38,8 +34,8 @@ sealed class SeriesModel with _$SeriesModel {
       libraryId: dto.libraryId!,
       name: dto.name ?? 'Untitled',
       format: switch (dto.format) {
-        .value3 => Format.epub,
-        .value1 => Format.cbz,
+        3 => Format.epub,
+        1 => Format.cbz,
         _ => Format.unknown,
       },
       pages: dto.pages!,

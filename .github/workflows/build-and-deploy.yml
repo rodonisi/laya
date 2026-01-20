@@ -63,7 +63,6 @@ jobs:
 
       - name: Codegen
         run: |
-          dart run swagger_parser
           dart run build_runner build --delete-conflicting-outputs
 
       - name: Build and Publish Testflight
@@ -103,7 +102,6 @@ jobs:
 
       - name: Codegen
         run: |
-          dart run swagger_parser
           dart run build_runner build --delete-conflicting-outputs
 
       - name: Build web

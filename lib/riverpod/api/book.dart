@@ -1,7 +1,7 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
-import 'package:dio/dio.dart';
-import 'package:fluvita/api/models/book_info_dto.dart';
+import 'package:fluvita/models/book_info_model.dart';
 import 'package:fluvita/riverpod/api/client.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:html/dom.dart';
@@ -12,40 +12,40 @@ part 'book.freezed.dart';
 part 'book.g.dart';
 
 @riverpod
-Future<BookInfoDto> bookInfo(Ref ref, {required int chapterId}) async {
-  final client = ref.watch(restClientProvider).book;
-  return await client.getApiBookChapterIdBookInfo(chapterId: chapterId);
+Future<BookInfoModel> bookInfo(Ref ref, {required int chapterId}) async {
+  final client = ref.watch(restClientProvider);
+  final res = await client.apiBookChapterIdBookInfoGet(chapterId: chapterId);
+
+  if (!res.isSuccessful || res.body == null) {
+    throw Exception('Failed to load book info: ${res.error}');
+  }
+
+  return BookInfoModel.fromBookInfoDto(res.body!);
 }
 
 @riverpod
 Future<Document> bookPage(Ref ref, {required int chapterId, int? page}) async {
-  final dio = ref.watch(authenticatedDioProvider);
-  final client = ref.watch(restClientProvider).book;
-  final html = await client.getApiBookChapterIdBookPage(
+  final client = ref.watch(restClientProvider);
+  final res = await client.apiBookChapterIdBookPageGet(
     chapterId: chapterId,
     page: page,
   );
 
+  if (!res.isSuccessful || res.body == null) {
+    throw Exception('Failed to load book page: ${res.error}');
+  }
+
+  final html = res.body!;
   final doc = parse(html);
 
   final imgElements = doc.getElementsByTagName('img');
   for (final img in imgElements) {
     final src = 'https:${img.attributes['src']}';
     if (src.isNotEmpty) {
-      final res = await dio.get(
-        src,
-        options: Options(
-          responseType: .bytes,
-          headers: {
-            'Accept': 'image/*',
-          },
-        ),
-      );
-      if (res.data != null) {
-        final base64img = base64Encode(res.data);
-        final mimeType = res.headers.value('content-type') ?? 'image/png';
-
-        img.attributes['src'] = 'data:$mimeType;base64,$base64img';
+      final imageData = await _fetchImageData(ref, src);
+      if (imageData != null) {
+        final base64img = base64Encode(imageData.bytes);
+        img.attributes['src'] = 'data:${imageData.mimeType};base64,$base64img';
       }
     }
   }
@@ -58,22 +58,15 @@ Future<Document> bookPage(Ref ref, {required int chapterId, int? page}) async {
     }).first;
 
     final src = 'https:${attr.value}';
-    final res = await dio.get(
-      src,
-      options: Options(
-        responseType: .bytes,
-        headers: {
-          'Accept': 'image/*',
-        },
-      ),
-    );
-    if (res.data != null && res.statusCode == 200) {
-      final base64img = base64Encode(res.data).replaceAll(RegExp(r'\s+'), '');
-      final mimeType = res.headers.value('content-type') ?? 'image/png';
+    final imageData = await _fetchImageData(ref, src);
+    if (imageData != null) {
+      final base64img = base64Encode(
+        imageData.bytes,
+      ).replaceAll(RegExp(r'\s+'), '');
 
       // Replace <svg><image></image></svg> with <img> with embedded base64
       final imgTag = doc.createElement('img');
-      imgTag.attributes['src'] = 'data:$mimeType;base64,$base64img';
+      imgTag.attributes['src'] = 'data:${imageData.mimeType};base64,$base64img';
 
       // Copy over width/height if present
       if (img.attributes['width'] != null) {
@@ -190,4 +183,27 @@ Map<String, Map<String, String>> _parseStyles(String css) {
     stylesMap[selector] = propsMap;
   }
   return stylesMap;
+}
+
+Future<({Uint8List bytes, String mimeType})?> _fetchImageData(
+  Ref ref,
+  String imageUrl,
+) async {
+  try {
+    final chopperClient = ref.watch(authenticatedClientProvider);
+
+    final res = await chopperClient.get(
+      Uri.parse(imageUrl),
+      headers: {'Accept': 'image/*'},
+    );
+
+    if (res.isSuccessful && res.bodyBytes.isNotEmpty) {
+      final mimeType = res.headers['content-type'] ?? 'image/png';
+      return (bytes: res.bodyBytes, mimeType: mimeType);
+    }
+  } catch (e) {
+    // Log error but don't fail the entire page load
+  }
+
+  return null;
 }
