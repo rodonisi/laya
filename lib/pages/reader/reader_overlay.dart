@@ -5,6 +5,7 @@ import 'package:fluvita/pages/reader/reader_controls.dart';
 import 'package:fluvita/pages/reader/reader_header.dart';
 import 'package:fluvita/riverpod/api/reader.dart';
 import 'package:fluvita/riverpod/reader.dart';
+import 'package:fluvita/riverpod/reader_navigation.dart';
 import 'package:fluvita/riverpod/router.dart';
 import 'package:fluvita/utils/layout_constants.dart';
 import 'package:fluvita/utils/logging.dart';
@@ -66,13 +67,12 @@ class ReaderOverlay extends HookConsumerWidget {
     );
 
     ref.listen(
-      provider.select((value) => value.value),
+      readerNavigationProvider(seriesId: seriesId, chapterId: chapterId ?? 0),
       (previous, next) {
-        if (next == null) return;
-
-        if (next.currentPage <= 0 && prevChapter.asData?.value != null) {
+        final currentPage = next.currentPage;
+        if (currentPage <= 0 && prevChapter.asData?.value != null) {
           showSnackbar.value = .previous;
-        } else if (next.currentPage >= next.totalPages - 1 &&
+        } else if (currentPage >= state.totalPages - 1 &&
             nextChapter.asData?.value != null) {
           showSnackbar.value = .next;
         } else {
@@ -205,17 +205,20 @@ class ReaderProgress extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final reader = ref.watch(
+    final navState = ref.watch(
+      readerNavigationProvider(seriesId: seriesId, chapterId: chapterId ?? 0),
+    );
+    final currentPage = navState.currentPage;
+
+    final readerState = ref.watch(
       readerProvider(seriesId: seriesId, chapterId: chapterId),
     );
-    return reader.maybeWhen(
-      data: (data) {
-        final progress = data.currentPage / (data.totalPages - 1);
-        return LinearProgressIndicator(
-          value: progress,
-        );
-      },
-      orElse: () => SizedBox.shrink(),
+    final totalPages = readerState.value?.totalPages ?? 1;
+
+    final progress = currentPage / (totalPages - 1);
+
+    return LinearProgressIndicator(
+      value: progress,
     );
   }
 }

@@ -106,6 +106,36 @@ class Reader extends _$Reader {
     );
   }
 
+  Future<void> saveProgress({required int page, String? scrollId}) async {
+    if (state.isLoading) return;
+    final current = await future;
+
+    if (page < 0 || page >= current.totalPages) return;
+
+    log.d('Saving progress: page=$page, scrollId=$scrollId');
+
+    final client = ref.read(restClientProvider);
+    await client.apiReaderProgressPost(
+      body: ProgressDto(
+        libraryId: current.libraryId,
+        seriesId: current.series.id,
+        volumeId: current.volumeId,
+        chapterId: current.chapter.id,
+        pageNum: page,
+        bookScrollId: scrollId,
+        lastModifiedUtc: DateTime.now().toUtc(),
+      ),
+    );
+
+    if (page >= current.totalPages - 1) {
+      await markComplete();
+    }
+
+    state = AsyncValue.data(
+      current.copyWith(currentPage: page),
+    );
+  }
+
   Future<void> reportProgress({int? page, String? scrollId}) async {
     if (state.isLoading) return;
     final current = await future;

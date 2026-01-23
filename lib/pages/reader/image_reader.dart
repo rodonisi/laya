@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fluvita/pages/reader/reader_overlay.dart';
 import 'package:fluvita/riverpod/reader.dart';
+import 'package:fluvita/riverpod/reader_navigation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:fluvita/riverpod/api/reader.dart';
 import 'package:fluvita/riverpod/image_reader_settings.dart';
@@ -23,6 +23,7 @@ class ImageReader extends HookConsumerWidget {
     final settings = ref.watch(imageReaderSettingsProvider);
     final provider = readerProvider(seriesId: seriesId, chapterId: chapterId);
 
+    // Watch reader state for metadata (stable)
     final state = ref.watch(provider).value;
     if (state == null) {
       return Center(
@@ -30,32 +31,33 @@ class ImageReader extends HookConsumerWidget {
       );
     }
 
-    final pageController = usePageController(initialPage: state.currentPage);
+    // Watch navigation state for current page
+    final navProvider = readerNavigationProvider(
+      seriesId: seriesId,
+      chapterId: chapterId,
+    );
+    final navState = ref.watch(navProvider);
+
+    final pageController = usePageController(initialPage: navState.currentPage);
+
+    // Sync controller when navigation changes externally (slider/overlay)
+    ref.listen(navProvider.select((s) => s.currentPage), (previous, next) {
+      if (pageController.hasClients && pageController.page?.round() != next) {
+        pageController.jumpToPage(next);
+      }
+    });
 
     return ReaderOverlay(
       seriesId: seriesId,
       chapterId: chapterId,
       onNextPage: () {
-        settings.readDirection == .leftToRight
-            ? pageController.previousPage(
-                duration: 100.ms,
-                curve: Curves.easeInOut,
-              )
-            : pageController.nextPage(
-                duration: 100.ms,
-                curve: Curves.easeInOut,
-              );
+        ref.read(navProvider.notifier).nextPage();
       },
       onPreviousPage: () {
-        settings.readDirection == .leftToRight
-            ? pageController.nextPage(duration: 100.ms, curve: Curves.easeInOut)
-            : pageController.previousPage(
-                duration: 100.ms,
-                curve: Curves.easeInOut,
-              );
+        ref.read(navProvider.notifier).previousPage();
       },
       onJumpToPage: (page) {
-        pageController.jumpToPage(page);
+        ref.read(navProvider.notifier).jumpToPage(page);
       },
       child: PageView.builder(
         controller: pageController,
@@ -69,7 +71,8 @@ class ImageReader extends HookConsumerWidget {
         itemCount: state.totalPages,
         pageSnapping: settings.readerMode == .horizontal,
         onPageChanged: (index) {
-          ref.read(provider.notifier).gotoPage(index);
+          // Update navigation state only (no rebuild!)
+          ref.read(navProvider.notifier).setPage(index);
         },
         itemBuilder: (context, index) {
           return Async(
