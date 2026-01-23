@@ -15,9 +15,9 @@ jobs:
             platform: web
           - os: ubuntu-latest
             platform: linux
-          - os: macos-latest
+          - os: macos-26
             platform: ios --no-codesign
-          - os: macos-latest
+          - os: macos-26
             platform: macos
           - os: windows-latest
             platform: windows
