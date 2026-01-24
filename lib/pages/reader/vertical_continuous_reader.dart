@@ -150,7 +150,9 @@ class _VerticalContinuousReaderState
         chapterId: widget.chapterId,
       ),
       (previous, next) async {
-        _totalPages ??= next.totalPages;
+        setState(() {
+          _totalPages ??= next.totalPages;
+        });
 
         if (!_scrollController.hasClients ||
             previous?.currentPage == next.currentPage) {
