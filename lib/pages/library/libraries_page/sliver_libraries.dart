@@ -5,8 +5,8 @@ import 'package:fluvita/riverpod/api/library.dart';
 import 'package:fluvita/riverpod/router.dart';
 import 'package:fluvita/utils/layout_constants.dart';
 import 'package:fluvita/widgets/async_value.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class SliverLibraries extends ConsumerWidget {
   const SliverLibraries({
@@ -56,10 +56,10 @@ class LibraryListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final leading = FaIcon(switch (lib.type) {
-      .book || .lightNovel => FontAwesomeIcons.book,
-      .manga || .comic => FontAwesomeIcons.bookOpen,
-      _ => FontAwesomeIcons.question,
+    final leading = Icon(switch (lib.type) {
+      .book || .lightNovel => LucideIcons.bookText,
+      .manga || .comic => LucideIcons.bookOpen,
+      _ => LucideIcons.fileQuestionMark,
     });
 
     return AppListTile(

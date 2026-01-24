@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:fluvita/utils/layout_constants.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class NavigatorContainer extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
@@ -33,15 +33,15 @@ class NavigatorContainer extends StatelessWidget {
               ),
               destinations: const [
                 NavigationDestination(
-                  icon: Icon(FontAwesomeIcons.solidHouse),
+                  icon: Icon(LucideIcons.house),
                   label: 'Home',
                 ),
                 NavigationDestination(
-                  icon: Icon(FontAwesomeIcons.book),
+                  icon: Icon(LucideIcons.library),
                   label: 'Libraries',
                 ),
                 NavigationDestination(
-                  icon: Icon(FontAwesomeIcons.gear),
+                  icon: Icon(LucideIcons.settings),
                   label: 'Settings',
                 ),
               ],

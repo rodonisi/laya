@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:fluvita/riverpod/api/auth.dart';
 import 'package:fluvita/riverpod/settings.dart';
 import 'package:fluvita/utils/layout_constants.dart';
 import 'package:fluvita/widgets/async_value.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class CredentialsSettings extends HookConsumerWidget {
   const CredentialsSettings({super.key});
@@ -74,7 +74,7 @@ class CredentialsSettings extends HookConsumerWidget {
                         child: CircularProgressIndicator(),
                       ),
                       error: (_, _) => Icon(
-                        FontAwesomeIcons.solidCircleXmark,
+                        LucideIcons.circleX,
                         color: Theme.of(context).colorScheme.error,
                       ),
                     ),
@@ -90,7 +90,7 @@ class CredentialsSettings extends HookConsumerWidget {
                             );
                       },
                       label: const Text('Save'),
-                      icon: const FaIcon(FontAwesomeIcons.solidFloppyDisk),
+                      icon: const Icon(LucideIcons.save),
                     ),
                   ],
                 ),

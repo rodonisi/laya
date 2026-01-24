@@ -8,8 +8,8 @@ import 'package:fluvita/utils/layout_constants.dart';
 import 'package:fluvita/widgets/async_value.dart';
 import 'package:fluvita/widgets/chapter_card.dart';
 import 'package:fluvita/widgets/cover_image.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class SeriesInfo extends ConsumerWidget {
   final int seriesId;
@@ -181,8 +181,8 @@ class WordCount extends StatelessWidget {
       mainAxisSize: .min,
       spacing: LayoutConstants.smallPadding,
       children: [
-        FaIcon(
-          FontAwesomeIcons.solidFileWord,
+        Icon(
+          LucideIcons.fileText,
           size: LayoutConstants.smallIcon,
         ),
         Text(
@@ -206,8 +206,8 @@ class ReleaseYear extends StatelessWidget {
       mainAxisSize: .min,
       spacing: LayoutConstants.smallPadding,
       children: [
-        FaIcon(
-          FontAwesomeIcons.solidCalendar,
+        Icon(
+          LucideIcons.calendar,
           size: LayoutConstants.smallIcon,
         ),
         Text(releaseYear.toString()),
@@ -230,8 +230,8 @@ class RemainingHours extends StatelessWidget {
       mainAxisSize: .min,
       spacing: LayoutConstants.smallPadding,
       children: [
-        FaIcon(
-          FontAwesomeIcons.solidClock,
+        Icon(
+          LucideIcons.clock,
           size: LayoutConstants.smallIcon,
         ),
         Text(
@@ -255,8 +255,8 @@ class Pages extends StatelessWidget {
       mainAxisSize: .min,
       spacing: LayoutConstants.smallPadding,
       children: [
-        FaIcon(
-          FontAwesomeIcons.solidFileLines,
+        Icon(
+          LucideIcons.fileStack,
           size: LayoutConstants.smallIcon,
         ),
         Text('${pages.prettyInt()} pages'),

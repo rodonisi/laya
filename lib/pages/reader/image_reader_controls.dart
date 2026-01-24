@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:fluvita/utils/layout_constants.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:fluvita/riverpod/image_reader_settings.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class ImageReaderControls extends ConsumerWidget {
   const ImageReaderControls({
@@ -17,10 +16,10 @@ class ImageReaderControls extends ConsumerWidget {
       mainAxisAlignment: .spaceEvenly,
       children: [
         IconButton(
-          icon: FaIcon(
+          icon: Icon(
             settings.readDirection == .leftToRight
-                ? FontAwesomeIcons.anglesRight
-                : FontAwesomeIcons.anglesLeft,
+                ? LucideIcons.chevronsLeft
+                : LucideIcons.chevronsRight,
           ),
           tooltip: 'Read Direction',
           onPressed: () {
@@ -29,70 +28,56 @@ class ImageReaderControls extends ConsumerWidget {
                 .toggleReadDirection();
           },
         ),
-        IconButton(
-          icon: FaIcon(
-            settings.readerMode == .vertical
-                ? FontAwesomeIcons.upDown
-                : FontAwesomeIcons.leftRight,
-          ),
-          tooltip: 'Reader Mode',
-          onPressed: () {
-            ref.read(imageReaderSettingsProvider.notifier).toggleReaderMode();
-          },
-        ),
-        if (settings.readerMode == .vertical)
-          Row(
-            mainAxisSize: .min,
-            children: [
-              IconButton(
-                icon: FaIcon(
-                  FontAwesomeIcons.minus,
-                  size: LayoutConstants.smallIcon,
-                ),
-                tooltip: 'Decrease gap',
-                onPressed: settings.verticalImageGap > 0.0
-                    ? () {
-                        ref
-                            .read(imageReaderSettingsProvider.notifier)
-                            .setVerticalImageGap(
-                              (settings.verticalImageGap - 4).clamp(0.0, 64.0),
-                            );
-                      }
-                    : null,
-              ),
-              FaIcon(
-                FontAwesomeIcons.gripLines,
-              ),
-              IconButton(
-                icon: FaIcon(
-                  FontAwesomeIcons.plus,
-                  size: LayoutConstants.smallIcon,
-                ),
-                tooltip: 'Increase gap',
-                onPressed: settings.verticalImageGap < 64.0
-                    ? () {
-                        ref
-                            .read(imageReaderSettingsProvider.notifier)
-                            .setVerticalImageGap(
-                              (settings.verticalImageGap + 4).clamp(0.0, 64.0),
-                            );
-                      }
-                    : null,
-              ),
-            ],
-          )
-        else
+        if (settings.readerMode == .vertical) ...[
           IconButton(
-            icon: FaIcon(
+            icon: Icon(LucideIcons.foldVertical),
+            tooltip: 'Decrease gap',
+            onPressed: settings.verticalImageGap > 0.0
+                ? () {
+                    ref
+                        .read(imageReaderSettingsProvider.notifier)
+                        .setVerticalImageGap(
+                          (settings.verticalImageGap - 4).clamp(0.0, 64.0),
+                        );
+                  }
+                : null,
+          ),
+          IconButton(
+            icon: Icon(LucideIcons.unfoldVertical),
+            tooltip: 'Increase gap',
+            onPressed: settings.verticalImageGap < 64.0
+                ? () {
+                    ref
+                        .read(imageReaderSettingsProvider.notifier)
+                        .setVerticalImageGap(
+                          (settings.verticalImageGap + 4).clamp(0.0, 64.0),
+                        );
+                  }
+                : null,
+          ),
+        ] else
+          IconButton(
+            icon: Icon(
               settings.scaleType == .fitWidth
-                  ? FontAwesomeIcons.arrowsLeftRight
-                  : FontAwesomeIcons.arrowsUpDown,
+                  ? LucideIcons.chevronsLeftRight
+                  : LucideIcons.chevronsUpDown,
             ),
             tooltip: 'Fit Direction',
             onPressed: () {
               ref.read(imageReaderSettingsProvider.notifier).toggleScaleType();
             },
           ),
+        IconButton(
+          icon: Icon(
+            settings.readerMode == .vertical
+                ? LucideIcons.moveVertical
+                : LucideIcons.moveHorizontal,
+          ),
+          tooltip: 'Reader Mode',
+          onPressed: () {
+            ref.read(imageReaderSettingsProvider.notifier).toggleReaderMode();
+          },
+        ),
       ],
     );
   }
