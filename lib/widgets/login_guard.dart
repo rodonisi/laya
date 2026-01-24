@@ -3,8 +3,8 @@ import 'package:fluvita/riverpod/settings.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:fluvita/riverpod/router.dart';
 import 'package:fluvita/riverpod/api/auth.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:fluvita/utils/layout_constants.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class LoginGuard extends ConsumerWidget {
   final Widget child;
@@ -23,8 +23,8 @@ class LoginGuard extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              FaIcon(
-                FontAwesomeIcons.userLock,
+              Icon(
+                LucideIcons.userLock,
                 size: LayoutConstants.largerIcon,
                 color: Theme.of(context).colorScheme.primary,
               ),
@@ -60,8 +60,8 @@ class LoginGuard extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              FaIcon(
-                FontAwesomeIcons.triangleExclamation,
+              Icon(
+                LucideIcons.triangleAlert,
                 size: LayoutConstants.largerIcon,
                 color: Theme.of(context).colorScheme.error,
               ),
@@ -89,8 +89,8 @@ class LoginGuard extends ConsumerWidget {
                 children: [
                   FilledButton.icon(
                     onPressed: () => ref.invalidate(currentUserProvider),
-                    icon: FaIcon(
-                      FontAwesomeIcons.rotateRight,
+                    icon: Icon(
+                      LucideIcons.rotateCcw,
                       size: LayoutConstants.smallIcon,
                       color: Theme.of(context).colorScheme.onPrimary,
                     ),
@@ -99,8 +99,8 @@ class LoginGuard extends ConsumerWidget {
                   const SizedBox(height: LayoutConstants.smallPadding),
                   FilledButton.icon(
                     onPressed: () => SettingsRoute().go(context),
-                    icon: FaIcon(
-                      FontAwesomeIcons.gear,
+                    icon: Icon(
+                      LucideIcons.settings,
                       size: LayoutConstants.smallIcon,
                       color: Theme.of(context).colorScheme.onPrimary,
                     ),

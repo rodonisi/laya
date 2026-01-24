@@ -4,9 +4,9 @@ import 'package:fluvita/pages/library/libraries_page/sliver_libraries.dart';
 import 'package:fluvita/pages/library/libraries_page/sliver_section.dart';
 import 'package:fluvita/utils/layout_constants.dart';
 import 'package:fluvita/widgets/login_guard.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:fluvita/riverpod/router.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class LibraryPage extends ConsumerWidget {
   const LibraryPage({super.key});
@@ -24,7 +24,7 @@ class LibraryPage extends ConsumerWidget {
                 sliver: SliverToBoxAdapter(
                   child: AppListTile(
                     title: 'All Series',
-                    icon: FaIcon(FontAwesomeIcons.solidRectangleList),
+                    icon: Icon(LucideIcons.list),
                     onTap: () => AllSeriesRoute().push(context),
                   ),
                 ),

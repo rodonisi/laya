@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:fluvita/riverpod/theme.dart' hide Theme;
 import 'package:fluvita/utils/layout_constants.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class ThemeSettings extends ConsumerWidget {
   const ThemeSettings({super.key});
@@ -37,7 +37,7 @@ class ThemeSettings extends ConsumerWidget {
                     value: ThemeMode.system,
                     label: Text('System'),
                     icon: Icon(
-                      FontAwesomeIcons.circleHalfStroke,
+                      LucideIcons.sunMoon,
                       size: LayoutConstants.smallIcon,
                     ),
                   ),
@@ -45,7 +45,7 @@ class ThemeSettings extends ConsumerWidget {
                     value: ThemeMode.light,
                     label: Text('Light'),
                     icon: Icon(
-                      FontAwesomeIcons.solidSun,
+                      LucideIcons.sun,
                       size: LayoutConstants.smallIcon,
                     ),
                   ),
@@ -53,7 +53,7 @@ class ThemeSettings extends ConsumerWidget {
                     value: ThemeMode.dark,
                     label: Text('Dark'),
                     icon: Icon(
-                      FontAwesomeIcons.solidMoon,
+                      LucideIcons.moon,
                       size: LayoutConstants.smallIcon,
                     ),
                   ),

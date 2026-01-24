@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:fluvita/widgets/adaptive_sliver_grid.dart';
 import 'package:fluvita/widgets/chapter_card.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:fluvita/models/series_model.dart';
 import 'package:fluvita/riverpod/router.dart';
 import 'package:fluvita/utils/layout_constants.dart';
 import 'package:fluvita/widgets/cover_image.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class SeriesSliverGrid extends StatelessWidget {
   final List<SeriesModel> series;
@@ -28,9 +28,9 @@ class SeriesSliverGrid extends StatelessWidget {
           title: series.name,
           icon: Icon(
             switch (series.format) {
-              .epub => FontAwesomeIcons.book,
-              .cbz => FontAwesomeIcons.fileZipper,
-              .unknown => FontAwesomeIcons.question,
+              .epub => LucideIcons.bookText,
+              .cbz => LucideIcons.fileArchive,
+              .unknown => LucideIcons.fileQuestionMark,
             },
             size: LayoutConstants.smallIcon,
           ),

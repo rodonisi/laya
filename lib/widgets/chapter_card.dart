@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:fluvita/utils/layout_constants.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class ChapterCard extends StatelessWidget {
   final String title;
@@ -19,7 +19,7 @@ class ChapterCard extends StatelessWidget {
     required this.title,
     this.icon,
     this.actionLabel = 'Read',
-    this.actionIcon = const FaIcon(FontAwesomeIcons.bookOpen),
+    this.actionIcon = const Icon(LucideIcons.bookOpen),
     required this.progress,
     required this.coverImage,
     this.onTap,
