@@ -67,7 +67,7 @@ class _VerticalContinuousReaderState
               ObserverIndexPositionModel(index: initialPage);
   }
 
-  void _handleObserve(ObserveModel model) {
+  Future<void> _handleObserve(ObserveModel model) async {
     if (model is! ListViewObserveModel) return;
 
     final firstVisibleIndex = model.firstChild?.index;
@@ -83,7 +83,7 @@ class _VerticalContinuousReaderState
 
     final currentPage = ref.read(navProvider).currentPage;
     if (firstVisibleIndex != currentPage) {
-      ref.read(navProvider.notifier).jumpToPage(firstVisibleIndex);
+      await ref.read(navProvider.notifier).jumpToPage(firstVisibleIndex);
     }
   }
 

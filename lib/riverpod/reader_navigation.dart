@@ -31,12 +31,12 @@ class ReaderNavigation extends _$ReaderNavigation {
     );
   }
 
-  void jumpToPage(int page) {
+  Future<void> jumpToPage(int page) async {
     state = state.copyWith(
-      currentPage: page.clamp(0, state.totalPages-1),
+      currentPage: page.clamp(0, state.totalPages - 1),
     );
 
-    ref
+    await ref
         .read(
           readerProvider(
             seriesId: seriesId,
@@ -46,6 +46,6 @@ class ReaderNavigation extends _$ReaderNavigation {
         .saveProgress(page: page);
   }
 
-  void nextPage() => jumpToPage(state.currentPage + 1);
-  void previousPage() => jumpToPage(state.currentPage - 1);
+  Future<void> nextPage() async => await jumpToPage(state.currentPage + 1);
+  Future<void> previousPage() async => await jumpToPage(state.currentPage - 1);
 }

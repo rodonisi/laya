@@ -68,9 +68,9 @@ class Reader extends _$Reader {
     if (state.isLoading) return;
     final current = await future;
 
-    if (page < 0 || page >= current.totalPages) return;
-
-    log.d('Saving progress: page=$page, scrollId=$scrollId');
+    log.d(
+      'Saving progress: page=$page, scrollId=$scrollId, chapter=${current.chapter.id}',
+    );
 
     final client = ref.read(restClientProvider);
     await client.apiReaderProgressPost(
@@ -79,7 +79,7 @@ class Reader extends _$Reader {
         seriesId: current.series.id,
         volumeId: current.volumeId,
         chapterId: current.chapter.id,
-        pageNum: page,
+        pageNum: page.clamp(0, current.totalPages - 1),
         bookScrollId: scrollId,
         lastModifiedUtc: DateTime.now().toUtc(),
       ),
