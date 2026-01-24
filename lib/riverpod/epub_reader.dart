@@ -13,11 +13,6 @@ part 'epub_reader.g.dart';
 
 typedef HtmlElement = dom.Element;
 
-// class HtmlElementsList {
-//   final List<dom.Element> elements;
-//   const HtmlElementsList(this.elements);
-// }
-
 @freezed
 sealed class EpubReaderState with _$EpubReaderState {
   const EpubReaderState._();
@@ -121,19 +116,15 @@ class EpubReader extends _$EpubReader {
     // force rerender on settings change
     ref.watch(epubReaderSettingsProvider);
 
-    // Get reader state - we'll handle rebuilds manually
-    final readerState = await ref.read(
+    final readerState = await ref.watch(
       readerProvider(
         seriesId: seriesId,
         chapterId: chapterId,
       ).future,
     );
 
-    // Read current page from navigation state on initial build only
-    // Don't watch - EPUB subpage navigation is internal state
-    // Only rebuild when jumping to a different chapter page (handled by invalidation)
     final currentPage = ref
-        .read(
+        .watch(
           readerNavigationProvider(seriesId: seriesId, chapterId: chapterId),
         )
         .currentPage;
@@ -200,9 +191,6 @@ class EpubReader extends _$EpubReader {
             currentIndex: measuring.currentIndex + 1,
           ),
         );
-      },
-      display: (display) {
-        log.d('ERROR: addElement called while in display state!');
       },
     );
   }
@@ -289,8 +277,6 @@ class EpubReader extends _$EpubReader {
                 ).notifier,
               )
               .nextPage();
-          // Invalidate self to trigger rebuild with new page
-          ref.invalidateSelf();
           return;
         }
 
@@ -353,8 +339,6 @@ class EpubReader extends _$EpubReader {
                 ).notifier,
               )
               .previousPage();
-          // Invalidate self to trigger rebuild with new page
-          ref.invalidateSelf();
           return;
         }
 
@@ -388,8 +372,5 @@ class EpubReader extends _$EpubReader {
           ).notifier,
         )
         .jumpToPage(page);
-
-    // Invalidate self to trigger rebuild with new page
-    ref.invalidateSelf();
   }
 }
