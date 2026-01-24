@@ -5,6 +5,7 @@ import 'package:fluvita/pages/reader/reader_controls.dart';
 import 'package:fluvita/pages/reader/reader_header.dart';
 import 'package:fluvita/riverpod/api/reader.dart';
 import 'package:fluvita/riverpod/reader.dart';
+import 'package:fluvita/riverpod/reader_navigation.dart';
 import 'package:fluvita/riverpod/router.dart';
 import 'package:fluvita/utils/layout_constants.dart';
 import 'package:fluvita/utils/logging.dart';
@@ -23,7 +24,7 @@ class ReaderOverlay extends HookConsumerWidget {
   final void Function()? onPreviousPage;
   final void Function(int page)? onJumpToPage;
   final int seriesId;
-  final int? chapterId;
+  final int chapterId;
   final Widget child;
 
   const ReaderOverlay({
@@ -31,7 +32,7 @@ class ReaderOverlay extends HookConsumerWidget {
     this.onNextPage,
     this.onPreviousPage,
     this.onJumpToPage,
-    this.chapterId,
+    required this.chapterId,
     required this.seriesId,
     required this.child,
   });
@@ -66,13 +67,14 @@ class ReaderOverlay extends HookConsumerWidget {
     );
 
     ref.listen(
-      provider.select((value) => value.value),
+      readerNavigationProvider(
+        seriesId: seriesId,
+        chapterId: chapterId,
+      ).select((state) => state.currentPage),
       (previous, next) {
-        if (next == null) return;
-
-        if (next.currentPage <= 0 && prevChapter.asData?.value != null) {
+        if (next <= 0 && prevChapter.asData?.value != null) {
           showSnackbar.value = .previous;
-        } else if (next.currentPage >= next.totalPages - 1 &&
+        } else if (next >= state.totalPages - 1 &&
             nextChapter.asData?.value != null) {
           showSnackbar.value = .next;
         } else {
@@ -205,17 +207,14 @@ class ReaderProgress extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final reader = ref.watch(
-      readerProvider(seriesId: seriesId, chapterId: chapterId),
+    final navState = ref.watch(
+      readerNavigationProvider(seriesId: seriesId, chapterId: chapterId ?? 0),
     );
-    return reader.maybeWhen(
-      data: (data) {
-        final progress = data.currentPage / (data.totalPages - 1);
-        return LinearProgressIndicator(
-          value: progress,
-        );
-      },
-      orElse: () => SizedBox.shrink(),
+
+    final progress = navState.currentPage / (navState.totalPages - 1);
+
+    return LinearProgressIndicator(
+      value: progress,
     );
   }
 }

@@ -24,6 +24,7 @@ sealed class ImageReaderSettingsState with _$ImageReaderSettingsState {
     required ImageScaleType scaleType,
     required ReadDirection readDirection,
     required ReaderMode readerMode,
+    @Default(0.0) double verticalImageGap,
   }) = _ImageReaderSettingsState;
 
   factory ImageReaderSettingsState.fromJson(Map<String, Object?> json) =>
@@ -61,6 +62,12 @@ class ImageReaderSettings extends _$ImageReaderSettings {
   void toggleReaderMode() {
     state = state.copyWith(
       readerMode: state.readerMode == .horizontal ? .vertical : .horizontal,
+    );
+  }
+
+  void setVerticalImageGap(double gap) {
+    state = state.copyWith(
+      verticalImageGap: gap.clamp(0.0, 64.0),
     );
   }
 }

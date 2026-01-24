@@ -1,6 +1,7 @@
 import 'package:fluvita/riverpod/api/book.dart';
 import 'package:fluvita/riverpod/epub_reader_settings.dart';
 import 'package:fluvita/riverpod/reader.dart';
+import 'package:fluvita/riverpod/reader_navigation.dart';
 import 'package:fluvita/utils/html_scroll_id.dart';
 import 'package:fluvita/utils/logging.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -11,11 +12,6 @@ part 'epub_reader.freezed.dart';
 part 'epub_reader.g.dart';
 
 typedef HtmlElement = dom.Element;
-
-// class HtmlElementsList {
-//   final List<dom.Element> elements;
-//   const HtmlElementsList(this.elements);
-// }
 
 @freezed
 sealed class EpubReaderState with _$EpubReaderState {
@@ -127,17 +123,23 @@ class EpubReader extends _$EpubReader {
       ).future,
     );
 
+    final currentPage = ref
+        .watch(
+          readerNavigationProvider(seriesId: seriesId, chapterId: chapterId),
+        )
+        .currentPage;
+
     final page = await ref.watch(
       bookPageElementsProvider(
         chapterId: chapterId,
-        page: readerState.currentPage,
+        page: currentPage,
       ).future,
     );
 
     if (page.elements.isEmpty) {
       // skip measuring for pages without elements
       return EpubReaderState.display(
-        pageIndex: readerState.currentPage,
+        pageIndex: currentPage,
         totalPages: readerState.totalPages,
         pageElements: page,
       );
@@ -145,11 +147,11 @@ class EpubReader extends _$EpubReader {
 
     final hadState = state.value != null;
     final fromLast = (state.value != null)
-        ? state.value!.pageIndex == readerState.currentPage + 1
+        ? state.value!.pageIndex == currentPage + 1
         : false;
 
     return EpubReaderState.measuring(
-      pageIndex: readerState.currentPage,
+      pageIndex: currentPage,
       totalPages: readerState.totalPages,
       pageElements: page,
       scrollId: hadState ? null : readerState.bookScrollId,
@@ -162,7 +164,9 @@ class EpubReader extends _$EpubReader {
     current.whenOrNull(
       measuring: (measuring) {
         if (measuring.subpageIndex + 1 < measuring.pageBreaks.length) {
-          log.d('next page already measured');
+          log.d(
+            'next page already measured, converting to display with subpageIndex=${measuring.subpageIndex}',
+          );
           state = AsyncData(
             EpubReaderState.display(
               pageIndex: measuring.pageIndex,
@@ -246,15 +250,28 @@ class EpubReader extends _$EpubReader {
 
   Future<void> nextPage() async {
     final current = await future;
+    log.d('nextPage called, current state type: ${current.runtimeType}');
+
+    // Guard: don't allow navigation while measuring
+    if (current is Measuring) {
+      log.d('ignoring nextPage - already measuring');
+      return;
+    }
 
     current.whenOrNull(
       display: (display) async {
-        log.d('moving to next page');
-        if (display.pageEnd + 1 >= display.pageElements.elements.length) {
-          log.d('already at last page, cannot move to next page');
+        log.d(
+          'moving to next page, subpage ${display.subpageIndex} -> ${display.subpageIndex + 1}',
+        );
+        log.d(
+          'pageEnd: ${display.pageEnd}, elements.length: ${display.pageElements.elements.length}',
+        );
+
+        if (display.pageEnd >= display.pageElements.elements.length) {
+          log.d('at last subpage, moving to next chapter page');
           ref
               .read(
-                readerProvider(
+                readerNavigationProvider(
                   seriesId: seriesId,
                   chapterId: chapterId,
                 ).notifier,
@@ -263,6 +280,9 @@ class EpubReader extends _$EpubReader {
           return;
         }
 
+        log.d(
+          'creating measuring state with subpageIndex: ${display.subpageIndex + 1}',
+        );
         final next = EpubReaderState.measuring(
           pageIndex: display.pageIndex,
           totalPages: display.totalPages,
@@ -273,6 +293,7 @@ class EpubReader extends _$EpubReader {
           currentIndex: display.pageEnd,
         );
 
+        log.d('saving progress with scrollId: ${next.firstScrollId}');
         await ref
             .read(
               readerProvider(
@@ -280,26 +301,39 @@ class EpubReader extends _$EpubReader {
                 chapterId: chapterId,
               ).notifier,
             )
-            .reportProgress(
+            .saveProgress(
+              page: display.pageIndex,
               scrollId: next.firstScrollId,
             );
 
+        log.d('setting state to measuring');
         state = AsyncData(next);
+        log.d('state updated');
+      },
+      measuring: (measuring) {
+        log.d('ERROR: nextPage called while in measuring state!');
       },
     );
   }
 
   Future<void> previousPage() async {
     final current = await future;
+    log.d('previousPage called, current state type: ${current.runtimeType}');
+
+    // Guard: don't allow navigation while measuring
+    if (current is Measuring) {
+      log.d('ignoring previousPage - already measuring');
+      return;
+    }
 
     current.whenOrNull(
       display: (display) async {
         log.d('moving to previous page');
         if (display.subpageIndex <= 0) {
-          log.d('already at first page, cannot move to previous page');
+          log.d('at first subpage, moving to previous chapter page');
           ref
               .read(
-                readerProvider(
+                readerNavigationProvider(
                   seriesId: seriesId,
                   chapterId: chapterId,
                 ).notifier,
@@ -317,7 +351,8 @@ class EpubReader extends _$EpubReader {
                 chapterId: chapterId,
               ).notifier,
             )
-            .reportProgress(
+            .saveProgress(
+              page: display.pageIndex,
               scrollId: next.firstScrollId,
             );
 
@@ -330,7 +365,12 @@ class EpubReader extends _$EpubReader {
     log.d('Jumping to page $page');
 
     ref
-        .read(readerProvider(seriesId: seriesId, chapterId: chapterId).notifier)
-        .gotoPage(page);
+        .read(
+          readerNavigationProvider(
+            seriesId: seriesId,
+            chapterId: chapterId,
+          ).notifier,
+        )
+        .jumpToPage(page);
   }
 }

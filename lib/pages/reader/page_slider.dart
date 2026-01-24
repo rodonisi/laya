@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:fluvita/riverpod/reader.dart';
+import 'package:fluvita/riverpod/reader_navigation.dart';
 import 'package:fluvita/utils/layout_constants.dart';
 
 class PageSlider extends HookConsumerWidget {
@@ -25,14 +26,13 @@ class PageSlider extends HookConsumerWidget {
           ),
         ) ??
         1;
-    final currentPage =
-        (ref.watch(
-              readerProvider(seriesId: seriesId, chapterId: chapterId).select(
-                (state) => state.value?.currentPage,
-              ),
-            ) ??
-            0) +
-        1;
+    final navState = ref.watch(
+      readerNavigationProvider(
+        seriesId: seriesId,
+        chapterId: chapterId ?? 0,
+      ),
+    );
+    final currentPage = navState.currentPage + 1;
     final sliderValue = useState(currentPage * 1.0);
 
     useEffect(() {
