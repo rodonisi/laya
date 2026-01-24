@@ -3,6 +3,11 @@ import 'package:html/dom.dart';
 extension ScrollIdExtension on Element {
   /// Computes the XPath of this element relative to the root of the document.
   String get scrollId {
+    final cached = attributes['data-scroll-id'];
+    if (cached != null) {
+      return cached;
+    }
+
     final List<String> paths = [];
     Element? current = this;
 

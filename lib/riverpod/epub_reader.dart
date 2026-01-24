@@ -200,7 +200,36 @@ class EpubReader extends _$EpubReader {
     current.whenOrNull(
       measuring: (measuring) {
         final scrollIdIdx = measuring.scrollIdIndex;
+        final pageStart = measuring.pageBreaks[measuring.subpageIndex];
+        final overflowIndex = measuring.currentIndex - 1;
+        if (overflow &&
+            measuring.currentIndex - pageStart == 1 &&
+            overflowIndex >= 0 &&
+            overflowIndex < measuring.pageElements.elements.length) {
+          final fragments = _splitRenderableElement(
+            measuring.pageElements.elements[overflowIndex],
+          );
 
+          if (fragments != null && fragments.length > 1) {
+            final newElements = [
+              ...measuring.pageElements.elements.sublist(0, overflowIndex),
+              ...fragments,
+              ...measuring.pageElements.elements.sublist(overflowIndex + 1),
+            ];
+
+            final updatedPageElements = measuring.pageElements.copyWith(
+              elements: newElements,
+            );
+
+            state = AsyncData(
+              measuring.copyWith(
+                pageElements: updatedPageElements,
+                currentIndex: pageStart,
+              ),
+            );
+            return;
+          }
+        }
         // Only add a page break if the page overflowed
         // If overflow is false, all remaining elements fit on the current page
         final pageBreaks = <int>[
@@ -373,4 +402,44 @@ class EpubReader extends _$EpubReader {
         )
         .jumpToPage(page);
   }
+}
+
+List<dom.Element>? _splitRenderableElement(dom.Element element) {
+  return _splitByChildren(element);
+}
+
+List<dom.Element>? _splitByChildren(dom.Element element) {
+  final children = element.children;
+  if (children.isEmpty) {
+    return null;
+  }
+
+  if (children.length >= 2) {
+    final splitIndex = children.length ~/ 2;
+    final prefix = element.clone(false);
+    prefix.children.addAll(
+      children.sublist(0, splitIndex).map((child) => child.clone(true)),
+    );
+
+    final suffix = element.clone(false);
+    suffix.children.addAll(
+      children.sublist(splitIndex).map((child) => child.clone(true)),
+    );
+
+    return [prefix, suffix];
+  }
+
+  final child = children.first;
+  final splitChild = _splitRenderableElement(child);
+  if (splitChild != null) {
+    final prefix = element.clone(false);
+    prefix.children.add(splitChild.first);
+
+    final suffix = element.clone(false);
+    suffix.children.add(splitChild.last);
+
+    return [prefix, suffix];
+  }
+
+  return null;
 }

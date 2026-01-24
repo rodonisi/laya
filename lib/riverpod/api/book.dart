@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:fluvita/models/book_info_model.dart';
 import 'package:fluvita/riverpod/api/client.dart';
+import 'package:fluvita/utils/html_scroll_id.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:html/dom.dart';
 import 'package:html/parser.dart';
@@ -121,10 +122,13 @@ Future<BookPageElementsResult> bookPageElements(
   // For pages with sections, return section children as elements as it is most probably the page container
   final section = body.getElementsByTagName('section').firstOrNull;
   if (section != null) {
+    final elements = section.children;
+    _annotateElements(elements);
+
     return BookPageElementsResult(
       wrapper: section,
       styles: stylesMap,
-      elements: section.children,
+      elements: elements,
     );
   }
 
@@ -136,10 +140,13 @@ Future<BookPageElementsResult> bookPageElements(
 
   // Having the siblings, if we have multiople, we assume there is no further wrapper
   if (parent != null && contentSiblings.length > 1) {
+    final elements = parent.children.where((e) => e != styles).toList();
+    _annotateElements(elements);
+
     return BookPageElementsResult(
       wrapper: body,
       styles: stylesMap,
-      elements: parent.children.where((e) => e != styles).toList(),
+      elements: elements,
     );
   }
 
@@ -149,10 +156,13 @@ Future<BookPageElementsResult> bookPageElements(
   if (container != null && container.children.isNotEmpty) {
     // For pages without paragraphs (image-only, etc.),
     // return as single element to preserve structure and prevent rendering issues
+    final elements = container.children;
+    _annotateElements(elements);
+
     return BookPageElementsResult(
       wrapper: container,
       styles: stylesMap,
-      elements: container.children,
+      elements: elements,
     );
   }
 
@@ -162,6 +172,13 @@ Future<BookPageElementsResult> bookPageElements(
     styles: stylesMap,
     elements: [],
   );
+}
+
+void _annotateElements(List<Element> elements) {
+  for (final element in elements) {
+    final id = element.scrollId;
+    element.attributes['data-scroll-id'] = id;
+  }
 }
 
 Map<String, Map<String, String>> _parseStyles(String css) {
