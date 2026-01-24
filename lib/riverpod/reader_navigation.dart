@@ -26,7 +26,7 @@ class ReaderNavigation extends _$ReaderNavigation {
     );
 
     return ReaderNavigationState(
-      currentPage: readerState.value?.currentPage ?? 0,
+      currentPage: readerState.value?.initialPage ?? 0,
       totalPages: readerState.value?.totalPages ?? 0,
     );
   }

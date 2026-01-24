@@ -27,7 +27,7 @@ sealed class ReaderState with _$ReaderState {
     required int volumeId,
     required String title,
     required int totalPages,
-    required int currentPage,
+    required int initialPage,
     String? bookScrollId,
   }) = _ReaderState;
 
@@ -59,7 +59,7 @@ class Reader extends _$Reader {
       chapter: chapter,
       title: info.seriesName ?? 'Untitled',
       totalPages: info.pages!,
-      currentPage: progress.pageNum,
+      initialPage: progress.pageNum,
       bookScrollId: progress.bookScrollId,
     );
   }
@@ -88,30 +88,6 @@ class Reader extends _$Reader {
     if (page >= current.totalPages - 1) {
       await markComplete();
     }
-
-    state = AsyncValue.data(
-      current.copyWith(currentPage: page),
-    );
-  }
-
-  Future<void> reportProgress({int? page, String? scrollId}) async {
-    if (state.isLoading) return;
-    final current = await future;
-
-    log.d('Reporting progress: page=$page, xpath=$scrollId');
-
-    final client = ref.read(restClientProvider);
-    await client.apiReaderProgressPost(
-      body: ProgressDto(
-        libraryId: current.libraryId,
-        seriesId: current.series.id,
-        volumeId: current.volumeId,
-        chapterId: current.chapter.id,
-        pageNum: page ?? current.currentPage,
-        bookScrollId: scrollId,
-        lastModifiedUtc: DateTime.now().toUtc(),
-      ),
-    );
   }
 
   Future<void> markComplete() async {
