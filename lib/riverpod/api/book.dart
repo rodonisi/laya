@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:fluvita/models/book_chapter_model.dart';
 import 'package:fluvita/models/book_info_model.dart';
 import 'package:fluvita/riverpod/api/client.dart';
 import 'package:fluvita/utils/html_scroll_id.dart';
@@ -22,6 +23,21 @@ Future<BookInfoModel> bookInfo(Ref ref, {required int chapterId}) async {
   }
 
   return BookInfoModel.fromBookInfoDto(res.body!);
+}
+
+@riverpod
+Future<List<BookChapterModel>> bookChapters(
+  Ref ref, {
+  required int chapterId,
+}) async {
+  final client = ref.watch(restClientProvider);
+  final res = await client.apiBookChapterIdChaptersGet(chapterId: chapterId);
+
+  if (!res.isSuccessful || res.body == null) {
+    throw Exception('Failed to load book chapters: ${res.error}');
+  }
+
+  return res.body?.map(BookChapterModel.fromChapterItemDto).toList() ?? [];
 }
 
 @riverpod

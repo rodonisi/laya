@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:fluvita/riverpod/reader.dart';
 import 'package:fluvita/utils/layout_constants.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class ReaderHeader extends ConsumerWidget {
   final int seriesId;
@@ -16,22 +17,9 @@ class ReaderHeader extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final chapterTitle = ref.watch(
-      readerProvider(
-        seriesId: seriesId,
-        chapterId: chapterId,
-      ).select(
-        (state) => state.value?.chapter.title,
-      ),
-    );
-    final seriesTitle = ref.watch(
-      readerProvider(
-        seriesId: seriesId,
-        chapterId: chapterId,
-      ).select(
-        (state) => state.value?.series.name,
-      ),
-    );
+    final reader = ref
+        .watch(readerProvider(seriesId: seriesId, chapterId: chapterId))
+        .value;
 
     return Card(
       margin: LayoutConstants.mediumEdgeInsets,
@@ -41,6 +29,7 @@ class ReaderHeader extends ConsumerWidget {
           mainAxisAlignment: .spaceBetween,
           crossAxisAlignment: .center,
           mainAxisSize: .min,
+          spacing: LayoutConstants.smallPadding,
           children: [
             IconButton(
               icon: const Icon(Icons.arrow_back),
@@ -51,7 +40,7 @@ class ReaderHeader extends ConsumerWidget {
                 mainAxisSize: .min,
                 children: [
                   Text(
-                    chapterTitle ?? '',
+                    reader?.chapter.title ?? '',
                     textAlign: .center,
                     overflow: .ellipsis,
                     style: Theme.of(
@@ -59,7 +48,7 @@ class ReaderHeader extends ConsumerWidget {
                     ).textTheme.headlineMedium,
                   ),
                   Text(
-                    seriesTitle ?? '',
+                    reader?.series.name ?? '',
                     textAlign: .center,
                     overflow: .ellipsis,
                     style:
@@ -72,9 +61,15 @@ class ReaderHeader extends ConsumerWidget {
                 ],
               ),
             ),
-            SizedBox.square(
-              dimension: LayoutConstants.mediumIcon,
-            ),
+            if (reader?.series.format == .epub)
+              IconButton(
+                icon: Icon(LucideIcons.tableOfContents),
+                onPressed: () => Scaffold.of(context).openEndDrawer(),
+              )
+            else
+              SizedBox.square(
+                dimension: LayoutConstants.mediumIcon,
+              ),
           ],
         ),
       ),

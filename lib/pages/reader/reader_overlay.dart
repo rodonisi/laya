@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fluvita/pages/reader/reader_controls.dart';
 import 'package:fluvita/pages/reader/reader_header.dart';
+import 'package:fluvita/pages/reader/toc_drawer.dart';
 import 'package:fluvita/riverpod/api/reader.dart';
 import 'package:fluvita/riverpod/reader.dart';
 import 'package:fluvita/riverpod/reader_navigation.dart';
@@ -83,114 +84,123 @@ class ReaderOverlay extends HookConsumerWidget {
       },
     );
 
-    return Stack(
-      children: [
-        Positioned.fill(
-          child: Column(
-            mainAxisSize: .min,
-            children: [
-              Expanded(child: child),
-              ReaderProgress(seriesId: seriesId, chapterId: chapterId)
-                  .animate(
-                    target: uiVisible.value ? 0.0 : 1.0,
-                  )
-                  .fadeIn(duration: 200.ms),
-            ],
+    return Scaffold(
+      endDrawerEnableOpenDragGesture: true,
+      endDrawer: TocDrawer(
+        seriesId: seriesId,
+        chapterId: chapterId,
+      ),
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Column(
+              mainAxisSize: .min,
+              children: [
+                Expanded(child: child),
+                ReaderProgress(seriesId: seriesId, chapterId: chapterId)
+                    .animate(
+                      target: uiVisible.value ? 0.0 : 1.0,
+                    )
+                    .fadeIn(duration: 200.ms),
+              ],
+            ),
           ),
-        ),
-        Positioned.fill(
-          child: Row(
-            children: [
-              Flexible(
-                flex: 1,
-                child: GestureDetector(
-                  behavior: .translucent,
-                  onTap: onPreviousPage,
+          Positioned.fill(
+            child: Row(
+              children: [
+                Flexible(
+                  flex: 1,
+                  child: GestureDetector(
+                    behavior: .translucent,
+                    onTap: onPreviousPage,
+                  ),
                 ),
-              ),
-              Flexible(
-                flex: 2,
-                child: GestureDetector(
-                  behavior: .translucent,
-                  onTap: () => uiVisible.value = !uiVisible.value,
+                Flexible(
+                  flex: 2,
+                  child: GestureDetector(
+                    behavior: .translucent,
+                    onTap: () => uiVisible.value = !uiVisible.value,
+                  ),
                 ),
-              ),
-              Flexible(
-                flex: 1,
-                child: GestureDetector(
-                  behavior: .translucent,
-                  onTap: onNextPage,
+                Flexible(
+                  flex: 1,
+                  child: GestureDetector(
+                    behavior: .translucent,
+                    onTap: onNextPage,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-        Align(
-          alignment: .topCenter,
-          child:
-              ReaderHeader(
-                    seriesId: seriesId,
-                    chapterId: chapterId,
-                  )
-                  .animate(target: uiVisible.value ? 1.0 : 0.0)
-                  .show(duration: 10.ms, maintain: false)
-                  .fadeIn(duration: 100.ms),
-        ),
-        Align(
-          alignment: .bottomCenter,
-          child:
-              ChapterSnackbar(
-                    title: 'Move to previous chapter',
-                    onNavigate: () {
-                      log.d(
-                        'Navigating to prev chapter ${prevChapter.value}',
-                      );
-                      ReaderRoute(
-                        seriesId: seriesId,
-                        chapterId: prevChapter.value!,
-                      ).replace(context);
-                    },
-                  )
-                  .animate(target: showSnackbar.value == .previous ? 1.0 : 0.0)
-                  .show(duration: 10.ms, maintain: false)
-                  .fade(duration: 100.ms)
-                  .animate(target: uiVisible.value ? 1.0 : 0.0)
-                  .moveY(end: -snackbarOffset, duration: 100.ms),
-        ),
-        Align(
-          alignment: .bottomCenter,
-          child:
-              ChapterSnackbar(
-                    title: 'Move to next chapter',
-                    onNavigate: () {
-                      log.d(
-                        'Navigating to next chapter ${nextChapter.value}',
-                      );
-                      ReaderRoute(
-                        seriesId: seriesId,
-                        chapterId: nextChapter.value!,
-                      ).replace(context);
-                    },
-                  )
-                  .animate(target: showSnackbar.value == .next ? 1.0 : 0.0)
-                  .show(duration: 10.ms, maintain: false)
-                  .fade(duration: 100.ms)
-                  .animate(target: uiVisible.value ? 1.0 : 0.0)
-                  .moveY(end: -snackbarOffset, duration: 100.ms),
-        ),
-        Align(
-          alignment: .bottomCenter,
-          child:
-              ReaderControls(
-                    chapterId: chapterId,
-                    seriesId: seriesId,
-                    onJumpToPage: onJumpToPage,
-                  )
-                  .animate(target: uiVisible.value ? 1.0 : 0.0)
-                  .show(duration: 10.ms, maintain: false)
-                  .fade(duration: 100.ms),
-        ),
-      ],
+          Align(
+            alignment: .topCenter,
+            child:
+                ReaderHeader(
+                      seriesId: seriesId,
+                      chapterId: chapterId,
+                    )
+                    .animate(target: uiVisible.value ? 1.0 : 0.0)
+                    .show(duration: 10.ms, maintain: false)
+                    .fadeIn(duration: 100.ms),
+          ),
+          Align(
+            alignment: .bottomCenter,
+            child:
+                ChapterSnackbar(
+                      title: 'Move to previous chapter',
+                      onNavigate: () {
+                        log.d(
+                          'Navigating to prev chapter ${prevChapter.value}',
+                        );
+                        ReaderRoute(
+                          seriesId: seriesId,
+                          chapterId: prevChapter.value!,
+                        ).replace(context);
+                      },
+                    )
+                    .animate(
+                      target: showSnackbar.value == .previous ? 1.0 : 0.0,
+                    )
+                    .show(duration: 10.ms, maintain: false)
+                    .fade(duration: 100.ms)
+                    .animate(target: uiVisible.value ? 1.0 : 0.0)
+                    .moveY(end: -snackbarOffset, duration: 100.ms),
+          ),
+          Align(
+            alignment: .bottomCenter,
+            child:
+                ChapterSnackbar(
+                      title: 'Move to next chapter',
+                      onNavigate: () {
+                        log.d(
+                          'Navigating to next chapter ${nextChapter.value}',
+                        );
+                        ReaderRoute(
+                          seriesId: seriesId,
+                          chapterId: nextChapter.value!,
+                        ).replace(context);
+                      },
+                    )
+                    .animate(target: showSnackbar.value == .next ? 1.0 : 0.0)
+                    .show(duration: 10.ms, maintain: false)
+                    .fade(duration: 100.ms)
+                    .animate(target: uiVisible.value ? 1.0 : 0.0)
+                    .moveY(end: -snackbarOffset, duration: 100.ms),
+          ),
+          Align(
+            alignment: .bottomCenter,
+            child:
+                ReaderControls(
+                      chapterId: chapterId,
+                      seriesId: seriesId,
+                      onJumpToPage: onJumpToPage,
+                    )
+                    .animate(target: uiVisible.value ? 1.0 : 0.0)
+                    .show(duration: 10.ms, maintain: false)
+                    .fade(duration: 100.ms),
+          ),
+        ],
+      ),
     );
   }
 }
