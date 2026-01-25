@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fluvita/riverpod/reader.dart';
 import 'package:fluvita/riverpod/reader_navigation.dart';
@@ -39,16 +40,21 @@ class HorizontalPagedReader extends HookConsumerWidget {
 
     ref.listen(navProvider.select((s) => s.currentPage), (previous, next) {
       if (pageController.hasClients && pageController.page?.round() != next) {
-        pageController.jumpToPage(next);
+        final isSequential = previous != null && (next - previous).abs() == 1;
+
+        isSequential
+            ? pageController.animateToPage(
+                next,
+                duration: 200.ms,
+                curve: Curves.easeInOut,
+              )
+            : pageController.jumpToPage(next);
       }
     });
 
     return PageView.builder(
       controller: pageController,
       allowImplicitScrolling: true,
-      reverse:
-          settings.readerMode == .horizontal &&
-          settings.readDirection == .leftToRight,
       scrollDirection: .horizontal,
       itemCount: state.totalPages,
       pageSnapping: true,

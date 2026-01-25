@@ -32,7 +32,7 @@ class PageSlider extends HookConsumerWidget {
         chapterId: chapterId,
       ),
     );
-    final currentPage = navState.currentPage + 1;
+    final currentPage = navState.currentPage;
     final sliderValue = useState(currentPage.toDouble());
 
     useEffect(() {
