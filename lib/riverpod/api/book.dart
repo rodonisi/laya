@@ -4,7 +4,9 @@ import 'dart:typed_data';
 import 'package:fluvita/models/book_chapter_model.dart';
 import 'package:fluvita/models/book_info_model.dart';
 import 'package:fluvita/riverpod/api/client.dart';
+import 'package:fluvita/riverpod/settings.dart';
 import 'package:fluvita/utils/html_scroll_id.dart';
+import 'package:fluvita/utils/logging.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:html/dom.dart';
 import 'package:html/parser.dart';
@@ -41,7 +43,7 @@ Future<List<BookChapterModel>> bookChapters(
 }
 
 @riverpod
-Future<Document> bookPage(Ref ref, {required int chapterId, int? page}) async {
+Future<String> bookPage(Ref ref, {required int chapterId, int? page}) async {
   final client = ref.watch(restClientProvider);
   final res = await client.apiBookChapterIdBookPageGet(
     chapterId: chapterId,
@@ -52,55 +54,79 @@ Future<Document> bookPage(Ref ref, {required int chapterId, int? page}) async {
     throw Exception('Failed to load book page: ${res.error}');
   }
 
-  final html = res.body!;
-  final doc = parse(html);
+  return res.body!;
+}
 
-  final imgElements = doc.getElementsByTagName('img');
-  for (final img in imgElements) {
-    final src = 'https:${img.attributes['src']}';
-    if (src.isNotEmpty) {
-      final imageData = await _fetchImageData(ref, src);
-      if (imageData != null) {
-        final base64img = base64Encode(imageData.bytes);
-        img.attributes['src'] = 'data:${imageData.mimeType};base64,$base64img';
+@riverpod
+Future<DocumentFragment> preprocessedHtml(
+  Ref ref, {
+  required int chapterId,
+  int? page,
+}) async {
+  final html = await ref.watch(
+    bookPageProvider(chapterId: chapterId, page: page).future,
+  );
+
+  Future<void> walk(Node node) async {
+    for (var n in node.children) {
+      n.attributes['scroll-id'] = n.scrollId;
+
+      if (n.localName == 'img') {
+        final src = 'https:${n.attributes['src']}';
+        if (src.isNotEmpty) {
+          final imageData = await _fetchImageData(ref, src);
+          if (imageData != null) {
+            final base64img = base64Encode(imageData.bytes);
+            n.attributes['src'] =
+                'data:${imageData.mimeType};base64,$base64img';
+          }
+        }
       }
+
+      if (n.localName == 'image') {
+        final attr = n.attributes.entries.where((entry) {
+          final key = entry.key;
+          return key is AttributeName && key.name == 'href';
+        }).first;
+
+        final src = 'https:${attr.value}';
+        final imageData = await _fetchImageData(ref, src);
+        if (imageData != null) {
+          final base64img = base64Encode(
+            imageData.bytes,
+          ).replaceAll(RegExp(r'\s+'), '');
+
+          // Replace <svg><image></image></svg> with <img> with embedded base64
+          final imgTag = Element.tag('img');
+          imgTag.attributes['src'] =
+              'data:${imageData.mimeType};base64,$base64img';
+
+          // Copy over width/height if present
+          if (n.attributes['width'] != null) {
+            imgTag.attributes['width'] = n.attributes['width']!;
+          }
+          if (n.attributes['height'] != null) {
+            imgTag.attributes['height'] = n.attributes['height']!;
+          }
+
+          final svgParent = n.parent;
+          if (svgParent != null && svgParent.localName == 'svg') {
+            svgParent.replaceWith(imgTag);
+          } else {
+            n.replaceWith(imgTag);
+          }
+        }
+      }
+
+      await walk(n);
     }
   }
 
-  final imageElements = doc.getElementsByTagName('image');
-  for (final img in imageElements) {
-    final attr = img.attributes.entries.where((entry) {
-      final key = entry.key;
-      return key is AttributeName && key.name == 'href';
-    }).first;
-
-    final src = 'https:${attr.value}';
-    final imageData = await _fetchImageData(ref, src);
-    if (imageData != null) {
-      final base64img = base64Encode(
-        imageData.bytes,
-      ).replaceAll(RegExp(r'\s+'), '');
-
-      // Replace <svg><image></image></svg> with <img> with embedded base64
-      final imgTag = doc.createElement('img');
-      imgTag.attributes['src'] = 'data:${imageData.mimeType};base64,$base64img';
-
-      // Copy over width/height if present
-      if (img.attributes['width'] != null) {
-        imgTag.attributes['width'] = img.attributes['width']!;
-      }
-      if (img.attributes['height'] != null) {
-        imgTag.attributes['height'] = img.attributes['height']!;
-      }
-
-      final svgParent = img.parent;
-      if (svgParent != null && svgParent.localName == 'svg') {
-        svgParent.replaceWith(imgTag);
-      } else {
-        img.replaceWith(imgTag);
-      }
-    }
+  final doc = parseFragment(html);
+  for (var node in doc.nodes) {
+    await walk(node);
   }
+
   return doc;
 }
 
@@ -121,14 +147,14 @@ Future<BookPageElementsResult> bookPageElements(
   int chunkSize = 5,
 }) async {
   final doc = await ref.watch(
-    bookPageProvider(
+    preprocessedHtmlProvider(
       chapterId: chapterId,
       page: page,
     ).future,
   );
 
-  final body = doc.body;
-  if (body == null) {
+  final body = doc.firstChild;
+  if (body == null || body is! Element) {
     throw Exception('No body found in HTML');
   }
 
