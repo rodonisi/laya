@@ -16,6 +16,7 @@ final _theme = MaterialTheme(
 );
 
 final _cardTheme = CardThemeData(elevation: 0);
+final _sliderTheme = SliderThemeData(showValueIndicator: .alwaysVisible);
 
 @freezed
 sealed class ThemeModel with _$ThemeModel {
@@ -27,13 +28,11 @@ sealed class ThemeModel with _$ThemeModel {
   factory ThemeModel.fromJson(Map<String, Object?> json) =>
       _$ThemeModelFromJson(json);
 
-  ThemeData get lightTheme => _theme.light().copyWith(
-    cardTheme: _cardTheme,
-  );
+  ThemeData get lightTheme =>
+      _theme.light().copyWith(cardTheme: _cardTheme, sliderTheme: _sliderTheme);
 
-  ThemeData get darkTheme => _theme.dark().copyWith(
-    cardTheme: _cardTheme,
-  );
+  ThemeData get darkTheme =>
+      _theme.dark().copyWith(cardTheme: _cardTheme, sliderTheme: _sliderTheme);
 }
 
 @riverpod
