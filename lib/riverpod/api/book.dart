@@ -4,9 +4,7 @@ import 'dart:typed_data';
 import 'package:fluvita/models/book_chapter_model.dart';
 import 'package:fluvita/models/book_info_model.dart';
 import 'package:fluvita/riverpod/api/client.dart';
-import 'package:fluvita/riverpod/settings.dart';
-import 'package:fluvita/utils/html_scroll_id.dart';
-import 'package:fluvita/utils/logging.dart';
+import 'package:fluvita/utils/extensions/element.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:html/dom.dart';
 import 'package:html/parser.dart';
@@ -131,96 +129,32 @@ Future<DocumentFragment> preprocessedHtml(
 }
 
 @freezed
-sealed class BookPageElementsResult with _$BookPageElementsResult {
-  const factory BookPageElementsResult({
-    required Element wrapper,
+sealed class PageContent with _$PageContent {
+  const factory PageContent({
+    required DocumentFragment root,
     required Map<String, Map<String, String>> styles,
-    required List<Element> elements,
-  }) = _BookPageElementsResult;
+  }) = _PageContent;
 }
 
 @riverpod
-Future<BookPageElementsResult> bookPageElements(
+Future<PageContent> preprocessedPage(
   Ref ref, {
   required int chapterId,
   int? page,
-  int chunkSize = 5,
 }) async {
-  final doc = await ref.watch(
-    preprocessedHtmlProvider(
-      chapterId: chapterId,
-      page: page,
-    ).future,
+  final frag = await ref.watch(
+    preprocessedHtmlProvider(chapterId: chapterId, page: page).future,
   );
 
-  final body = doc.firstChild;
-  if (body == null || body is! Element) {
-    throw Exception('No body found in HTML');
+  final styles = <String, Map<String, String>>{};
+
+  final stylesElement = frag.querySelector('style');
+  if (stylesElement != null) {
+    styles.addAll(_parseStyles(stylesElement.innerHtml));
+    stylesElement.remove();
   }
 
-  final styles = body.getElementsByTagName('style').first;
-  final stylesMap = _parseStyles(styles.innerHtml);
-
-  // For pages with sections, return section children as elements as it is most probably the page container
-  final section = body.getElementsByTagName('section').firstOrNull;
-  if (section != null) {
-    final elements = section.children;
-    _annotateElements(elements);
-
-    return BookPageElementsResult(
-      wrapper: section,
-      styles: stylesMap,
-      elements: elements,
-    );
-  }
-
-  // Kavita wraps pages into one div with the scoped styles in it. Finding the styles thus should generally puts us at a
-  // sibling of the content
-  final parent = styles.parent;
-  final contentSiblings =
-      parent?.children.where((e) => e != styles).toList() ?? [];
-
-  // Having the siblings, if we have multiople, we assume there is no further wrapper
-  if (parent != null && contentSiblings.length > 1) {
-    final elements = parent.children.where((e) => e != styles).toList();
-    _annotateElements(elements);
-
-    return BookPageElementsResult(
-      wrapper: body,
-      styles: stylesMap,
-      elements: elements,
-    );
-  }
-
-  final container = contentSiblings.firstOrNull;
-
-  // If there is only one tag, that is probably a container similar to a section.
-  if (container != null && container.children.isNotEmpty) {
-    // For pages without paragraphs (image-only, etc.),
-    // return as single element to preserve structure and prevent rendering issues
-    final elements = container.children;
-    _annotateElements(elements);
-
-    return BookPageElementsResult(
-      wrapper: container,
-      styles: stylesMap,
-      elements: elements,
-    );
-  }
-
-  // Fall back returning body with no elements causing the reader to render as is
-  return BookPageElementsResult(
-    wrapper: body,
-    styles: stylesMap,
-    elements: [],
-  );
-}
-
-void _annotateElements(List<Element> elements) {
-  for (final element in elements) {
-    final id = element.scrollId;
-    element.attributes['data-scroll-id'] = id;
-  }
+  return PageContent(root: frag, styles: styles);
 }
 
 Map<String, Map<String, String>> _parseStyles(String css) {
