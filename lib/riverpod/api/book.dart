@@ -5,6 +5,7 @@ import 'package:fluvita/models/book_chapter_model.dart';
 import 'package:fluvita/models/book_info_model.dart';
 import 'package:fluvita/riverpod/api/client.dart';
 import 'package:fluvita/utils/extensions/element.dart';
+import 'package:fluvita/utils/html_constants.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:html/dom.dart';
 import 'package:html/parser.dart';
@@ -68,7 +69,7 @@ Future<DocumentFragment> preprocessedHtml(
 
   Future<void> walk(Node node) async {
     for (var n in node.children) {
-      n.attributes['scroll-id'] = n.scrollId;
+      n.attributes[HtmlConstants.scrollIdAttribute] = n.scrollId;
 
       if (n.localName == 'img') {
         final src = 'https:${n.attributes['src']}';
@@ -160,7 +161,7 @@ Future<PageContent> preprocessedPage(
     stylesElement.remove();
   }
 
-  styles['.resume-paragraph'] = {
+  styles['.${HtmlConstants.resumeParagraphClass}'] = {
     'background-color': 'rgba(255,255,0,0.2);',
   };
 

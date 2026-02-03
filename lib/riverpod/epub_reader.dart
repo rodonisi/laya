@@ -3,6 +3,7 @@ import 'package:fluvita/riverpod/epub_reader_settings.dart';
 import 'package:fluvita/riverpod/reader.dart';
 import 'package:fluvita/riverpod/reader_navigation.dart';
 import 'package:fluvita/utils/extensions/document_fragment.dart';
+import 'package:fluvita/utils/html_constants.dart';
 import 'package:fluvita/utils/logging.dart';
 import 'package:fluvita/utils/node_cursor.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -236,7 +237,7 @@ class EpubReader extends _$EpubReader {
 
         if (measuring.scrollId != null) {
           final resumePoint = fragment.querySelector(
-            '[scroll-id="${measuring.scrollId}"]',
+            '[${HtmlConstants.scrollIdAttribute}="${measuring.scrollId}"]',
           );
           if (resumePoint == null || !resumePoint.hasChildNodes()) {
             log.d(
@@ -252,7 +253,7 @@ class EpubReader extends _$EpubReader {
             return;
           }
 
-          resumePoint.classes.add('resume-paragraph');
+          resumePoint.classes.add(HtmlConstants.resumeParagraphClass);
         }
 
         log.d(
