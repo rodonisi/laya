@@ -69,9 +69,6 @@ Future<DocumentFragment> preprocessedHtml(
   Future<void> walk(Node node) async {
     for (var n in node.children) {
       n.attributes['scroll-id'] = n.scrollId;
-      if (n.attributes['scroll-id'] == resumeScrollId) {
-        n.classes.add('resume-paragraph');
-      }
 
       if (n.localName == 'img') {
         final src = 'https:${n.attributes['src']}';

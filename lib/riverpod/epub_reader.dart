@@ -238,7 +238,7 @@ class EpubReader extends _$EpubReader {
           final resumePoint = fragment.querySelector(
             '[scroll-id="${measuring.scrollId}"]',
           );
-          if (resumePoint == null) {
+          if (resumePoint == null || !resumePoint.hasChildNodes()) {
             log.d(
               'searching for resume point with scrollId: ${measuring.scrollId}, fast forward',
             );
@@ -251,6 +251,8 @@ class EpubReader extends _$EpubReader {
             );
             return;
           }
+
+          resumePoint.classes.add('resume-paragraph');
         }
 
         log.d(
