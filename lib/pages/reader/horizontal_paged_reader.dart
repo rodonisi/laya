@@ -23,13 +23,6 @@ class HorizontalPagedReader extends HookConsumerWidget {
     final settings = ref.watch(imageReaderSettingsProvider);
     final provider = readerProvider(seriesId: seriesId, chapterId: chapterId);
 
-    final state = ref.watch(provider).value;
-    if (state == null) {
-      return Center(
-        child: Text('Failed to load reader state.'),
-      );
-    }
-
     final navProvider = readerNavigationProvider(
       seriesId: seriesId,
       chapterId: chapterId,
@@ -51,25 +44,29 @@ class HorizontalPagedReader extends HookConsumerWidget {
             : pageController.jumpToPage(next);
       }
     });
-
-    return PageView.builder(
-      controller: pageController,
-      allowImplicitScrolling: true,
-      scrollDirection: .horizontal,
-      itemCount: state.totalPages,
-      pageSnapping: true,
-      onPageChanged: (index) {
-        ref.read(navProvider.notifier).jumpToPage(index);
-      },
-      itemBuilder: (context, index) {
-        return Async(
-          asyncValue: ref.watch(
-            readerImageProvider(chapterId: chapterId, page: index),
-          ),
-          data: (data) {
-            return Image.memory(
-              data,
-              fit: settings.scaleType == .fitWidth ? .fitWidth : .fitHeight,
+    return Async(
+      asyncValue: ref.watch(provider),
+      data: (state) {
+        return PageView.builder(
+          controller: pageController,
+          allowImplicitScrolling: true,
+          scrollDirection: .horizontal,
+          itemCount: state.totalPages,
+          pageSnapping: true,
+          onPageChanged: (index) {
+            ref.read(navProvider.notifier).jumpToPage(index);
+          },
+          itemBuilder: (context, index) {
+            return Async(
+              asyncValue: ref.watch(
+                readerImageProvider(chapterId: chapterId, page: index),
+              ),
+              data: (data) {
+                return Image.memory(
+                  data,
+                  fit: settings.scaleType == .fitWidth ? .fitWidth : .fitHeight,
+                );
+              },
             );
           },
         );

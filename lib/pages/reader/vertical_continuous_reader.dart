@@ -223,7 +223,7 @@ class _VerticalContinuousReaderState
 
     return SliverViewObserver(
       controller: _observerController,
-      sliverContexts: () => [if (_sliverContext != null) _sliverContext!],
+      sliverContexts: () => [?_sliverContext],
       onObserve: _handleObserve,
       child: CustomScrollView(
         controller: _scrollController,

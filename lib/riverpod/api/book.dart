@@ -4,7 +4,8 @@ import 'dart:typed_data';
 import 'package:fluvita/models/book_chapter_model.dart';
 import 'package:fluvita/models/book_info_model.dart';
 import 'package:fluvita/riverpod/api/client.dart';
-import 'package:fluvita/utils/html_scroll_id.dart';
+import 'package:fluvita/utils/extensions/element.dart';
+import 'package:fluvita/utils/html_constants.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:html/dom.dart';
 import 'package:html/parser.dart';
@@ -41,7 +42,7 @@ Future<List<BookChapterModel>> bookChapters(
 }
 
 @riverpod
-Future<Document> bookPage(Ref ref, {required int chapterId, int? page}) async {
+Future<String> bookPage(Ref ref, {required int chapterId, int? page}) async {
   final client = ref.watch(restClientProvider);
   final res = await client.apiBookChapterIdBookPageGet(
     chapterId: chapterId,
@@ -52,149 +53,121 @@ Future<Document> bookPage(Ref ref, {required int chapterId, int? page}) async {
     throw Exception('Failed to load book page: ${res.error}');
   }
 
-  final html = res.body!;
-  final doc = parse(html);
+  return res.body!;
+}
 
-  final imgElements = doc.getElementsByTagName('img');
-  for (final img in imgElements) {
-    final src = 'https:${img.attributes['src']}';
-    if (src.isNotEmpty) {
-      final imageData = await _fetchImageData(ref, src);
-      if (imageData != null) {
-        final base64img = base64Encode(imageData.bytes);
-        img.attributes['src'] = 'data:${imageData.mimeType};base64,$base64img';
+@riverpod
+Future<DocumentFragment> preprocessedHtml(
+  Ref ref, {
+  required int chapterId,
+  int? page,
+  String? resumeScrollId,
+}) async {
+  final html = await ref.watch(
+    bookPageProvider(chapterId: chapterId, page: page).future,
+  );
+
+  Future<void> walk(Node node) async {
+    for (var n in node.children) {
+      n.attributes[HtmlConstants.scrollIdAttribute] = n.scrollId;
+
+      if (n.localName == 'img') {
+        final src = 'https:${n.attributes['src']}';
+        if (src.isNotEmpty) {
+          final imageData = await _fetchImageData(ref, src);
+          if (imageData != null) {
+            final base64img = base64Encode(imageData.bytes);
+            n.attributes['src'] =
+                'data:${imageData.mimeType};base64,$base64img';
+          }
+        }
       }
+
+      if (n.localName == 'image') {
+        final attr = n.attributes.entries.where((entry) {
+          final key = entry.key;
+          return key is AttributeName && key.name == 'href';
+        }).first;
+
+        final src = 'https:${attr.value}';
+        final imageData = await _fetchImageData(ref, src);
+        if (imageData != null) {
+          final base64img = base64Encode(
+            imageData.bytes,
+          ).replaceAll(RegExp(r'\s+'), '');
+
+          // Replace <svg><image></image></svg> with <img> with embedded base64
+          final imgTag = Element.tag('img');
+          imgTag.attributes['src'] =
+              'data:${imageData.mimeType};base64,$base64img';
+
+          // Copy over width/height if present
+          if (n.attributes['width'] != null) {
+            imgTag.attributes['width'] = n.attributes['width']!;
+          }
+          if (n.attributes['height'] != null) {
+            imgTag.attributes['height'] = n.attributes['height']!;
+          }
+
+          final svgParent = n.parent;
+          if (svgParent != null && svgParent.localName == 'svg') {
+            svgParent.replaceWith(imgTag);
+          } else {
+            n.replaceWith(imgTag);
+          }
+        }
+      }
+
+      await walk(n);
     }
   }
 
-  final imageElements = doc.getElementsByTagName('image');
-  for (final img in imageElements) {
-    final attr = img.attributes.entries.where((entry) {
-      final key = entry.key;
-      return key is AttributeName && key.name == 'href';
-    }).first;
-
-    final src = 'https:${attr.value}';
-    final imageData = await _fetchImageData(ref, src);
-    if (imageData != null) {
-      final base64img = base64Encode(
-        imageData.bytes,
-      ).replaceAll(RegExp(r'\s+'), '');
-
-      // Replace <svg><image></image></svg> with <img> with embedded base64
-      final imgTag = doc.createElement('img');
-      imgTag.attributes['src'] = 'data:${imageData.mimeType};base64,$base64img';
-
-      // Copy over width/height if present
-      if (img.attributes['width'] != null) {
-        imgTag.attributes['width'] = img.attributes['width']!;
-      }
-      if (img.attributes['height'] != null) {
-        imgTag.attributes['height'] = img.attributes['height']!;
-      }
-
-      final svgParent = img.parent;
-      if (svgParent != null && svgParent.localName == 'svg') {
-        svgParent.replaceWith(imgTag);
-      } else {
-        img.replaceWith(imgTag);
-      }
-    }
+  final doc = parseFragment(html);
+  for (var node in doc.nodes) {
+    await walk(node);
   }
+
   return doc;
 }
 
 @freezed
-sealed class BookPageElementsResult with _$BookPageElementsResult {
-  const factory BookPageElementsResult({
-    required Element wrapper,
+sealed class PageContent with _$PageContent {
+  const factory PageContent({
+    required DocumentFragment root,
     required Map<String, Map<String, String>> styles,
-    required List<Element> elements,
-  }) = _BookPageElementsResult;
+  }) = _PageContent;
 }
 
 @riverpod
-Future<BookPageElementsResult> bookPageElements(
+Future<PageContent> preprocessedPage(
   Ref ref, {
   required int chapterId,
   int? page,
-  int chunkSize = 5,
+  String? resumeScrollId,
 }) async {
-  final doc = await ref.watch(
-    bookPageProvider(
+  final frag = await ref.watch(
+    preprocessedHtmlProvider(
       chapterId: chapterId,
       page: page,
+      resumeScrollId: resumeScrollId,
     ).future,
   );
 
-  final body = doc.body;
-  if (body == null) {
-    throw Exception('No body found in HTML');
+  final styles = <String, Map<String, String>>{};
+
+  final stylesElement = frag.querySelector('style');
+  if (stylesElement != null) {
+    styles.addAll(_parseStyles(stylesElement.innerHtml));
+    stylesElement.remove();
   }
 
-  final styles = body.getElementsByTagName('style').first;
-  final stylesMap = _parseStyles(styles.innerHtml);
+  styles['.${HtmlConstants.resumeParagraphClass}'] = {
+    'background-color': 'rgba(255,255,0,0.2);',
+  };
 
-  // For pages with sections, return section children as elements as it is most probably the page container
-  final section = body.getElementsByTagName('section').firstOrNull;
-  if (section != null) {
-    final elements = section.children;
-    _annotateElements(elements);
+  styles['a'] = {'text-decoration': 'none'};
 
-    return BookPageElementsResult(
-      wrapper: section,
-      styles: stylesMap,
-      elements: elements,
-    );
-  }
-
-  // Kavita wraps pages into one div with the scoped styles in it. Finding the styles thus should generally puts us at a
-  // sibling of the content
-  final parent = styles.parent;
-  final contentSiblings =
-      parent?.children.where((e) => e != styles).toList() ?? [];
-
-  // Having the siblings, if we have multiople, we assume there is no further wrapper
-  if (parent != null && contentSiblings.length > 1) {
-    final elements = parent.children.where((e) => e != styles).toList();
-    _annotateElements(elements);
-
-    return BookPageElementsResult(
-      wrapper: body,
-      styles: stylesMap,
-      elements: elements,
-    );
-  }
-
-  final container = contentSiblings.firstOrNull;
-
-  // If there is only one tag, that is probably a container similar to a section.
-  if (container != null && container.children.isNotEmpty) {
-    // For pages without paragraphs (image-only, etc.),
-    // return as single element to preserve structure and prevent rendering issues
-    final elements = container.children;
-    _annotateElements(elements);
-
-    return BookPageElementsResult(
-      wrapper: container,
-      styles: stylesMap,
-      elements: elements,
-    );
-  }
-
-  // Fall back returning body with no elements causing the reader to render as is
-  return BookPageElementsResult(
-    wrapper: body,
-    styles: stylesMap,
-    elements: [],
-  );
-}
-
-void _annotateElements(List<Element> elements) {
-  for (final element in elements) {
-    final id = element.scrollId;
-    element.attributes['data-scroll-id'] = id;
-  }
+  return PageContent(root: frag, styles: styles);
 }
 
 Map<String, Map<String, String>> _parseStyles(String css) {

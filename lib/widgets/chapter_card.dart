@@ -79,7 +79,7 @@ class ChapterCard extends StatelessWidget {
                 mainAxisSize: .min,
                 spacing: LayoutConstants.smallPadding,
                 children: [
-                  if (icon != null) icon!,
+                  ?icon,
                   Expanded(
                     child: Text(
                       title,

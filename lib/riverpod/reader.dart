@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:fluvita/api/openapi.swagger.dart';
 import 'package:fluvita/models/chapter_model.dart';
 import 'package:fluvita/models/read_direction.dart';
@@ -37,6 +40,8 @@ sealed class ReaderState with _$ReaderState {
 
 @riverpod
 class Reader extends _$Reader {
+  Timer? _saveProgressDebounce;
+
   @override
   Future<ReaderState> build({required int seriesId, int? chapterId}) async {
     final chapter = chapterId != null
@@ -68,26 +73,30 @@ class Reader extends _$Reader {
     if (state.isLoading) return;
     final current = await future;
 
-    log.d(
-      'Saving progress: page=$page, scrollId=$scrollId, chapter=${current.chapter.id}',
-    );
+    _saveProgressDebounce?.cancel();
 
-    final client = ref.read(restClientProvider);
-    await client.apiReaderProgressPost(
-      body: ProgressDto(
-        libraryId: current.libraryId,
-        seriesId: current.series.id,
-        volumeId: current.volumeId,
-        chapterId: current.chapter.id,
-        pageNum: page.clamp(0, current.totalPages - 1),
-        bookScrollId: scrollId,
-        lastModifiedUtc: DateTime.now().toUtc(),
-      ),
-    );
+    _saveProgressDebounce = Timer(500.ms, () async {
+      log.d(
+        'Saving progress: page=$page, scrollId=$scrollId, chapter=${current.chapter.id}',
+      );
 
-    if (page >= current.totalPages - 1) {
-      await markComplete();
-    }
+      final client = ref.read(restClientProvider);
+      await client.apiReaderProgressPost(
+        body: ProgressDto(
+          libraryId: current.libraryId,
+          seriesId: current.series.id,
+          volumeId: current.volumeId,
+          chapterId: current.chapter.id,
+          pageNum: page.clamp(0, current.totalPages - 1),
+          bookScrollId: scrollId,
+          lastModifiedUtc: DateTime.now().toUtc(),
+        ),
+      );
+
+      if (page >= current.totalPages - 1) {
+        await markComplete();
+      }
+    });
   }
 
   Future<void> markComplete() async {

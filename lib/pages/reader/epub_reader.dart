@@ -48,8 +48,8 @@ class EpubReader extends HookConsumerWidget {
             },
             display: (data) => SingleChildScrollView(
               child: RenderContent(
-                styles: data.pageElements.styles,
-                html: data.currentPage,
+                styles: data.page.styles,
+                html: data.subpage.outerHtml,
               ),
             ),
           );
@@ -89,7 +89,7 @@ class MeasureContent extends ConsumerWidget {
           }
 
           if (renderBox.size.height > constraints.maxHeight) {
-            await ref.read(provider.notifier).finishMeasuring();
+            await ref.read(provider.notifier).overflow();
           } else {
             await ref.read(provider.notifier).addElement();
           }
@@ -104,8 +104,8 @@ class MeasureContent extends ConsumerWidget {
                   children: [
                     RenderContent(
                       key: key,
-                      styles: state.pageElements.styles,
-                      html: state.currentPage,
+                      styles: state.page.styles,
+                      html: state.subpage.outerHtml,
                     ),
                   ],
                 ),
@@ -139,6 +139,8 @@ class RenderContent extends ConsumerWidget {
           padding: EdgeInsets.all(epubSettings.marginSize),
           child: HtmlWidget(
             html,
+            buildAsync: false,
+            enableCaching: true,
             customStylesBuilder: (element) {
               final s = element.classes
                   .map((className) {
@@ -153,9 +155,10 @@ class RenderContent extends ConsumerWidget {
                     return acc;
                   });
 
+              s.addAll(styles[element.localName] ?? {});
+
               return s;
             },
-            enableCaching: true,
             textStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
               fontSize: epubSettings.fontSize,
               height: epubSettings.lineHeight,
