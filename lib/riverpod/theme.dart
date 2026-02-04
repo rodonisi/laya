@@ -82,11 +82,21 @@ sealed class ThemeModel with _$ThemeModel {
   factory ThemeModel.fromJson(Map<String, Object?> json) =>
       _$ThemeModelFromJson(json);
 
-  ThemeData get lightTheme =>
-      _theme.light().copyWith(cardTheme: _cardTheme, sliderTheme: _sliderTheme);
+  ThemeData get lightTheme => _theme.light().copyWith(
+    cardTheme: _cardTheme,
+    sliderTheme: _sliderTheme.copyWith(
+      inactiveTrackColor: _theme.light().colorScheme.onSurface.withAlpha(0x55),
+      inactiveTickMarkColor: _theme.light().colorScheme.onSurface,
+    ),
+  );
 
-  ThemeData get darkTheme =>
-      _theme.dark().copyWith(cardTheme: _cardTheme, sliderTheme: _sliderTheme);
+  ThemeData get darkTheme => _theme.dark().copyWith(
+    cardTheme: _cardTheme,
+    sliderTheme: _sliderTheme.copyWith(
+      inactiveTrackColor: _theme.dark().colorScheme.onSurface.withAlpha(0x55),
+      inactiveTickMarkColor: _theme.dark().colorScheme.onSurface,
+    ),
+  );
 }
 
 @riverpod
