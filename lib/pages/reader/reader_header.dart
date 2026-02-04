@@ -21,7 +21,7 @@ class ReaderHeader extends ConsumerWidget {
         .watch(readerProvider(seriesId: seriesId, chapterId: chapterId))
         .value;
 
-    return Card(
+    return Card.filled(
       margin: LayoutConstants.mediumEdgeInsets,
       child: Padding(
         padding: LayoutConstants.mediumEdgeInsets,
