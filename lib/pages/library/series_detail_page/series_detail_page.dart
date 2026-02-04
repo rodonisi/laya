@@ -27,6 +27,22 @@ class SeriesDetailPage extends HookConsumerWidget {
           final tabs = <Widget>[];
           final views = <Widget>[];
 
+          final unread = detailsData.chapters.where((c) => c.totalReads <= 0);
+          if (unread.isNotEmpty) {
+            tabs.add(Tab(text: 'Unread Chapters (${unread.length})'));
+            views.add(
+              _ChapterGrid(seriesId: seriesId, chapters: unread.toList()),
+            );
+          }
+
+          final unreadVolumes = detailsData.volumes.where(
+            (v) => v.progress < 1.0,
+          );
+          if (unreadVolumes.isNotEmpty) {
+            tabs.add(Tab(text: 'Unread Volumes (${unreadVolumes.length})'));
+            views.add(_VolumeGrid(volumes: unreadVolumes.toList()));
+          }
+
           if (detailsData.storyline.isNotEmpty) {
             tabs.add(Tab(text: 'Storyline (${detailsData.storyline.length})'));
             views.add(
