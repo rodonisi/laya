@@ -31,10 +31,7 @@ class SeriesAppBar extends HookConsumerWidget {
       [topPadding],
     );
     final expandedHeight = useMemoized(
-      () =>
-          infoHeight.value +
-          minFlexibleHeight +
-          (bottom?.preferredSize.height ?? 0.0),
+      () => infoHeight.value + minFlexibleHeight,
       [infoHeight.value, minFlexibleHeight, bottom],
     );
 
