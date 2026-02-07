@@ -20,6 +20,7 @@ sealed class LayoutConstants {
   static const double largerIcon = 48.0;
 
   static const double chapterCardAspectRatio = 3 / 5;
+  static const double coverAspectRatio = 2 / 3;
 }
 
 sealed class Breakpoints {

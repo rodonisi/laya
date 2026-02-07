@@ -19,12 +19,20 @@ class VolumeCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final provider = volumeProvider(volumeId: this.volume.id);
-    final volume = ref.watch(provider).value ?? this.volume;
+
+    // keep the name from the argument model as the volume endpoint may return a different name
+    final volume =
+        ref.watch(provider).value?.copyWith(name: this.volume.name) ??
+        this.volume;
 
     final markReadProvider = markVolumeReadProvider(
       seriesId: volume.seriesId,
       volumeId: volume.id,
     );
+
+    final title = double.tryParse(volume.name) == null
+        ? volume.name
+        : 'Volume ${volume.name}';
 
     return ActionsContextMenu(
       onMarkRead: () async {
@@ -36,16 +44,19 @@ class VolumeCard extends ConsumerWidget {
         ref.invalidate(provider);
       },
       child: CoverCard(
-        title: volume.name,
+        title: title,
         coverImage: VolumeCoverImage(volumeId: volume.id),
         progress: volume.pagesRead / volume.pages,
-        onTap: () {
+        onRead: () {
           if (volume.chapters.isNotEmpty) {
             ReaderRoute(
               seriesId: volume.seriesId,
               chapterId: volume.chapters.first.id,
             ).push(context);
           }
+        },
+        onTap: () {
+          VolumeDetailRoute(volume).push(context);
         },
       ),
     );

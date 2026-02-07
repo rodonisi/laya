@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:fluvita/widgets/chapter_card.dart';
+import 'package:fluvita/widgets/chapter_grid.dart';
 import 'package:fluvita/pages/library/series_detail_page/series_app_bar.dart';
 import 'package:fluvita/widgets/volume_card.dart';
 import 'package:fluvita/widgets/adaptive_sliver_grid.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:fluvita/models/chapter_model.dart';
 import 'package:fluvita/models/volume_model.dart';
 import 'package:fluvita/riverpod/api/series.dart';
 import 'package:fluvita/widgets/async_value.dart';
@@ -26,11 +25,13 @@ class SeriesDetailPage extends HookConsumerWidget {
           final tabs = <Widget>[];
           final views = <Widget>[];
 
-          final unread = detailsData.chapters.where((c) => c.totalReads <= 0);
+          final unread = detailsData.chapters.where(
+            (c) => c.totalReads <= 0 || c.progress < 1,
+          );
           if (unread.isNotEmpty) {
             tabs.add(Tab(text: 'Unread Chapters (${unread.length})'));
             views.add(
-              _ChapterGrid(seriesId: seriesId, chapters: unread.toList()),
+              ChapterGrid(seriesId: seriesId, chapters: unread.toList()),
             );
           }
 
@@ -45,7 +46,7 @@ class SeriesDetailPage extends HookConsumerWidget {
           if (detailsData.storyline.isNotEmpty) {
             tabs.add(Tab(text: 'Storyline (${detailsData.storyline.length})'));
             views.add(
-              _ChapterGrid(seriesId: seriesId, chapters: detailsData.storyline),
+              ChapterGrid(seriesId: seriesId, chapters: detailsData.storyline),
             );
           }
 
@@ -57,14 +58,14 @@ class SeriesDetailPage extends HookConsumerWidget {
           if (detailsData.chapters.isNotEmpty) {
             tabs.add(Tab(text: 'Chapters (${detailsData.chapters.length})'));
             views.add(
-              _ChapterGrid(seriesId: seriesId, chapters: detailsData.chapters),
+              ChapterGrid(seriesId: seriesId, chapters: detailsData.chapters),
             );
           }
 
           if (detailsData.specials.isNotEmpty) {
             tabs.add(Tab(text: 'Specials (${detailsData.specials.length})'));
             views.add(
-              _ChapterGrid(seriesId: seriesId, chapters: detailsData.specials),
+              ChapterGrid(seriesId: seriesId, chapters: detailsData.specials),
             );
           }
 
@@ -150,24 +151,6 @@ class _VolumeGrid extends StatelessWidget {
       builder: (context, index) {
         final volume = volumes[index];
         return VolumeCard(volume: volume);
-      },
-    );
-  }
-}
-
-class _ChapterGrid extends StatelessWidget {
-  final int seriesId;
-  final List<ChapterModel> chapters;
-
-  const _ChapterGrid({required this.seriesId, required this.chapters});
-
-  @override
-  Widget build(BuildContext context) {
-    return AdaptiveSliverGrid(
-      itemCount: chapters.length,
-      builder: (context, index) {
-        final chapter = chapters[index];
-        return ChapterCard(chapter: chapter, seriesId: seriesId);
       },
     );
   }

@@ -5,7 +5,7 @@ import 'package:fluvita/utils/layout_constants.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class CoverCard extends StatelessWidget {
-  final String title;
+  final String? title;
   final Icon? icon;
   final String actionLabel;
   final Icon actionIcon;
@@ -16,7 +16,7 @@ class CoverCard extends StatelessWidget {
 
   const CoverCard({
     super.key,
-    required this.title,
+    this.title,
     this.icon,
     this.actionLabel = 'Read',
     this.actionIcon = const Icon(LucideIcons.bookOpen),
@@ -73,22 +73,23 @@ class CoverCard extends StatelessWidget {
             LinearProgressIndicator(
               value: progress.clamp(0.0, 1.0),
             ),
-            Padding(
-              padding: LayoutConstants.smallEdgeInsets,
-              child: Row(
-                mainAxisSize: .min,
-                spacing: LayoutConstants.smallPadding,
-                children: [
-                  ?icon,
-                  Expanded(
-                    child: Text(
-                      title,
-                      overflow: TextOverflow.ellipsis,
+            if (title != null)
+              Padding(
+                padding: LayoutConstants.smallEdgeInsets,
+                child: Row(
+                  mainAxisSize: .min,
+                  spacing: LayoutConstants.smallPadding,
+                  children: [
+                    ?icon,
+                    Expanded(
+                      child: Text(
+                        title!,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
           ],
         ),
       ),
