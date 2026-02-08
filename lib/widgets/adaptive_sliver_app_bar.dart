@@ -63,11 +63,13 @@ class AdaptiveSliverAppBar extends HookConsumerWidget {
                           background ??
                           Container(color: Theme.of(context).primaryColor),
                     ),
-                  MeasuredWidget(
-                    onSizeMeasured: (size) {
-                      infoHeight.value = size.height;
-                    },
-                    child: child,
+                  SafeArea(
+                    child: MeasuredWidget(
+                      onSizeMeasured: (size) {
+                        infoHeight.value = size.height;
+                      },
+                      child: child,
+                    ),
                   ),
                 ],
               ),
