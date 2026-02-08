@@ -2,8 +2,8 @@ name: Build & Deploy
 
 on:
   push:
-    branches:
-      - main
+    # branches:
+    # - main
   workflow_dispatch:
 
 jobs:
@@ -40,7 +40,7 @@ jobs:
     name: Build & Deploy iOS
     needs: version
     runs-on: macos-26
-
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' # Only run on push to main
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -149,6 +149,7 @@ jobs:
     name: Deploy Web
     needs: build-web
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' # Only run on push to main
     permissions:
       contents: read
       pages: write # to deploy to Pages
