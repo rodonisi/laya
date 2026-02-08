@@ -107,6 +107,15 @@ jobs:
           workload_identity_provider: ${{ secrets.GOOGLE_CLOUD_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.GOOGLE_CLOUD_SERVICE_ACCOUNT }}
 
+      - name: Codegen
+        run: |
+          dart run build_runner build --delete-conflicting-outputs
+
+      - name: Build and Publish Testflight
+        run: |
+          cd android
+          fastlane beta version:${{ needs.version.outputs.version }} build_number:${{ needs.version.outputs.build_number }}
+
   build-web:
     name: Build Web
     needs: version
