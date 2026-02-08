@@ -93,7 +93,11 @@ class SeriesDetailPage extends HookConsumerWidget {
                     ),
                     sliver: SeriesAppBar(
                       seriesId: seriesId,
-                      bottom: TabBar(isScrollable: true, tabs: tabs),
+                      bottom: TabBar(
+                        isScrollable: true,
+                        tabAlignment: .start,
+                        tabs: tabs,
+                      ),
                     ),
                   ),
                 ];
