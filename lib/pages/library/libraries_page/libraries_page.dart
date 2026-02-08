@@ -24,13 +24,13 @@ class LibraryPage extends ConsumerWidget {
                 sliver: SliverToBoxAdapter(
                   child: AppListTile(
                     title: 'All Series',
-                    icon: Icon(LucideIcons.list),
-                    onTap: () => AllSeriesRoute().push(context),
+                    icon: const Icon(LucideIcons.list),
+                    onTap: () => const AllSeriesRoute().push(context),
                   ),
                 ),
               ),
-              SliverSection(title: 'Libraries'),
-              SliverLibraries(),
+              const SliverSection(title: 'Libraries'),
+              const SliverLibraries(),
             ],
           ),
         ),

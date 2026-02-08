@@ -49,7 +49,7 @@ class CollapsibleSection extends HookConsumerWidget {
           asyncValue: series,
           data: (data) {
             return SliverPadding(
-              padding: EdgeInsetsGeometry.symmetric(
+              padding: const EdgeInsetsGeometry.symmetric(
                 horizontal: LayoutConstants.smallPadding,
               ),
               sliver: SeriesSliverGrid(series: data, rowCount: toShow),

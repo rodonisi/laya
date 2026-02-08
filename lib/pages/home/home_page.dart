@@ -10,7 +10,7 @@ class HomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
+    return const Scaffold(
       extendBody: true,
       body: LoginGuard(child: HomePageContent()),
     );
@@ -30,7 +30,7 @@ class HomePageContent extends ConsumerWidget {
         onRefresh: () async {
           await _invalidateProviders(ref);
         },
-        child: CustomScrollView(
+        child: const CustomScrollView(
           slivers: [
             OnDeck(),
             RecentlyUpdated(),

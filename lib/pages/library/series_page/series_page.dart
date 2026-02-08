@@ -12,7 +12,7 @@ class AllSeriesPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SeriesPage(title: 'All Series');
+    return const SeriesPage(title: 'All Series');
   }
 }
 
@@ -66,7 +66,7 @@ class SeriesPage extends ConsumerWidget {
               ),
             ),
           ),
-          SliverBottomPadding(),
+          const SliverBottomPadding(),
         ],
       ),
     );

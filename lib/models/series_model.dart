@@ -57,6 +57,7 @@ sealed class SeriesModel with _$SeriesModel {
 sealed class SeriesDetailModel with _$SeriesDetailModel {
   const factory SeriesDetailModel({
     required int totalChapters,
+    required int unreadCount,
     required List<ChapterModel> storyline,
     required List<VolumeModel> volumes,
     required List<ChapterModel> chapters,
@@ -69,6 +70,7 @@ sealed class SeriesDetailModel with _$SeriesDetailModel {
   factory SeriesDetailModel.fromSeriesDetailDto(SeriesDetailDto dto) {
     return SeriesDetailModel(
       totalChapters: dto.totalCount!,
+      unreadCount: dto.unreadCount!,
       storyline:
           dto.storylineChapters?.map(ChapterModel.fromChapterDto).toList() ??
           [],

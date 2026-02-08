@@ -11,6 +11,8 @@ include: package:flutter_lints/flutter.yaml
 
 linter:
   rules:
+    - prefer_const_constructors
+    - prefer_const_literals_to_create_immutables
 
 formatter:
   trailing_commas: preserve

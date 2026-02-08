@@ -29,10 +29,11 @@ sealed class LibraryModel with _$LibraryModel {
   factory LibraryModel.fromLibraryDto(LibraryDto dto) {
     return LibraryModel(
       id: dto.id!,
-      name: dto.name ?? 'Unnamed Library',
+      name: dto.name!,
       type: switch (dto.type!) {
         2 => .book,
         0 => .manga,
+        5 => .comic,
         _ => .unknown,
       },
     );

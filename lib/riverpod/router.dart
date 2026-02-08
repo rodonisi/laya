@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:fluvita/models/volume_model.dart';
+import 'package:fluvita/pages/library/volume_detail_page/volume_detail_page.dart';
 import 'package:go_router/go_router.dart';
 import 'package:fluvita/pages/home/home_page.dart';
 import 'package:fluvita/pages/library/libraries_page/libraries_page.dart';
 import 'package:fluvita/pages/library/series_detail_page/series_detail_page.dart';
-import 'package:fluvita/pages/library/series_page.dart';
+import 'package:fluvita/pages/library/series_page/series_page.dart';
+import 'package:fluvita/pages/library/want_to_read_page/want_to_read_page.dart';
 import 'package:fluvita/pages/reader/reader_page.dart';
 import 'package:fluvita/pages/settings/settings_page.dart';
 import 'package:fluvita/widgets/navigator_container.dart';
@@ -11,9 +14,12 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'router.g.dart';
 
+final navigatorKey = GlobalKey<NavigatorState>();
+
 @riverpod
 GoRouter router(Ref ref) {
   return GoRouter(
+    navigatorKey: navigatorKey,
     initialLocation: '/',
     routes: $appRoutes,
   );
@@ -26,6 +32,11 @@ GoRouter router(Ref ref) {
         TypedGoRoute<HomeRoute>(path: '/'),
       ],
     ),
+    TypedStatefulShellBranch<WantToReadBranch>(
+      routes: [
+        TypedGoRoute<WantToReadRoute>(path: '/want-to-read'),
+      ],
+    ),
     TypedStatefulShellBranch<LibraryBranch>(
       routes: [
         TypedGoRoute<LibraryRoute>(
@@ -35,9 +46,14 @@ GoRouter router(Ref ref) {
               path: 'all-series',
             ),
             TypedGoRoute<SeriesRoute>(
-              path: ':libraryId/series',
+              path: 'library/:libraryId',
             ),
-            TypedGoRoute<SeriesDetailRoute>(path: ':seriesId'),
+            TypedGoRoute<SeriesDetailRoute>(
+              path: 'series/:seriesId',
+            ),
+            TypedGoRoute<VolumeDetailRoute>(
+              path: 'volume/:volumeId',
+            ),
           ],
         ),
       ],
@@ -66,6 +82,10 @@ class HomeBranch extends StatefulShellBranchData {
   const HomeBranch();
 }
 
+class WantToReadBranch extends StatefulShellBranchData {
+  const WantToReadBranch();
+}
+
 class LibraryBranch extends StatefulShellBranchData {
   const LibraryBranch();
 }
@@ -81,6 +101,14 @@ class HomeRoute extends GoRouteData with $HomeRoute {
   Widget build(BuildContext context, GoRouterState state) => const HomePage();
 }
 
+class WantToReadRoute extends GoRouteData with $WantToReadRoute {
+  const WantToReadRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const WantToReadPage();
+}
+
 class LibraryRoute extends GoRouteData with $LibraryRoute {
   const LibraryRoute();
 
@@ -93,7 +121,8 @@ class AllSeriesRoute extends GoRouteData with $AllSeriesRoute {
   const AllSeriesRoute();
 
   @override
-  Widget build(BuildContext context, GoRouterState state) => AllSeriesPage();
+  Widget build(BuildContext context, GoRouterState state) =>
+      const AllSeriesPage();
 }
 
 class SeriesRoute extends GoRouteData with $SeriesRoute {
@@ -115,6 +144,17 @@ class SeriesDetailRoute extends GoRouteData with $SeriesDetailRoute {
   @override
   Widget build(BuildContext context, GoRouterState state) =>
       SeriesDetailPage(seriesId: seriesId);
+}
+
+class VolumeDetailRoute extends GoRouteData with $VolumeDetailRoute {
+  VolumeDetailRoute(this.$extra) : volumeId = $extra.id;
+
+  final int volumeId;
+  final VolumeModel $extra;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      VolumeDetailPage(volume: $extra);
 }
 
 class SettingsRoute extends GoRouteData with $SettingsRoute {

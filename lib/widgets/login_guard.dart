@@ -37,18 +37,18 @@ class LoginGuard extends ConsumerWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: LayoutConstants.smallerPadding),
-              Padding(
-                padding: const EdgeInsets.symmetric(
+              const Padding(
+                padding: EdgeInsets.symmetric(
                   horizontal: LayoutConstants.mediumPadding,
                 ),
-                child: const Text(
+                child: Text(
                   'No credentials configured. Please add your server URL and API key in Settings.',
                   textAlign: TextAlign.center,
                 ),
               ),
               const SizedBox(height: LayoutConstants.smallPadding),
               FilledButton(
-                onPressed: () => SettingsRoute().go(context),
+                onPressed: () => const SettingsRoute().go(context),
                 child: const Text('Open Settings'),
               ),
             ],
@@ -74,11 +74,11 @@ class LoginGuard extends ConsumerWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: LayoutConstants.smallerPadding),
-              Padding(
-                padding: const EdgeInsets.symmetric(
+              const Padding(
+                padding: EdgeInsets.symmetric(
                   horizontal: LayoutConstants.mediumPadding,
                 ),
-                child: const Text(
+                child: Text(
                   'Failed to fetch user. Please check your credentials or try again.',
                   textAlign: TextAlign.center,
                 ),
@@ -98,7 +98,7 @@ class LoginGuard extends ConsumerWidget {
                   ),
                   const SizedBox(height: LayoutConstants.smallPadding),
                   FilledButton.icon(
-                    onPressed: () => SettingsRoute().go(context),
+                    onPressed: () => const SettingsRoute().go(context),
                     icon: Icon(
                       LucideIcons.settings,
                       size: LayoutConstants.smallIcon,

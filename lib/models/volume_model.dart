@@ -16,6 +16,10 @@ sealed class VolumeModel with _$VolumeModel {
     required List<ChapterModel> chapters,
     required int pages,
     required int pagesRead,
+    double? avgHoursToRead,
+    int? wordCount,
+    String? primaryColor,
+    String? secondaryColor,
   }) = _VolumeModel;
 
   factory VolumeModel.fromJson(Map<String, dynamic> json) =>
@@ -25,10 +29,14 @@ sealed class VolumeModel with _$VolumeModel {
     return VolumeModel(
       id: dto.id!,
       seriesId: dto.seriesId!,
-      name: dto.name ?? 'Unnamed Volume',
+      name: dto.name!,
       chapters: dto.chapters?.map(ChapterModel.fromChapterDto).toList() ?? [],
       pages: dto.pages!,
       pagesRead: dto.pagesRead!,
+      avgHoursToRead: dto.avgHoursToRead,
+      wordCount: dto.wordCount,
+      primaryColor: dto.primaryColor,
+      secondaryColor: dto.secondaryColor,
     );
   }
 

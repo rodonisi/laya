@@ -43,8 +43,8 @@ class PageSlider extends HookConsumerWidget {
     return Row(
       mainAxisAlignment: .spaceEvenly,
       children: [
-        SizedBox.square(dimension: LayoutConstants.mediumPadding),
-        Text('1'),
+        const SizedBox.square(dimension: LayoutConstants.mediumPadding),
+        const Text('1'),
         Expanded(
           child: Slider(
             value: sliderValue.value,
@@ -63,7 +63,7 @@ class PageSlider extends HookConsumerWidget {
           ),
         ),
         Text('$totalPages'),
-        SizedBox.square(dimension: LayoutConstants.mediumPadding),
+        const SizedBox.square(dimension: LayoutConstants.mediumPadding),
       ],
     );
   }

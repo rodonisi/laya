@@ -63,11 +63,11 @@ class ReaderHeader extends ConsumerWidget {
             ),
             if (reader?.series.format == .epub)
               IconButton(
-                icon: Icon(LucideIcons.tableOfContents),
+                icon: const Icon(LucideIcons.tableOfContents),
                 onPressed: () => Scaffold.of(context).openEndDrawer(),
               )
             else
-              SizedBox.square(
+              const SizedBox.square(
                 dimension: LayoutConstants.mediumIcon,
               ),
           ],

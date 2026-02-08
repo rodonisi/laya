@@ -154,7 +154,7 @@ class _VerticalContinuousReaderState
                 aspectRatio: 5 / 8,
                 child: Container(
                   color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  child: Center(child: CircularProgressIndicator()),
+                  child: const Center(child: CircularProgressIndicator()),
                 ),
               );
             },

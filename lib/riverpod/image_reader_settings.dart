@@ -49,7 +49,7 @@ class ImageReaderSettings extends _$ImageReaderSettings {
   ImageReaderSettingsState build() {
     persist(ref.watch(storageProvider.future));
 
-    return ImageReaderSettingsState();
+    return const ImageReaderSettingsState();
   }
 
   void toggleScaleType() {
@@ -117,6 +117,6 @@ class ImageReaderSettings extends _$ImageReaderSettings {
   }
 
   void reset() {
-    state = ImageReaderSettingsState();
+    state = const ImageReaderSettingsState();
   }
 }

@@ -44,7 +44,7 @@ class EpubReaderSettings extends _$EpubReaderSettings {
   EpubReaderSettingsState build() {
     persist(ref.watch(storageProvider.future));
 
-    return EpubReaderSettingsState();
+    return const EpubReaderSettingsState();
   }
 
   void toggleReadDirection() {
@@ -103,6 +103,6 @@ class EpubReaderSettings extends _$EpubReaderSettings {
   }
 
   void reset() {
-    state = EpubReaderSettingsState();
+    state = const EpubReaderSettingsState();
   }
 }

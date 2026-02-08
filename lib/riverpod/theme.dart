@@ -9,7 +9,7 @@ import 'package:riverpod_annotation/experimental/persist.dart';
 part 'theme.freezed.dart';
 part 'theme.g.dart';
 
-final CardThemeData cardThemeData = CardThemeData();
+final CardThemeData cardThemeData = const CardThemeData();
 
 class _LabelThumbShape extends RoundSliderThumbShape {
   final _indicatorShape = const DropSliderValueIndicatorShape();
@@ -66,8 +66,8 @@ final _theme = MaterialTheme(
   Typography.material2021().black,
 );
 
-final _cardTheme = CardThemeData(elevation: 0);
-final _sliderTheme = SliderThemeData(
+final _cardTheme = const CardThemeData(elevation: 0);
+final _sliderTheme = const SliderThemeData(
   showValueIndicator: .never,
   thumbShape: _LabelThumbShape(),
 );
@@ -106,7 +106,7 @@ class Theme extends _$Theme {
   ThemeModel build() {
     persist(ref.watch(storageProvider.future));
 
-    return ThemeModel();
+    return const ThemeModel();
   }
 
   void setMode(ThemeMode mode) {
@@ -114,6 +114,6 @@ class Theme extends _$Theme {
   }
 
   void reset() {
-    state = ThemeModel(mode: ThemeMode.system);
+    state = const ThemeModel(mode: ThemeMode.system);
   }
 }

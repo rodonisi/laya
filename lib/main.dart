@@ -6,9 +6,8 @@ import 'package:fluvita/riverpod/router.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(
-    ProviderScope(
-      // retry: (retryCount, error) => null,
-      child: const App(),
+    const ProviderScope(
+      child: App(),
     ),
   );
 }
@@ -21,6 +20,7 @@ class App extends ConsumerWidget {
     final theme = ref.watch(themeProvider);
     return MaterialApp.router(
       title: 'Fluvita',
+      debugShowCheckedModeBanner: false,
       theme: theme.lightTheme,
       darkTheme: theme.darkTheme,
       themeMode: theme.mode,

@@ -26,7 +26,7 @@ class Settings extends _$Settings {
   Future<SettingsState> build() async {
     await persist(ref.watch(storageProvider.future)).future;
 
-    return state.value ?? SettingsState();
+    return state.value ?? const SettingsState();
   }
 
   void updateSetting(SettingsState settings) {

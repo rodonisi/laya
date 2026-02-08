@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:fluvita/api/openapi.swagger.dart';
 import 'package:fluvita/models/chapter_model.dart';
 import 'package:fluvita/models/progress_model.dart';
 import 'package:fluvita/riverpod/api/client.dart';
@@ -71,7 +72,7 @@ Future<int?> prevChapter(
   if (!res.isSuccessful || res.body == null) {
     return null;
   }
-  
+
   final chapter = res.body!;
   return chapter >= 0 ? chapter : null;
 }
@@ -93,7 +94,91 @@ Future<int?> nextChapter(
   if (!res.isSuccessful || res.body == null) {
     return null;
   }
-  
+
   final chapter = res.body!;
   return chapter >= 0 ? chapter : null;
+}
+
+@riverpod
+class MarkSeriesRead extends _$MarkSeriesRead {
+  @override
+  Future<void> build({required int seriesId}) async {}
+
+  Future<void> markRead() async {
+    final client = ref.read(restClientProvider);
+    final res = await client.apiReaderMarkReadPost(
+      body: MarkReadDto(seriesId: seriesId),
+    );
+
+    if (!res.isSuccessful) {
+      throw Exception('Failed to mark series as read: ${res.error}');
+    }
+  }
+
+  Future<void> markUnread() async {
+    final client = ref.read(restClientProvider);
+    final res = await client.apiReaderMarkUnreadPost(
+      body: MarkReadDto(seriesId: seriesId),
+    );
+
+    if (!res.isSuccessful) {
+      throw Exception('Failed to mark series as unread: ${res.error}');
+    }
+  }
+}
+
+@riverpod
+class MarkVolumeRead extends _$MarkVolumeRead {
+  @override
+  Future<void> build({required int seriesId, required int volumeId}) async {}
+
+  Future<void> markRead() async {
+    final client = ref.read(restClientProvider);
+    final res = await client.apiReaderMarkVolumeReadPost(
+      body: MarkVolumeReadDto(seriesId: seriesId, volumeId: volumeId),
+    );
+
+    if (!res.isSuccessful) {
+      throw Exception('Failed to mark volume as read: ${res.error}');
+    }
+  }
+
+  Future<void> markUnread() async {
+    final client = ref.read(restClientProvider);
+    final res = await client.apiReaderMarkVolumeUnreadPost(
+      body: MarkVolumeReadDto(seriesId: seriesId, volumeId: volumeId),
+    );
+
+    if (!res.isSuccessful) {
+      throw Exception('Failed to mark volume as unread: ${res.error}');
+    }
+  }
+}
+
+@riverpod
+class MarkChapterRead extends _$MarkChapterRead {
+  @override
+  Future<void> build({required int seriesId, required int chapterId}) async {}
+
+  Future<void> markRead() async {
+    final client = ref.read(restClientProvider);
+    final res = await client.apiReaderMarkMultipleReadPost(
+      body: MarkVolumesReadDto(seriesId: seriesId, chapterIds: [chapterId]),
+    );
+
+    if (!res.isSuccessful) {
+      throw Exception('Failed to mark chapter as read: ${res.error}');
+    }
+  }
+
+  Future<void> markUnread() async {
+    final client = ref.read(restClientProvider);
+    final res = await client.apiReaderMarkMultipleUnreadPost(
+      body: MarkVolumesReadDto(seriesId: seriesId, chapterIds: [chapterId]),
+    );
+
+    if (!res.isSuccessful) {
+      throw Exception('Failed to mark chapter as unread: ${res.error}');
+    }
+  }
 }

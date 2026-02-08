@@ -37,12 +37,12 @@ class CredentialsSettings extends HookConsumerWidget {
                 TextField(
                   enabled: loginStatus != .loading,
                   controller: urlController,
-                  decoration: InputDecoration(labelText: 'Base URL'),
+                  decoration: const InputDecoration(labelText: 'Base URL'),
                 ),
                 TextField(
                   enabled: loginStatus != .loading,
                   controller: apiKeyController,
-                  decoration: InputDecoration(labelText: 'API Key'),
+                  decoration: const InputDecoration(labelText: 'API Key'),
                 ),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -69,7 +69,7 @@ class CredentialsSettings extends HookConsumerWidget {
                           ],
                         );
                       },
-                      loading: () => SizedBox.square(
+                      loading: () => const SizedBox.square(
                         dimension: LayoutConstants.mediumIcon,
                         child: CircularProgressIndicator(),
                       ),

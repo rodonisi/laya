@@ -111,7 +111,7 @@ class MeasureContent extends ConsumerWidget {
                 ),
               ),
             ),
-            Align(
+            const Align(
               alignment: .center,
               child: CircularProgressIndicator(),
             ),

@@ -47,7 +47,7 @@ class ReaderOverlay extends HookConsumerWidget {
 
     final state = ref.watch(provider).value;
     if (state == null) {
-      return Center(
+      return const Center(
         child: Text('Failed to load reader state.'),
       );
     }
@@ -255,7 +255,7 @@ class ChapterSnackbar extends StatelessWidget {
             Text(title),
             FilledButton(
               onPressed: onNavigate,
-              child: Text('Go'),
+              child: const Text('Go'),
             ),
           ],
         ),
