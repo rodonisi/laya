@@ -29,11 +29,11 @@ class AdaptiveSliverAppBar extends HookConsumerWidget {
 
     final minFlexibleHeight = useMemoized(
       () => kToolbarHeight + topPadding + (bottom?.preferredSize.height ?? 0.0),
-      [topPadding],
+      [topPadding, bottom],
     );
     final expandedHeight = useMemoized(
-      () => infoHeight.value + minFlexibleHeight,
-      [infoHeight.value, minFlexibleHeight, bottom],
+      () => infoHeight.value + kToolbarHeight + topPadding,
+      [infoHeight.value, topPadding],
     );
 
     return SliverAppBar(
