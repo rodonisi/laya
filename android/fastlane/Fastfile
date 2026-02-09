@@ -29,8 +29,8 @@ platform :android do
     setup_ci
 
     gradle(
-      task: 'clean assembleRelease',
-      wrapper: true,
+      task: 'assemble',
+      build_type: 'Release',
       properties: {
         'android.injected.version.code' => build_number,
         'android.injected.version.name' => version
