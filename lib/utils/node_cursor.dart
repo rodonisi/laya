@@ -8,7 +8,7 @@ class NodeCursor {
   final Element root;
 
   /// Iterator over the children of the root provided during initialization
-  final Iterator<Element> iterator;
+  final Iterator<Node> iterator;
 
   /// Recursive child cursor if a child requires splitting
   NodeCursor? childCursor;
@@ -18,7 +18,7 @@ class NodeCursor {
   NodeCursor({
     required Element root,
   }) : root = root.clone(false),
-       iterator = root.children.iterator;
+       iterator = root.nodes.iterator;
 
   /// Moves the iterator forward and adds the element to the root node. Returns the root node as filled so far.
   Node? next() {
@@ -83,8 +83,10 @@ class NodeCursor {
       return childCursor!.splitChild();
     }
 
-    if (hasNext && iterator.current.children.isNotEmpty) {
-      childCursor = NodeCursor(root: iterator.current);
+    if (hasNext &&
+        iterator.current is Element &&
+        (iterator.current as Element).children.isNotEmpty) {
+      childCursor = NodeCursor(root: iterator.current as Element);
 
       return true;
     }
