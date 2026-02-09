@@ -106,6 +106,7 @@ jobs:
           project_id: ${{ secrets.GOOGLE_CLOUD_PROJECT_ID }}
           workload_identity_provider: ${{ secrets.GOOGLE_CLOUD_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.GOOGLE_CLOUD_SERVICE_ACCOUNT }}
+          create_credentials_file: true
 
       - name: Codegen
         run: |
