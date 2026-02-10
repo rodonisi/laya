@@ -45,12 +45,6 @@ class ReaderOverlay extends HookConsumerWidget {
     final showSnackbar = useState(ShowSnackbar.none);
     final provider = readerProvider(seriesId: seriesId, chapterId: chapterId);
 
-    final state = ref.watch(provider).value;
-    if (state == null) {
-      return const Center(
-        child: Text('Failed to load reader state.'),
-      );
-    }
     return Async(
       asyncValue: ref.watch(provider),
       data: (state) => Consumer(
