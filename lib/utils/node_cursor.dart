@@ -83,10 +83,12 @@ class NodeCursor {
       return childCursor!.splitChild();
     }
 
+    final current = iterator.current;
     if (hasNext &&
-        iterator.current is Element &&
-        (iterator.current as Element).children.isNotEmpty) {
-      childCursor = NodeCursor(root: iterator.current as Element);
+        current is Element &&
+        current.localName != 'p' &&
+        current.children.isNotEmpty) {
+      childCursor = NodeCursor(root: current);
 
       return true;
     }
@@ -94,3 +96,4 @@ class NodeCursor {
     return false;
   }
 }
+
