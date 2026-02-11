@@ -127,7 +127,7 @@ jobs:
       - name: Build and Publish Testflight
         run: |
           cd android
-          fastlane beta version:${{ needs.version.outputs.version }} build_number:${{ needs.version.outputs.build_number }}
+          fastlane beta
 
   build-web:
     name: Build Web
