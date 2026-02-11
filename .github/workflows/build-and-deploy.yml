@@ -108,6 +108,9 @@ jobs:
           service_account: ${{ secrets.GOOGLE_CLOUD_SERVICE_ACCOUNT }}
           create_credentials_file: true
 
+      - name: Decode Keystore
+        run: echo "${{ secrets.GOOGLE_PLAY_KEYSTORE }}" | base64 --decode > android/app/upload-keystore.jks
+
       - name: Codegen
         run: |
           dart run build_runner build --delete-conflicting-outputs
@@ -115,6 +118,11 @@ jobs:
       - name: Build
         run: |
           flutter build appbundle --release --build-name=${{ needs.version.outputs.version }} --build-number=${{ needs.version.outputs.build_number }}
+        env:
+          KEYSTORE_PATH: "upload-keystore.jks"
+          KEYSTORE_PASSWORD: ${{ secrets.GOOGLE_PLAY_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.GOOGLE_PLAY_KEYSTORE_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.GOOGLE_PLAY_KEY_PASSWORD }}
 
       - name: Build and Publish Testflight
         run: |
