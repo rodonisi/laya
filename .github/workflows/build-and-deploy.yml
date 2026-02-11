@@ -114,7 +114,7 @@ jobs:
 
       - name: Build
         run: |
-          flutter build appbundle --release
+          flutter build appbundle --release --build-name=${{ needs.version.outputs.version }} --build-number=${{ needs.version.outputs.build_number }}
 
       - name: Build and Publish Testflight
         run: |
