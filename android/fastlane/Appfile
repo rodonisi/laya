@@ -1,0 +1,2 @@
+json_key_file("#{ENV['GOOGLE_APPLICATION_CREDENTIALS']}")
+package_name('com.rodonisi.fluvita') # e.g. com.krausefx.app
