@@ -24,7 +24,10 @@ sealed class SettingsState with _$SettingsState {
 class Settings extends _$Settings {
   @override
   Future<SettingsState> build() async {
-    await persist(ref.watch(storageProvider.future)).future;
+    await persist(
+      ref.watch(storageProvider.future),
+      options: const StorageOptions(cacheTime: StorageCacheTime.unsafe_forever),
+    ).future;
 
     return state.value ?? const SettingsState();
   }
