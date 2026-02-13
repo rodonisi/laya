@@ -11,6 +11,7 @@ class CoverCard extends StatelessWidget {
   final Icon actionIcon;
   final double progress;
   final Widget coverImage;
+  final Widget? downloadStatusIcon;
   final void Function()? onTap;
   final void Function()? onRead;
 
@@ -22,6 +23,7 @@ class CoverCard extends StatelessWidget {
     this.actionIcon = const Icon(LucideIcons.bookOpen),
     required this.progress,
     required this.coverImage,
+    this.downloadStatusIcon,
     this.onTap,
     this.onRead,
   });
@@ -65,6 +67,14 @@ class CoverCard extends StatelessWidget {
                           label: FittedBox(child: Text(actionLabel)),
                           onPressed: onRead,
                         ),
+                      ),
+                    ),
+                  if (downloadStatusIcon != null)
+                    Align(
+                      alignment: .topLeft,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: downloadStatusIcon,
                       ),
                     ),
                 ],

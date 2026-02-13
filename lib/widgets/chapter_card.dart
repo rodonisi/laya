@@ -3,11 +3,15 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fluvita/models/chapter_model.dart';
 import 'package:fluvita/riverpod/api/chapter.dart';
 import 'package:fluvita/riverpod/api/reader.dart';
+import 'package:fluvita/riverpod/download/chapter_config.dart';
+import 'package:fluvita/riverpod/download/download_manager.dart';
 import 'package:fluvita/riverpod/router.dart';
+import 'package:fluvita/utils/layout_constants.dart';
 import 'package:fluvita/widgets/actions_menu.dart';
 import 'package:fluvita/widgets/cover_card.dart';
 import 'package:fluvita/widgets/cover_image.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart'; // Import for icons
 
 class ChapterCard extends HookConsumerWidget {
   const ChapterCard({
@@ -42,6 +46,63 @@ class ChapterCard extends HookConsumerWidget {
       chapterId: state.value.id,
     );
 
+    final downloadManager = ref.watch(
+      downloadManagerProvider(chapterId: chapter.id),
+    );
+    final downloadStatus = downloadManager.value?.status;
+    final downloadProgress = downloadManager.value?.progress;
+
+    Widget? downloadIcon;
+    if (downloadStatus == DownloadStatus.downloading) {
+      downloadIcon = Card(
+        child: Padding(
+          padding: LayoutConstants.smallEdgeInsets,
+          child: SizedBox.square(
+            dimension: 16,
+            child: CircularProgressIndicator(
+              value: downloadProgress,
+            ),
+          ),
+        ),
+      );
+    } else if (downloadStatus == DownloadStatus.completed) {
+      downloadIcon = Card(
+        child: Padding(
+          padding: LayoutConstants.smallEdgeInsets,
+          child: Icon(
+            LucideIcons.download,
+            color: Theme.of(context).colorScheme.tertiary,
+            size: 16,
+          ),
+        ),
+      );
+    }
+
+    void Function()? onDownloadChapterAction;
+    void Function()? onRemoveDownloadAction;
+
+    if (downloadStatus == DownloadStatus.initial) {
+      onDownloadChapterAction = () {
+        ref
+            .read(
+              chapterConfigProvider(
+                chapterId: chapter.id,
+              ).notifier,
+            )
+            .setDownload(true);
+      };
+    } else if (downloadStatus != .initial) {
+      onRemoveDownloadAction = () {
+        ref
+            .read(
+              chapterConfigProvider(
+                chapterId: chapter.id,
+              ).notifier,
+            )
+            .setDownload(false);
+      };
+    }
+
     return ActionsContextMenu(
       onMarkRead: () async {
         await ref.read(markReadProvider.notifier).markRead();
@@ -51,10 +112,13 @@ class ChapterCard extends HookConsumerWidget {
         await ref.read(markReadProvider.notifier).markUnread();
         ref.invalidate(provider);
       },
+      onDownloadChapter: onDownloadChapterAction,
+      onRemoveDownload: onRemoveDownloadAction,
       child: CoverCard(
         title: state.value.title,
         coverImage: ChapterCoverImage(chapterId: state.value.id),
         progress: state.value.progress,
+        downloadStatusIcon: downloadIcon, // Pass the determined icon here
         onTap: () {
           ReaderRoute(
             seriesId: seriesId,

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:fluvita/riverpod/download/image_page.dart';
+import 'package:fluvita/riverpod/image_reader_settings.dart';
 import 'package:fluvita/riverpod/reader.dart';
 import 'package:fluvita/riverpod/reader_navigation.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:fluvita/riverpod/api/reader.dart';
-import 'package:fluvita/riverpod/image_reader_settings.dart';
 import 'package:fluvita/widgets/async_value.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 class HorizontalPagedReader extends HookConsumerWidget {
   final int seriesId;
@@ -60,7 +60,7 @@ class HorizontalPagedReader extends HookConsumerWidget {
           itemBuilder: (context, index) {
             return Async(
               asyncValue: ref.watch(
-                readerImageProvider(chapterId: chapterId, page: index),
+                imagePageProvider(chapterId: chapterId, page: index),
               ),
               data: (data) {
                 return Image.memory(

@@ -8,6 +8,8 @@ class ActionsContextMenu extends StatelessWidget {
   final void Function()? onMarkUnread;
   final void Function()? onAddWantToRead;
   final void Function()? onRemoveWantToRead;
+  final void Function()? onDownloadChapter;
+  final void Function()? onRemoveDownload;
   final Widget child;
 
   const ActionsContextMenu({
@@ -16,18 +18,21 @@ class ActionsContextMenu extends StatelessWidget {
     this.onMarkUnread,
     this.onAddWantToRead,
     this.onRemoveWantToRead,
+    this.onDownloadChapter,
+    this.onRemoveDownload,
     required this.child,
   });
 
   @override
   Widget build(BuildContext context) {
-    // need this for some reason not to throw No ContextMenuProvider found in context
     return _LocalContextMenuRegion(
       contextMenu: _getContextMenu(
         onMarkRead: onMarkRead,
         onMarkUnread: onMarkUnread,
         onAddWantToRead: onAddWantToRead,
         onRemoveWantToRead: onRemoveWantToRead,
+        onDownloadChapter: onDownloadChapter,
+        onRemoveDownload: onRemoveDownload,
       ),
       child: child,
     );
@@ -48,7 +53,6 @@ class ActionsMenuButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // need this for some readon not to throw No ContextMenuProvider found in context
     return _LocalContextMenuButton(
       contextMenu: _getContextMenu(
         onMarkRead: onMarkRead,
@@ -116,6 +120,8 @@ ContextMenu _getContextMenu({
   void Function()? onMarkUnread,
   void Function()? onAddWantToRead,
   void Function()? onRemoveWantToRead,
+  void Function()? onDownloadChapter,
+  void Function()? onRemoveDownload,
 }) {
   return ContextMenu(
     entries: [
@@ -142,6 +148,18 @@ ContextMenu _getContextMenu({
           label: const Text('Remove from Want to Read'),
           icon: const Icon(LucideIcons.starOff),
           onSelected: (_) => onRemoveWantToRead(),
+        ),
+      if (onDownloadChapter != null)
+        MenuItem(
+          label: const Text('Download Chapter'),
+          icon: const Icon(LucideIcons.download),
+          onSelected: (_) => onDownloadChapter(),
+        ),
+      if (onRemoveDownload != null)
+        MenuItem(
+          label: const Text('Remove Download'),
+          icon: const Icon(LucideIcons.trash),
+          onSelected: (_) => onRemoveDownload(),
         ),
     ],
   );

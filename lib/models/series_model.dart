@@ -6,7 +6,20 @@ import 'package:fluvita/models/volume_model.dart';
 part 'series_model.freezed.dart';
 part 'series_model.g.dart';
 
-enum Format { epub, cbz, unknown }
+enum Format {
+  epub,
+  cbz,
+  unknown
+  ;
+
+  factory Format.fromDtoFormat(int value) {
+    return switch (value) {
+      3 => Format.epub,
+      1 => Format.cbz,
+      _ => Format.unknown,
+    };
+  }
+}
 
 @freezed
 sealed class SeriesModel with _$SeriesModel {
@@ -33,11 +46,7 @@ sealed class SeriesModel with _$SeriesModel {
       id: dto.id!,
       libraryId: dto.libraryId!,
       name: dto.name ?? 'Untitled',
-      format: switch (dto.format) {
-        3 => Format.epub,
-        1 => Format.cbz,
-        _ => Format.unknown,
-      },
+      format: Format.fromDtoFormat(dto.format!),
       pages: dto.pages!,
       pagesRead: dto.pagesRead!,
       avgHoursToRead: dto.avgHoursToRead!,

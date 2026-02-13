@@ -1,3 +1,4 @@
+import 'package:fluvita/models/series_model.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:fluvita/api/openapi.swagger.dart';
 
@@ -15,6 +16,7 @@ sealed class ChapterModel with _$ChapterModel {
     required int pages,
     required int pagesRead,
     required int totalReads,
+    Format? format,
   }) = _ChapterModel;
 
   factory ChapterModel.fromJson(Map<String, Object?> json) =>
@@ -28,6 +30,7 @@ sealed class ChapterModel with _$ChapterModel {
       pages: dto.pages!,
       pagesRead: dto.pagesRead!,
       totalReads: dto.totalReads ?? 0,
+      format: dto.format != null ? Format.fromDtoFormat(dto.format!) : null,
     );
   }
 
