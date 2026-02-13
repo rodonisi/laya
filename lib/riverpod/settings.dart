@@ -55,8 +55,8 @@ LoginStatus loginStatus(Ref ref) {
   if (settings.hasError) return .error;
 
   final settingsState = settings.value!;
-  if ((settingsState.url?.isEmpty ?? false) ||
-      (settingsState.apiKey?.isEmpty ?? false)) {
+  if ((settingsState.url?.isEmpty ?? true) ||
+      (settingsState.apiKey?.isEmpty ?? true)) {
     return .noCredentials;
   }
 
