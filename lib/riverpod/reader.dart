@@ -7,10 +7,10 @@ import 'package:fluvita/models/read_direction.dart';
 import 'package:fluvita/models/series_model.dart';
 import 'package:fluvita/riverpod/api/book.dart';
 import 'package:fluvita/riverpod/api/chapter.dart';
-import 'package:fluvita/riverpod/api/client.dart';
 import 'package:fluvita/riverpod/api/reader.dart';
 import 'package:fluvita/riverpod/api/series.dart';
 import 'package:fluvita/riverpod/image_reader_settings.dart';
+import 'package:fluvita/riverpod/report_queue.dart';
 import 'package:fluvita/utils/logging.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -80,18 +80,21 @@ class Reader extends _$Reader {
         'Saving progress: page=$page, scrollId=$scrollId, chapter=${current.chapter.id}',
       );
 
-      final client = ref.read(restClientProvider);
-      await client.apiReaderProgressPost(
-        body: ProgressDto(
-          libraryId: current.libraryId,
-          seriesId: current.series.id,
-          volumeId: current.volumeId,
-          chapterId: current.chapter.id,
-          pageNum: page.clamp(0, current.totalPages - 1),
-          bookScrollId: scrollId,
-          lastModifiedUtc: DateTime.now().toUtc(),
-        ),
-      );
+      ref
+          .read(eventQueueProvider.notifier)
+          .enqueue(
+            QueueEvent.saveProgress(
+              body: ProgressDto(
+                libraryId: current.libraryId,
+                seriesId: current.series.id,
+                volumeId: current.volumeId,
+                chapterId: current.chapter.id,
+                pageNum: page.clamp(0, current.totalPages - 1),
+                bookScrollId: scrollId,
+                lastModifiedUtc: DateTime.now().toUtc(),
+              ),
+            ),
+          );
 
       if (page >= current.totalPages - 1) {
         await markComplete();
@@ -103,17 +106,20 @@ class Reader extends _$Reader {
     if (state.isLoading) return;
     final current = await future;
 
-    final client = ref.read(restClientProvider);
-    await client.apiReaderProgressPost(
-      body: ProgressDto(
-        libraryId: current.libraryId,
-        seriesId: current.series.id,
-        volumeId: current.volumeId,
-        chapterId: current.chapter.id,
-        pageNum: current.totalPages,
-        lastModifiedUtc: DateTime.now().toUtc(),
-      ),
-    );
+    ref
+        .read(eventQueueProvider.notifier)
+        .enqueue(
+          QueueEvent.saveProgress(
+            body: ProgressDto(
+              libraryId: current.libraryId,
+              seriesId: current.series.id,
+              volumeId: current.volumeId,
+              chapterId: current.chapter.id,
+              pageNum: current.totalPages,
+              lastModifiedUtc: DateTime.now().toUtc(),
+            ),
+          ),
+        );
   }
 }
 
