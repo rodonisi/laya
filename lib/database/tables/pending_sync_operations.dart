@@ -10,7 +10,4 @@ class PendingSyncOperations extends Table {
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   IntColumn get retryCount => integer().withDefault(const Constant(0))();
   DateTimeColumn get lastAttempt => dateTime().nullable()();
-
-  @override
-  Set<Column> get primaryKey => {id};
 }

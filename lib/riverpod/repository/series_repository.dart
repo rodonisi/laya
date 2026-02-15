@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:fluvita/api/openapi.swagger.dart';
 import 'package:fluvita/database/app_database.dart';
 import 'package:fluvita/models/series_model.dart';
+import 'package:fluvita/utils/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'series_repository.g.dart';
@@ -16,11 +17,34 @@ class SeriesRepository {
   final AppDatabase _db;
   final Openapi _client;
 
-  const SeriesRepository(this._db, this._client);
+  SeriesRepository(this._db, this._client) {
+    _refreshAllSeries();
+  }
 
   Stream<List<Sery>> watchOnDeck() {
     _refreshedOnDeck();
     return _db.watchOnDeck();
+  }
+
+  Future<void> _refreshAllSeries() async {
+    final res = await _client.apiSeriesV2Post(
+      body: FilterV2Dto(
+        id: 0,
+        combination: FilterV2DtoCombination.value_0.value,
+        sortOptions: SortOptions(
+          sortField: SortOptionsSortField.value_1.value,
+          isAscending: false,
+        ),
+        limitTo: 0,
+        statements: [],
+      ),
+    );
+
+    if (!res.isSuccessful || res.body == null) {
+      throw Exception('Failed to load all series: ${res.error}');
+    }
+
+    _db.upsertSeriesBatch(res.body!.map(_mapSeriesCompanion));
   }
 
   Future<void> _refreshedOnDeck() async {
@@ -30,11 +54,31 @@ class SeriesRepository {
       throw Exception('Failed to load on deck: ${res.error}');
     }
 
-    await _db.upsertSeriesBatch(res.body!.map(_mapSeriesCompanion));
-    await _db.updateOnDeck(
-      res.body!.map((dto) => OnDeckData(seriesId: dto.id!)),
+    await _db.upsertSeriesBatch(
+      res.body!.map((dto) {
+        final companion = _mapSeriesCompanion(dto);
+        return companion.copyWith(isOnDeck: const Value(true));
+      }),
     );
   }
+
+  Future<void> _refreshRecentlyUpdated() async {
+    final res = await _client.apiSeriesRecentlyUpdatedSeriesPost();
+
+    if (!res.isSuccessful || res.body == null) {
+      log.e('Failed to load recently updated: ${res.error}');
+      return;
+    }
+
+    // await _db.upsertSeriesBatch(
+    //   res.body!.map((dto) {
+    //     final companion = _mapSeriesCompanion(dto);
+    //     return companion.copyWith(isRecentlyUpdated: const Value(true));
+    //   }),
+    // );
+  }
+
+  Future<void> _refreshRecentlyAdded() async {}
 
   SeriesCompanion _mapSeriesCompanion(SeriesDto dto) {
     return SeriesCompanion(
