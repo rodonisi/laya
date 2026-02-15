@@ -1,20 +1,14 @@
 import 'package:fluvita/models/book_chapter_model.dart';
 import 'package:fluvita/models/book_info_model.dart';
 import 'package:fluvita/riverpod/api/client.dart';
-import 'package:fluvita/riverpod/storage.dart';
-import 'package:riverpod_annotation/experimental/json_persist.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:hooks_riverpod/experimental/persist.dart';
 
 part 'book.g.dart';
 
 @riverpod
-@JsonPersist()
 class BookInfo extends _$BookInfo {
   @override
   Future<BookInfoModel> build({required int chapterId}) async {
-    persist(ref.watch(storageProvider.future));
-
     final client = ref.watch(restClientProvider);
     final res = await client.apiBookChapterIdBookInfoGet(chapterId: chapterId);
 
@@ -27,14 +21,11 @@ class BookInfo extends _$BookInfo {
 }
 
 @riverpod
-@JsonPersist()
 class BookChapters extends _$BookChapters {
   @override
   Future<List<BookChapterModel>> build({
     required int chapterId,
   }) async {
-    persist(ref.watch(storageProvider.future));
-
     final client = ref.watch(restClientProvider);
     final res = await client.apiBookChapterIdChaptersGet(chapterId: chapterId);
 

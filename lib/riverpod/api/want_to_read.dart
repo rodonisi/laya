@@ -1,20 +1,14 @@
 import 'package:fluvita/api/openapi.swagger.dart';
 import 'package:fluvita/models/series_model.dart';
 import 'package:fluvita/riverpod/api/client.dart';
-import 'package:fluvita/riverpod/storage.dart';
-import 'package:riverpod_annotation/experimental/json_persist.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:hooks_riverpod/experimental/persist.dart';
 
 part 'want_to_read.g.dart';
 
 @riverpod
-@JsonPersist()
 class WantToRead extends _$WantToRead {
   @override
   Future<bool> build({required int seriesId}) async {
-    persist(ref.watch(storageProvider.future));
-
     final client = ref.watch(restClientProvider);
     final res = await client.apiWantToReadGet(seriesId: seriesId);
 
@@ -45,12 +39,9 @@ class WantToRead extends _$WantToRead {
 }
 
 @riverpod
-@JsonPersist()
 class WantToReadList extends _$WantToReadList {
   @override
   Future<List<SeriesModel>> build() async {
-    persist(ref.watch(storageProvider.future));
-
     final client = ref.watch(restClientProvider);
     final res = await client.apiWantToReadV2Post(
       body: FilterV2Dto(

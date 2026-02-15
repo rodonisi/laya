@@ -3,16 +3,13 @@ import 'dart:typed_data';
 
 import 'package:fluvita/riverpod/api/book.dart';
 import 'package:fluvita/riverpod/api/client.dart';
-import 'package:fluvita/riverpod/storage.dart';
 import 'package:fluvita/utils/converters/document_fragment_converter.dart';
 import 'package:fluvita/utils/extensions/element.dart';
 import 'package:fluvita/utils/html_constants.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:html/dom.dart';
 import 'package:html/parser.dart';
-import 'package:riverpod_annotation/experimental/json_persist.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:hooks_riverpod/experimental/persist.dart';
 
 part 'epub_page_content.freezed.dart';
 part 'epub_page_content.g.dart';
@@ -148,7 +145,6 @@ Map<String, Map<String, String>> _parseStyles(String css) {
 }
 
 @riverpod
-@JsonPersist()
 class PreprocessedPage extends _$PreprocessedPage {
   @override
   Future<PageContent> build({
@@ -156,8 +152,6 @@ class PreprocessedPage extends _$PreprocessedPage {
     int? page,
     String? resumeScrollId,
   }) async {
-    persist(ref.watch(storageProvider.future));
-
     final frag = await ref.watch(
       preprocessedHtmlProvider(
         chapterId: chapterId,

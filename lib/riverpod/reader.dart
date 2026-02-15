@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:fluvita/api/openapi.swagger.dart';
+import 'package:fluvita/database/tables/series.dart';
 import 'package:fluvita/models/chapter_model.dart';
 import 'package:fluvita/models/read_direction.dart';
 import 'package:fluvita/models/series_model.dart';

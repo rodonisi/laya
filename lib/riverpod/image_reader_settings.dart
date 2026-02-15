@@ -1,8 +1,5 @@
-import 'package:flutter_riverpod/experimental/persist.dart';
-import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:fluvita/models/read_direction.dart';
-import 'package:fluvita/riverpod/storage.dart';
-import 'package:riverpod_annotation/experimental/json_persist.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'image_reader_settings.freezed.dart';
@@ -43,12 +40,9 @@ sealed class ImageReaderSettingsState with _$ImageReaderSettingsState {
 }
 
 @riverpod
-@JsonPersist()
 class ImageReaderSettings extends _$ImageReaderSettings {
   @override
   ImageReaderSettingsState build() {
-    persist(ref.watch(storageProvider.future));
-
     return const ImageReaderSettingsState();
   }
 

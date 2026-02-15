@@ -1,20 +1,16 @@
 import 'package:fluvita/api/openapi.swagger.dart';
+import 'package:fluvita/database/app_database.dart';
 import 'package:fluvita/models/series_model.dart';
 import 'package:fluvita/riverpod/api/client.dart';
-import 'package:fluvita/riverpod/storage.dart';
-import 'package:riverpod_annotation/experimental/json_persist.dart';
+import 'package:fluvita/riverpod/repository/series_repository.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:hooks_riverpod/experimental/persist.dart';
 
 part 'series.g.dart';
 
 @riverpod
-@JsonPersist()
 class Series extends _$Series {
   @override
   Future<SeriesModel> build({required int seriesId}) async {
-    persist(ref.watch(storageProvider.future));
-
     final client = ref.watch(restClientProvider);
     final res = await client.apiSeriesSeriesIdGet(seriesId: seriesId);
 
@@ -27,12 +23,9 @@ class Series extends _$Series {
 }
 
 @riverpod
-@JsonPersist()
 class AllSeries extends _$AllSeries {
   @override
   Future<List<SeriesModel>> build({int? libraryId}) async {
-    persist(ref.watch(storageProvider.future));
-
     final client = ref.watch(restClientProvider);
     final res = await client.apiSeriesV2Post(
       body: FilterV2Dto(
@@ -63,12 +56,9 @@ class AllSeries extends _$AllSeries {
 }
 
 @riverpod
-@JsonPersist()
 class SeriesDetail extends _$SeriesDetail {
   @override
   Future<SeriesDetailModel> build({required int seriesId}) async {
-    persist(ref.watch(storageProvider.future));
-
     final client = ref.watch(restClientProvider);
     final res = await client.apiSeriesSeriesDetailGet(seriesId: seriesId);
 
@@ -81,14 +71,11 @@ class SeriesDetail extends _$SeriesDetail {
 }
 
 @riverpod
-@JsonPersist()
 class SeriesMetadata extends _$SeriesMetadata {
   @override
   Future<SeriesMetadataModel> build({
     required int seriesId,
   }) async {
-    persist(ref.watch(storageProvider.future));
-
     final client = ref.watch(restClientProvider);
     final res = await client.apiSeriesMetadataGet(seriesId: seriesId);
 
@@ -101,30 +88,15 @@ class SeriesMetadata extends _$SeriesMetadata {
 }
 
 @riverpod
-@JsonPersist()
-class OnDeck extends _$OnDeck {
-  @override
-  Future<List<SeriesModel>> build() async {
-    persist(ref.watch(storageProvider.future));
-
-    final client = ref.watch(restClientProvider);
-    final res = await client.apiSeriesOnDeckPost();
-
-    if (!res.isSuccessful || res.body == null) {
-      throw Exception('Failed to load on deck: ${res.error}');
-    }
-
-    return res.body!.map(SeriesModel.fromSeriesDto).toList();
-  }
+Stream<List<SeriesModel>> onDeck(Ref ref) async* {
+  final repo = ref.watch(seriesRepositoryProvider);
+  yield* repo.watchOnDeck();
 }
 
 @riverpod
-@JsonPersist()
 class RecentlyUpdated extends _$RecentlyUpdated {
   @override
   Future<List<SeriesModel>> build() async {
-    persist(ref.watch(storageProvider.future));
-
     final client = ref.watch(restClientProvider);
     final res = await client.apiSeriesRecentlyUpdatedSeriesPost();
 
@@ -143,12 +115,9 @@ class RecentlyUpdated extends _$RecentlyUpdated {
 }
 
 @riverpod
-@JsonPersist()
 class RecentlyAdded extends _$RecentlyAdded {
   @override
   Future<List<SeriesModel>> build() async {
-    persist(ref.watch(storageProvider.future));
-
     final client = ref.watch(restClientProvider);
     final res = await client.apiSeriesRecentlyAddedV2Post(
       body: FilterV2Dto(

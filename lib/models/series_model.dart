@@ -1,25 +1,12 @@
 import 'package:fluvita/api/openapi.swagger.dart';
+import 'package:fluvita/database/app_database.dart';
+import 'package:fluvita/database/tables/series.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:fluvita/models/chapter_model.dart';
 import 'package:fluvita/models/volume_model.dart';
 
 part 'series_model.freezed.dart';
 part 'series_model.g.dart';
-
-enum Format {
-  epub,
-  cbz,
-  unknown
-  ;
-
-  factory Format.fromDtoFormat(int value) {
-    return switch (value) {
-      3 => Format.epub,
-      1 => Format.cbz,
-      _ => Format.unknown,
-    };
-  }
-}
 
 @freezed
 sealed class SeriesModel with _$SeriesModel {
@@ -53,6 +40,21 @@ sealed class SeriesModel with _$SeriesModel {
       wordCount: dto.wordCount,
       primaryColor: dto.primaryColor,
       secondaryColor: dto.secondaryColor,
+    );
+  }
+
+  factory SeriesModel.fromDatabaseModel(Sery table) {
+    return SeriesModel(
+      id: table.id,
+      libraryId: table.libraryId,
+      name: table.name,
+      format: table.format,
+      pages: table.pages,
+      pagesRead: table.pagesRead,
+      avgHoursToRead: table.avgHoursToRead ?? 0,
+      wordCount: table.wordCount,
+      primaryColor: table.primaryColor,
+      secondaryColor: table.secondaryColor,
     );
   }
 

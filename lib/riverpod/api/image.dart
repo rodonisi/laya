@@ -1,20 +1,14 @@
 import 'package:fluvita/models/image_model.dart';
 import 'package:fluvita/riverpod/api/client.dart';
 import 'package:fluvita/riverpod/settings.dart';
-import 'package:fluvita/riverpod/storage.dart';
-import 'package:hooks_riverpod/experimental/persist.dart';
-import 'package:riverpod_annotation/experimental/json_persist.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'image.g.dart';
 
 @riverpod
-@JsonPersist()
 class SeriesCover extends _$SeriesCover {
   @override
   Future<ImageModel> build({required int seriesId}) async {
-    persist(ref.watch(storageProvider.future));
-
     final client = ref.watch(restClientProvider);
     final key = ref.watch(apiKeyProvider);
 
@@ -32,12 +26,9 @@ class SeriesCover extends _$SeriesCover {
 }
 
 @riverpod
-@JsonPersist()
 class ChapterCover extends _$ChapterCover {
   @override
   Future<ImageModel> build({required int chapterId}) async {
-    persist(ref.watch(storageProvider.future));
-
     final client = ref.watch(restClientProvider);
     final key = ref.watch(apiKeyProvider);
 
@@ -55,12 +46,9 @@ class ChapterCover extends _$ChapterCover {
 }
 
 @riverpod
-@JsonPersist()
 class VolumeCover extends _$VolumeCover {
   @override
   Future<ImageModel> build({required int volumeId}) async {
-    persist(ref.watch(storageProvider.future));
-
     final client = ref.watch(restClientProvider);
     final key = ref.watch(apiKeyProvider);
 
@@ -78,12 +66,9 @@ class VolumeCover extends _$VolumeCover {
 }
 
 @riverpod
-@JsonPersist()
 class LibraryCover extends _$LibraryCover {
   @override
   Future<ImageModel> build({required int libraryId}) async {
-    persist(ref.watch(storageProvider.future));
-
     final client = ref.watch(restClientProvider);
     final key = ref.watch(apiKeyProvider);
 

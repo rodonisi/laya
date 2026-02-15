@@ -1,11 +1,8 @@
 import 'package:fluvita/api/openapi.swagger.dart';
 import 'package:fluvita/riverpod/api/client.dart';
-import 'package:fluvita/riverpod/storage.dart';
 import 'package:fluvita/utils/logging.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:riverpod_annotation/experimental/json_persist.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:hooks_riverpod/experimental/persist.dart';
 
 part 'report_queue.freezed.dart';
 part 'report_queue.g.dart';
@@ -33,11 +30,9 @@ sealed class EventQueueState with _$EventQueueState {
 }
 
 @riverpod
-@JsonPersist()
 class EventQueue extends _$EventQueue {
   @override
   Future<EventQueueState> build() async {
-    await persist(ref.watch(storageProvider.future)).future;
     return state.value ?? const EventQueueState();
   }
 

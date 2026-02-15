@@ -1,3 +1,4 @@
+import 'package:fluvita/database/tables/series.dart';
 import 'package:fluvita/models/series_model.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:fluvita/api/openapi.swagger.dart';

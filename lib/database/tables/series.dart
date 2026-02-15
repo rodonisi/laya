@@ -1,17 +1,20 @@
 import 'package:drift/drift.dart';
-import 'package:fluvita/models/series_model.dart';
 
-//
-// required int id,
-// required int libraryId,
-// required String name,
-// required Format format,
-// required int pages,
-// required int pagesRead,
-// required double avgHoursToRead,
-// required int? wordCount,
-// required String? primaryColor,
-// required String? secondaryColor,
+enum Format {
+  epub,
+  cbz,
+  unknown
+  ;
+
+  factory Format.fromDtoFormat(int value) {
+    return switch (value) {
+      3 => Format.epub,
+      1 => Format.cbz,
+      _ => Format.unknown,
+    };
+  }
+}
+
 class Series extends Table {
   IntColumn get id => integer()();
   TextColumn get name => text()();

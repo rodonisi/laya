@@ -1,19 +1,13 @@
 import 'package:fluvita/models/library_model.dart';
 import 'package:fluvita/riverpod/api/client.dart';
-import 'package:fluvita/riverpod/storage.dart';
-import 'package:riverpod_annotation/experimental/json_persist.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:hooks_riverpod/experimental/persist.dart';
 
 part 'library.g.dart';
 
 @riverpod
-@JsonPersist()
 class Library extends _$Library {
   @override
   Future<LibraryModel> build({required int libraryId}) async {
-    persist(ref.watch(storageProvider.future));
-
     final client = ref.watch(restClientProvider);
     final res = await client.apiLibraryGet(libraryId: libraryId);
 
@@ -26,11 +20,9 @@ class Library extends _$Library {
 }
 
 @riverpod
-@JsonPersist()
 class Libraries extends _$Libraries {
   @override
   Future<List<LibraryModel>> build() async {
-    persist(ref.watch(storageProvider.future));
     final client = ref.watch(restClientProvider);
     final res = await client.apiLibraryLibrariesGet();
 

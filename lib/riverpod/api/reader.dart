@@ -4,20 +4,14 @@ import 'package:fluvita/models/image_model.dart';
 import 'package:fluvita/models/progress_model.dart';
 import 'package:fluvita/riverpod/api/client.dart';
 import 'package:fluvita/riverpod/settings.dart';
-import 'package:fluvita/riverpod/storage.dart';
-import 'package:hooks_riverpod/experimental/persist.dart';
-import 'package:riverpod_annotation/experimental/json_persist.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'reader.g.dart';
 
 @riverpod
-@JsonPersist()
 class ContinuePoint extends _$ContinuePoint {
   @override
   Future<ChapterModel> build({required int seriesId}) async {
-    persist(ref.watch(storageProvider.future));
-
     final client = ref.watch(restClientProvider);
     final res = await client.apiReaderContinuePointGet(seriesId: seriesId);
 
@@ -30,12 +24,9 @@ class ContinuePoint extends _$ContinuePoint {
 }
 
 @riverpod
-@JsonPersist()
 class BookProgress extends _$BookProgress {
   @override
   Future<ProgressModel> build({required int chapterId}) async {
-    persist(ref.watch(storageProvider.future));
-
     final client = ref.watch(restClientProvider);
     final res = await client.apiReaderGetProgressGet(chapterId: chapterId);
 
@@ -48,15 +39,12 @@ class BookProgress extends _$BookProgress {
 }
 
 @riverpod
-@JsonPersist()
 class ReaderImage extends _$ReaderImage {
   @override
   Future<ImageModel> build({
     required int chapterId,
     required int page,
   }) async {
-    persist(ref.watch(storageProvider.future));
-
     final client = ref.watch(restClientProvider);
     final key = ref.watch(apiKeyProvider);
 
@@ -75,7 +63,6 @@ class ReaderImage extends _$ReaderImage {
 }
 
 @riverpod
-@JsonPersist()
 class PrevChapter extends _$PrevChapter {
   @override
   Future<int?> build({
@@ -83,8 +70,6 @@ class PrevChapter extends _$PrevChapter {
     int? volumeId,
     int? chapterId,
   }) async {
-    persist(ref.watch(storageProvider.future));
-
     final client = ref.watch(restClientProvider);
     final res = await client.apiReaderPrevChapterGet(
       seriesId: seriesId,
@@ -102,7 +87,6 @@ class PrevChapter extends _$PrevChapter {
 }
 
 @riverpod
-@JsonPersist()
 class NextChapter extends _$NextChapter {
   @override
   Future<int?> build({
@@ -110,8 +94,6 @@ class NextChapter extends _$NextChapter {
     int? volumeId,
     int? chapterId,
   }) async {
-    persist(ref.watch(storageProvider.future));
-
     final client = ref.watch(restClientProvider);
     final res = await client.apiReaderNextChapterGet(
       seriesId: seriesId,

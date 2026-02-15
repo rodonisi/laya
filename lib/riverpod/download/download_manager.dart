@@ -3,12 +3,9 @@ import 'package:fluvita/riverpod/api/book.dart';
 import 'package:fluvita/riverpod/api/chapter.dart';
 import 'package:fluvita/riverpod/api/reader.dart';
 import 'package:fluvita/riverpod/epub_page_content.dart';
-import 'package:fluvita/riverpod/storage.dart';
 import 'package:fluvita/utils/logging.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:riverpod_annotation/experimental/json_persist.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:hooks_riverpod/experimental/persist.dart';
 
 part 'download_manager.freezed.dart';
 part 'download_manager.g.dart';
@@ -45,14 +42,11 @@ sealed class DownloadManagerState with _$DownloadManagerState {
 }
 
 @riverpod
-@JsonPersist()
 class DownloadManager extends _$DownloadManager {
   @override
   Future<DownloadManagerState> build({
     required int chapterId,
   }) async {
-    await persist(ref.watch(storageProvider.future)).future;
-
     if (state.value != null) return state.value!;
 
     return _freshState;
