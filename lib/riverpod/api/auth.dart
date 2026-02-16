@@ -17,7 +17,7 @@ Future<UserModel> currentUser(Ref ref) async {
   final apiKey = ref.watch(apiKeyProvider);
 
   final res = await client.apiPluginAuthenticatePost(
-    apiKey: apiKey ?? '',
+    apiKey: apiKey,
     pluginName: 'fluvita',
   );
 

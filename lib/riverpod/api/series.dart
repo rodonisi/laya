@@ -1,6 +1,7 @@
 import 'package:fluvita/models/series_model.dart';
 import 'package:fluvita/riverpod/api/client.dart';
 import 'package:fluvita/riverpod/repository/series_repository.dart';
+import 'package:fluvita/riverpod/repository/series_metadata_repository.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'series.g.dart';
@@ -33,20 +34,12 @@ class SeriesDetail extends _$SeriesDetail {
 }
 
 @riverpod
-class SeriesMetadata extends _$SeriesMetadata {
-  @override
-  Future<SeriesMetadataModel> build({
-    required int seriesId,
-  }) async {
-    final client = ref.watch(restClientProvider);
-    final res = await client.apiSeriesMetadataGet(seriesId: seriesId);
-
-    if (!res.isSuccessful || res.body == null) {
-      throw Exception('Failed to load series metadata: ${res.error}');
-    }
-
-    return SeriesMetadataModel.fromSeriesMetadataDto(res.body!);
-  }
+Stream<SeriesMetadataModel> seriesMetadata(
+  Ref ref, {
+  required int seriesId,
+}) async* {
+  final repo = ref.watch(seriesMetadataRepositoryProvider);
+  yield* repo.watchSeriesMetadata(seriesId);
 }
 
 @riverpod

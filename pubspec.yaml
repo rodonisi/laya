@@ -48,6 +48,7 @@ dependencies:
   flutter_context_menu: ^0.4.1
   drift: ^2.31.0
   drift_flutter: ^0.2.8
+  stream_transform: ^2.1.1
 
 dev_dependencies:
   flutter_test:

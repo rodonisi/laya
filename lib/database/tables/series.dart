@@ -24,23 +24,18 @@ class Series extends Table {
   TextColumn get sortName => text().nullable()();
   IntColumn get libraryId => integer()();
 
-  // Metadata
   TextColumn get format => textEnum<Format>()();
   IntColumn get pages => integer().withDefault(const Constant(0))();
   IntColumn get wordCount => integer().withDefault(const Constant(0))();
   RealColumn get avgHoursToRead => real().nullable()();
-  TextColumn get summary => text().nullable()();
-  TextColumn get coverImageUrl => text().nullable()();
   TextColumn get primaryColor => text().nullable()();
   TextColumn get secondaryColor => text().nullable()();
+
   BoolColumn get isOnDeck => boolean().withDefault(const Constant(false))();
   BoolColumn get isRecentlyAdded =>
       boolean().withDefault(const Constant(false))();
   BoolColumn get isRecentlyUpdated =>
       boolean().withDefault(const Constant(false))();
-
-  // Theme colors (JSON array)
-  TextColumn get colors => text().nullable()();
 
   // Reading progress
   IntColumn get pagesRead => integer().withDefault(const Constant(0))();

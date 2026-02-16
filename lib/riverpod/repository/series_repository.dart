@@ -4,16 +4,11 @@ import 'package:fluvita/database/app_database.dart';
 import 'package:fluvita/database/tables/series.dart';
 import 'package:fluvita/models/series_model.dart';
 import 'package:fluvita/riverpod/api/client.dart';
+import 'package:fluvita/riverpod/repository/database.dart';
 import 'package:fluvita/utils/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'series_repository.g.dart';
-
-/// Database provider
-@riverpod
-AppDatabase database(Ref ref) {
-  return AppDatabase();
-}
 
 @riverpod
 SeriesRepository seriesRepository(Ref ref) {
@@ -222,7 +217,6 @@ class SeriesRemoteOperations {
       pages: Value(dto.pages!),
       wordCount: Value(dto.wordCount ?? 0),
       avgHoursToRead: Value(dto.avgHoursToRead),
-      coverImageUrl: Value(dto.coverImage),
       primaryColor: Value(dto.primaryColor),
       secondaryColor: Value(dto.secondaryColor),
       pagesRead: Value(dto.pagesRead!),

@@ -2,22 +2,33 @@ import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:fluvita/database/dao/series_dao.dart';
+import 'package:fluvita/database/dao/series_metadata_dao.dart';
 import 'package:fluvita/database/dao/storage_dao.dart';
-import 'package:fluvita/database/tables/chapters.dart';
 import 'package:fluvita/database/tables/riverpod_storage.dart';
 import 'package:fluvita/database/tables/series.dart';
-import 'package:fluvita/database/tables/downloaded_pages.dart';
-import 'package:fluvita/database/tables/volumes.dart';
-import 'package:fluvita/database/tables/pending_sync_operations.dart';
-import 'package:fluvita/utils/logging.dart';
+import 'package:fluvita/database/tables/series_metadata.dart';
 import 'package:fluvita/utils/safe_platform.dart';
 import 'package:path_provider/path_provider.dart';
 
 part 'app_database.g.dart';
 
 @DriftDatabase(
-  tables: [Series, RiverpodStorage],
-  daos: [SeriesDao, StorageDao],
+  tables: [
+    RiverpodStorage,
+    Series,
+    SeriesMetadata,
+    People,
+    Genres,
+    Tags,
+    SeriesPeopleRoles,
+    SeriesGenres,
+    SeriesTags,
+  ],
+  daos: [
+    StorageDao,
+    SeriesDao,
+    SeriesMetadataDao,
+  ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());

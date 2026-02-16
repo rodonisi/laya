@@ -1,5 +1,6 @@
 import 'package:fluvita/api/openapi.swagger.dart';
 import 'package:fluvita/database/app_database.dart';
+import 'package:fluvita/database/dao/series_metadata_dao.dart';
 import 'package:fluvita/database/tables/series.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:fluvita/models/chapter_model.dart';
@@ -150,6 +151,25 @@ sealed class SeriesMetadataModel with _$SeriesMetadataModel {
       summary: dto.summary,
       writers: dto.writers?.map(PersonModel.fromPersonDto).toList() ?? [],
       genres: dto.genres?.map(GenreModel.fromGenreTagDto).toList() ?? [],
+    );
+  }
+
+  factory SeriesMetadataModel.fromDatabaseModel(
+    SeriesMetadataWithRelations data,
+  ) {
+    return SeriesMetadataModel(
+      seriesId: data.metadata?.seriesId ?? 0,
+      totalChapters: 0,
+      releaseYear: data.metadata?.releaseYear,
+      summary: data.metadata?.summary,
+      writers: data.writers.map((writer) => PersonModel(
+        id: writer.id,
+        name: writer.name,
+      )).toList(),
+      genres: data.genres.map((genre) => GenreModel(
+        id: genre.id,
+        name: genre.label,
+      )).toList(),
     );
   }
 }
