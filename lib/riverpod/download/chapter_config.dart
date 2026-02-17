@@ -18,6 +18,7 @@ sealed class ChapterConfigState with _$ChapterConfigState {
 class ChapterConfig extends _$ChapterConfig {
   @override
   Future<ChapterConfigState> build({
+    required int seriesId,
     required int chapterId,
   }) async {
     return const ChapterConfigState(download: false);
@@ -28,7 +29,9 @@ class ChapterConfig extends _$ChapterConfig {
 
     state = AsyncData(current.copyWith(download: download));
     final notifier = ref.read(
-      downloadManagerProvider(chapterId: chapterId).notifier,
+      downloadManagerProvider(
+        chapterId: chapterId,
+      ).notifier,
     );
 
     download ? await notifier.download() : await notifier.delete();

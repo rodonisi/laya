@@ -1,5 +1,6 @@
 import 'package:fluvita/api/openapi.swagger.dart';
 import 'package:fluvita/database/app_database.dart';
+import 'package:fluvita/database/dao/series_dao.dart';
 import 'package:fluvita/database/dao/series_metadata_dao.dart';
 import 'package:fluvita/database/tables/series.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -68,8 +69,6 @@ sealed class SeriesModel with _$SeriesModel {
 @freezed
 sealed class SeriesDetailModel with _$SeriesDetailModel {
   const factory SeriesDetailModel({
-    required int totalChapters,
-    required int unreadCount,
     required List<ChapterModel> storyline,
     required List<VolumeModel> volumes,
     required List<ChapterModel> chapters,
@@ -79,16 +78,14 @@ sealed class SeriesDetailModel with _$SeriesDetailModel {
   factory SeriesDetailModel.fromJson(Map<String, Object?> json) =>
       _$SeriesDetailModelFromJson(json);
 
-  factory SeriesDetailModel.fromSeriesDetailDto(SeriesDetailDto dto) {
+  factory SeriesDetailModel.fromDatabaseModel(SeriesDetailWithRelations model) {
     return SeriesDetailModel(
-      totalChapters: dto.totalCount!,
-      unreadCount: dto.unreadCount!,
-      storyline:
-          dto.storylineChapters?.map(ChapterModel.fromChapterDto).toList() ??
-          [],
-      volumes: dto.volumes?.map(VolumeModel.fromVolumeDto).toList() ?? [],
-      chapters: dto.chapters?.map(ChapterModel.fromChapterDto).toList() ?? [],
-      specials: dto.specials?.map(ChapterModel.fromChapterDto).toList() ?? [],
+      storyline: model.storylineChapters
+          .map(ChapterModel.fromDatabaseModel)
+          .toList(),
+      volumes: model.volumes.map(VolumeModel.fromDatabaseModel).toList(),
+      chapters: model.chapters.map(ChapterModel.fromDatabaseModel).toList(),
+      specials: model.specials.map(ChapterModel.fromDatabaseModel).toList(),
     );
   }
 }
@@ -162,14 +159,22 @@ sealed class SeriesMetadataModel with _$SeriesMetadataModel {
       totalChapters: 0,
       releaseYear: data.metadata?.releaseYear,
       summary: data.metadata?.summary,
-      writers: data.writers.map((writer) => PersonModel(
-        id: writer.id,
-        name: writer.name,
-      )).toList(),
-      genres: data.genres.map((genre) => GenreModel(
-        id: genre.id,
-        name: genre.label,
-      )).toList(),
+      writers: data.writers
+          .map(
+            (writer) => PersonModel(
+              id: writer.id,
+              name: writer.name,
+            ),
+          )
+          .toList(),
+      genres: data.genres
+          .map(
+            (genre) => GenreModel(
+              id: genre.id,
+              name: genre.label,
+            ),
+          )
+          .toList(),
     );
   }
 }

@@ -92,6 +92,7 @@ class EpubReader extends _$EpubReader {
     final scrollId = readerState.bookScrollId;
     final pageContent = await ref.watch(
       epubPageProvider(
+        seriesId: seriesId,
         chapterId: chapterId,
         page: currentPage,
       ).future,

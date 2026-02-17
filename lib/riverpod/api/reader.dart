@@ -3,24 +3,16 @@ import 'package:fluvita/models/chapter_model.dart';
 import 'package:fluvita/models/image_model.dart';
 import 'package:fluvita/models/progress_model.dart';
 import 'package:fluvita/riverpod/api/client.dart';
+import 'package:fluvita/riverpod/repository/reader_repository.dart';
 import 'package:fluvita/riverpod/settings.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'reader.g.dart';
 
 @riverpod
-class ContinuePoint extends _$ContinuePoint {
-  @override
-  Future<ChapterModel> build({required int seriesId}) async {
-    final client = ref.watch(restClientProvider);
-    final res = await client.apiReaderContinuePointGet(seriesId: seriesId);
-
-    if (!res.isSuccessful || res.body == null) {
-      throw Exception('Failed to load continue point: ${res.error}');
-    }
-
-    return ChapterModel.fromChapterDto(res.body!);
-  }
+Stream<ChapterModel> continuePoint(Ref ref, {required int seriesId}) async* {
+  final repo = ref.read(readerRepositoryProvider);
+  yield* repo.watchContinuePoint(seriesId: seriesId);
 }
 
 @riverpod

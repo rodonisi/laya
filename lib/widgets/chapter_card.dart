@@ -86,6 +86,7 @@ class ChapterCard extends HookConsumerWidget {
         ref
             .read(
               chapterConfigProvider(
+                seriesId: seriesId,
                 chapterId: chapter.id,
               ).notifier,
             )
@@ -96,6 +97,7 @@ class ChapterCard extends HookConsumerWidget {
         ref
             .read(
               chapterConfigProvider(
+                seriesId: seriesId,
                 chapterId: chapter.id,
               ).notifier,
             )

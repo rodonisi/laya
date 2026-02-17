@@ -7,6 +7,7 @@ part 'epub_page.g.dart';
 @riverpod
 Future<PageContent> epubPage(
   Ref ref, {
+  required int seriesId,
   required int chapterId,
   required int page,
 }) async {

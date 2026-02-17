@@ -60,7 +60,10 @@ class HorizontalPagedReader extends HookConsumerWidget {
           itemBuilder: (context, index) {
             return Async(
               asyncValue: ref.watch(
-                imagePageProvider(chapterId: chapterId, page: index),
+                imagePageProvider(
+                  chapterId: chapterId,
+                  page: index,
+                ),
               ),
               data: (data) {
                 return Image.memory(

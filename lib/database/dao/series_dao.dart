@@ -1,12 +1,15 @@
 import 'package:drift/drift.dart';
 import 'package:fluvita/database/app_database.dart';
+import 'package:fluvita/database/dao/volumes_dao.dart';
 import 'package:fluvita/database/tables/series.dart';
+import 'package:fluvita/database/tables/volumes.dart';
+import 'package:fluvita/database/tables/chapters.dart';
 import 'package:fluvita/utils/logging.dart';
-import 'package:stream_transform/stream_transform.dart';
+import 'package:rxdart/rxdart.dart';
 
 part 'series_dao.g.dart';
 
-@DriftAccessor(tables: [Series, SeriesCovers])
+@DriftAccessor(tables: [Series, SeriesCovers, Volumes, Chapters])
 class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
   SeriesDao(super.attachedDatabase);
 
@@ -51,7 +54,45 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
           seriesCovers,
         )..where((row) => row.seriesId.equals(seriesId)))
         .watchSingleOrNull()
-        .whereNotNull();
+        .whereNotNull()
+        .distinct();
+  }
+
+  Stream<SeriesDetailWithRelations> watchSeriesDetail(int seriesId) {
+    final volumesStream = (select(
+      volumes,
+    )..where((row) => row.seriesId.equals(seriesId))).watch();
+    final chaptersQuery =
+        (select(
+            chapters,
+          )
+          ..where((row) => row.seriesId.equals(seriesId))
+          ..orderBy([(chapters) => OrderingTerm.asc(chapters.sortOrder)]));
+    final chaptersStream = chaptersQuery.watch();
+    final specialsStream =
+        (chaptersQuery..where((row) => row.isSpecial.equals(true))).watch();
+    final storylineStream =
+        (chaptersQuery..where((row) => row.isStoryline.equals(true))).watch();
+
+    return Rx.combineLatest4(
+      volumesStream,
+      chaptersStream,
+      specialsStream,
+      storylineStream,
+      (v, c, s, sl) => SeriesDetailWithRelations(
+        volumes: v
+            .map(
+              (v) => VolumeWithRelations(
+                volume: v,
+                chapters: c.where((c) => c.volumeId == v.id).toList(),
+              ),
+            )
+            .toList(),
+        chapters: c,
+        storylineChapters: sl,
+        specials: s,
+      ),
+    );
   }
 
   Future<void> upsertSeries(SeriesCompanion entry) async {
@@ -63,6 +104,20 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
     log.d('upserting series batch with ${entries.length} entries');
     await batch((batch) {
       batch.insertAllOnConflictUpdate(series, entries);
+    });
+  }
+
+  Future<void> upsertSeriesDetail({
+    required int seriesId,
+    required SeriesDetailCompanions entries,
+  }) async {
+    await transaction(() async {
+      await db.chaptersDao.clearSeriesChapters(seriesId: seriesId);
+      await db.volumesDao.clearSeriesVolumes(seriesId: seriesId);
+      await db.chaptersDao.upsertChapterBatch(entries.chapters);
+      await db.chaptersDao.upsertChapterBatch(entries.specials);
+      await db.chaptersDao.upsertChapterBatch(entries.storyline);
+      await db.volumesDao.upsertVolumeBatch(entries.volumes);
     });
   }
 
@@ -108,4 +163,32 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
       const SeriesCompanion(isRecentlyAdded: Value(false)),
     );
   }
+}
+
+class SeriesDetailWithRelations {
+  final List<VolumeWithRelations> volumes;
+  final List<Chapter> specials;
+  final List<Chapter> chapters;
+  final List<Chapter> storylineChapters;
+
+  const SeriesDetailWithRelations({
+    required this.volumes,
+    required this.specials,
+    required this.chapters,
+    required this.storylineChapters,
+  });
+}
+
+class SeriesDetailCompanions {
+  final Iterable<ChaptersCompanion> storyline;
+  final Iterable<ChaptersCompanion> specials;
+  final Iterable<ChaptersCompanion> chapters;
+  final Iterable<VolumeWithChaptersCompanion> volumes;
+
+  const SeriesDetailCompanions({
+    required this.storyline,
+    required this.specials,
+    required this.chapters,
+    required this.volumes,
+  });
 }

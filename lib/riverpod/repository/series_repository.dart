@@ -1,11 +1,14 @@
 import 'package:drift/drift.dart';
 import 'package:fluvita/api/openapi.swagger.dart';
 import 'package:fluvita/database/app_database.dart';
+import 'package:fluvita/database/dao/series_dao.dart';
 import 'package:fluvita/database/tables/series.dart';
 import 'package:fluvita/models/image_model.dart';
 import 'package:fluvita/models/series_model.dart';
 import 'package:fluvita/riverpod/api/client.dart';
+import 'package:fluvita/riverpod/repository/chapters_repository.dart';
 import 'package:fluvita/riverpod/repository/database.dart';
+import 'package:fluvita/riverpod/repository/volumes_repository.dart';
 import 'package:fluvita/riverpod/settings.dart';
 import 'package:fluvita/utils/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -32,59 +35,6 @@ class SeriesRepository {
     refreshAllSeries();
   }
 
-  Stream<SeriesModel> watchSeries(int seriesId) {
-    refreshSeries(seriesId);
-    return _db.seriesDao
-        .watchSeries(seriesId)
-        .map(SeriesModel.fromDatabaseModel);
-  }
-
-  Stream<List<SeriesModel>> watchAllSeries({int? libraryId}) {
-    refreshAllSeries(libraryId: libraryId);
-    return _db.seriesDao
-        .watchAllSeries(libraryId: libraryId)
-        .map(
-          (list) => list.map(SeriesModel.fromDatabaseModel).toList(),
-        );
-  }
-
-  Stream<List<SeriesModel>> watchOnDeck() {
-    refreshedOnDeck();
-    return _db.seriesDao.watchOnDeck().map(
-      (list) => list.map(SeriesModel.fromDatabaseModel).toList(),
-    );
-  }
-
-  Stream<List<SeriesModel>> watchRecentlyUpdated() {
-    refreshRecentlyUpdated();
-    return _db.seriesDao.watchRecentlyUpdated().map(
-      (list) => list.map(SeriesModel.fromDatabaseModel).toList(),
-    );
-  }
-
-  Stream<List<SeriesModel>> watchRecentlyAdded() {
-    refreshRecentlyAdded();
-    return _db.seriesDao.watchRecentlyAdded().map(
-      (list) => list.map(SeriesModel.fromDatabaseModel).toList(),
-    );
-  }
-
-  Stream<ImageModel> watchSeriesCover(int seriesId) {
-    refreshSeriesCover(seriesId);
-    return _db.seriesDao
-        .watchSeriesCover(seriesId: seriesId)
-        .map((cover) => ImageModel(data: cover.image));
-  }
-
-  Future<void> refreshSeries(int seriesId) async {
-    try {
-      final series = await _client.getSeries(seriesId);
-      await _db.seriesDao.upsertSeries(series);
-    } catch (e) {
-      log.e(e);
-    }
-  }
-
   Future<void> refreshAllSeries({int? libraryId}) async {
     try {
       final series = await _client.getAllSeries(libraryId: libraryId);
@@ -104,6 +54,15 @@ class SeriesRepository {
     }
   }
 
+  Future<void> refreshRecentlyAdded() async {
+    try {
+      final series = await _client.getRecentlyAdded();
+      await _db.seriesDao.upsertSeriesBatch(series);
+    } catch (e) {
+      log.e(e);
+    }
+  }
+
   Future<void> refreshRecentlyUpdated() async {
     try {
       final series = await _client.getRecentlyUpdated();
@@ -113,10 +72,22 @@ class SeriesRepository {
     }
   }
 
-  Future<void> refreshRecentlyAdded() async {
+  Future<void> refreshSeries(int seriesId) async {
     try {
-      final series = await _client.getRecentlyAdded();
-      await _db.seriesDao.upsertSeriesBatch(series);
+      final series = await _client.getSeries(seriesId);
+      await _db.seriesDao.upsertSeries(series);
+    } catch (e) {
+      log.e(e);
+    }
+  }
+
+  Future<void> refreshSeriesDetails(int seriesId) async {
+    try {
+      final details = await _client.getSeriesDetail(seriesId);
+      await _db.seriesDao.upsertSeriesDetail(
+        seriesId: seriesId,
+        entries: details,
+      );
     } catch (e) {
       log.e(e);
     }
@@ -130,6 +101,57 @@ class SeriesRepository {
       log.e(e);
     }
   }
+
+  Stream<List<SeriesModel>> watchAllSeries({int? libraryId}) {
+    refreshAllSeries(libraryId: libraryId);
+    return _db.seriesDao
+        .watchAllSeries(libraryId: libraryId)
+        .map(
+          (list) => list.map(SeriesModel.fromDatabaseModel).toList(),
+        );
+  }
+
+  Stream<List<SeriesModel>> watchOnDeck() {
+    refreshedOnDeck();
+    return _db.seriesDao.watchOnDeck().map(
+      (list) => list.map(SeriesModel.fromDatabaseModel).toList(),
+    );
+  }
+
+  Stream<List<SeriesModel>> watchRecentlyAdded() {
+    refreshRecentlyAdded();
+    return _db.seriesDao.watchRecentlyAdded().map(
+      (list) => list.map(SeriesModel.fromDatabaseModel).toList(),
+    );
+  }
+
+  Stream<List<SeriesModel>> watchRecentlyUpdated() {
+    refreshRecentlyUpdated();
+    return _db.seriesDao.watchRecentlyUpdated().map(
+      (list) => list.map(SeriesModel.fromDatabaseModel).toList(),
+    );
+  }
+
+  Stream<SeriesModel> watchSeries(int seriesId) {
+    refreshSeries(seriesId);
+    return _db.seriesDao
+        .watchSeries(seriesId)
+        .map(SeriesModel.fromDatabaseModel);
+  }
+
+  Stream<ImageModel> watchSeriesCover(int seriesId) {
+    refreshSeriesCover(seriesId);
+    return _db.seriesDao
+        .watchSeriesCover(seriesId: seriesId)
+        .map((cover) => ImageModel(data: cover.image));
+  }
+
+  Stream<SeriesDetailModel> watchSeriesDetails(int seriesId) {
+    refreshSeriesDetails(seriesId);
+    return _db.seriesDao
+        .watchSeriesDetail(seriesId)
+        .map(SeriesDetailModel.fromDatabaseModel);
+  }
 }
 
 class SeriesRemoteOperations {
@@ -141,16 +163,6 @@ class SeriesRemoteOperations {
     required String apiKey,
   }) : _client = client,
        _apiKey = apiKey;
-
-  Future<SeriesCompanion> getSeries(int seriesId) async {
-    final res = await _client.apiSeriesSeriesIdGet(seriesId: seriesId);
-
-    if (!res.isSuccessful || res.body == null) {
-      throw Exception('Failed to load series: ${res.error}');
-    }
-
-    return _mapSeriesCompanion(res.body!);
-  }
 
   Future<Iterable<SeriesCompanion>> getAllSeries({int? libraryId}) async {
     final res = await _client.apiSeriesV2Post(
@@ -192,23 +204,6 @@ class SeriesRemoteOperations {
     );
   }
 
-  Future<Iterable<SeriesCompanion>> getRecentlyUpdated() async {
-    final res = await _client.apiSeriesRecentlyUpdatedSeriesPost();
-
-    if (!res.isSuccessful || res.body == null) {
-      throw Exception('Failed to load recently updated: ${res.error}');
-    }
-
-    return Future.wait(
-      res.body!.map(
-        (entry) async {
-          final series = await getSeries(entry.seriesId!);
-          return series.copyWith(isRecentlyUpdated: const Value(true));
-        },
-      ),
-    );
-  }
-
   Future<Iterable<SeriesCompanion>> getRecentlyAdded() async {
     final res = await _client.apiSeriesRecentlyAddedV2Post(
       body: FilterV2Dto(
@@ -233,6 +228,33 @@ class SeriesRemoteOperations {
     );
   }
 
+  Future<Iterable<SeriesCompanion>> getRecentlyUpdated() async {
+    final res = await _client.apiSeriesRecentlyUpdatedSeriesPost();
+
+    if (!res.isSuccessful || res.body == null) {
+      throw Exception('Failed to load recently updated: ${res.error}');
+    }
+
+    return Future.wait(
+      res.body!.map(
+        (entry) async {
+          final series = await getSeries(entry.seriesId!);
+          return series.copyWith(isRecentlyUpdated: const Value(true));
+        },
+      ),
+    );
+  }
+
+  Future<SeriesCompanion> getSeries(int seriesId) async {
+    final res = await _client.apiSeriesSeriesIdGet(seriesId: seriesId);
+
+    if (!res.isSuccessful || res.body == null) {
+      throw Exception('Failed to load series: ${res.error}');
+    }
+
+    return _mapSeriesCompanion(res.body!);
+  }
+
   Future<SeriesCoversCompanion> getSeriesCover(int seriesId) async {
     final res = await _client.apiImageSeriesCoverGet(
       seriesId: seriesId,
@@ -246,6 +268,44 @@ class SeriesRemoteOperations {
     return SeriesCoversCompanion(
       seriesId: Value(seriesId),
       image: Value(res.bodyBytes),
+    );
+  }
+
+  Future<SeriesDetailCompanions> getSeriesDetail(
+    int seriesId,
+  ) async {
+    final res = await _client.apiSeriesSeriesDetailGet(seriesId: seriesId);
+
+    if (!res.isSuccessful || res.body == null) {
+      throw Exception('Failed to load series detail: ${res.error}');
+    }
+
+    final storyline = (res.body!.specials ?? []).map(
+      (c) => ChapterRemoteOperations.mapChapterCompanion(c).copyWith(
+        seriesId: Value(seriesId),
+        isStoryline: const Value(true),
+      ),
+    );
+    final specials = (res.body!.specials ?? []).map(
+      (c) => ChapterRemoteOperations.mapChapterCompanion(c).copyWith(
+        seriesId: Value(seriesId),
+        isSpecial: const Value(true),
+      ),
+    );
+    final chapters = (res.body!.chapters ?? []).map(
+      (c) => ChapterRemoteOperations.mapChapterCompanion(c).copyWith(
+        seriesId: Value(seriesId),
+      ),
+    );
+    final volumes = (res.body!.volumes ?? []).map(
+      (v) => VolumeRemoteOperations.mapVolumeCompanion(v),
+    );
+
+    return SeriesDetailCompanions(
+      storyline: storyline,
+      specials: specials,
+      chapters: chapters,
+      volumes: volumes,
     );
   }
 

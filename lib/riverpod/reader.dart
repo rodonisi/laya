@@ -46,7 +46,9 @@ class Reader extends _$Reader {
   @override
   Future<ReaderState> build({required int seriesId, int? chapterId}) async {
     final chapter = chapterId != null
-        ? await ref.watch(chapterProvider(chapterId: chapterId).future)
+        ? await ref.watch(
+            chapterProvider(chapterId: chapterId).future,
+          )
         : await ref.watch(continuePointProvider(seriesId: seriesId).future);
     final info = await ref.watch(
       bookInfoProvider(chapterId: chapter.id).future,

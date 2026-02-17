@@ -1,20 +1,21 @@
 import 'package:fluvita/models/chapter_model.dart';
-import 'package:fluvita/riverpod/api/client.dart';
+import 'package:fluvita/models/image_model.dart';
+import 'package:fluvita/riverpod/repository/chapters_repository.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'chapter.g.dart';
 
 @riverpod
-class Chapter extends _$Chapter {
-  @override
-  Future<ChapterModel> build({required int chapterId}) async {
-    final client = ref.watch(restClientProvider);
-    final res = await client.apiChapterGet(chapterId: chapterId);
+Stream<ChapterModel> chapter(
+  Ref ref, {
+  required int chapterId,
+}) async* {
+  final repo = ref.watch(chaptersRepositoryProvider);
+  yield* repo.watchChapter(chapterId: chapterId);
+}
 
-    if (!res.isSuccessful || res.body == null) {
-      throw Exception('Failed to load chapter: ${res.error}');
-    }
-
-    return ChapterModel.fromChapterDto(res.body!);
-  }
+@riverpod
+Stream<ImageModel> chapterCover(Ref ref, {required int chapterId}) async* {
+  final repo = ref.watch(chaptersRepositoryProvider);
+  yield* repo.watchChapterCover(chapterId);
 }

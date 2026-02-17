@@ -49,6 +49,7 @@ dependencies:
   drift: ^2.31.0
   drift_flutter: ^0.2.8
   stream_transform: ^2.1.1
+  rxdart: ^0.28.0
 
 dev_dependencies:
   flutter_test:

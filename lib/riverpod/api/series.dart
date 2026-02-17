@@ -1,8 +1,7 @@
 import 'package:fluvita/models/image_model.dart';
 import 'package:fluvita/models/series_model.dart';
-import 'package:fluvita/riverpod/api/client.dart';
-import 'package:fluvita/riverpod/repository/series_repository.dart';
 import 'package:fluvita/riverpod/repository/series_metadata_repository.dart';
+import 'package:fluvita/riverpod/repository/series_repository.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'series.g.dart';
@@ -26,18 +25,12 @@ Stream<List<SeriesModel>> allSeries(Ref ref, {int? libraryId}) async* {
 }
 
 @riverpod
-class SeriesDetail extends _$SeriesDetail {
-  @override
-  Future<SeriesDetailModel> build({required int seriesId}) async {
-    final client = ref.watch(restClientProvider);
-    final res = await client.apiSeriesSeriesDetailGet(seriesId: seriesId);
-
-    if (!res.isSuccessful || res.body == null) {
-      throw Exception('Failed to load series detail: ${res.error}');
-    }
-
-    return SeriesDetailModel.fromSeriesDetailDto(res.body!);
-  }
+Stream<SeriesDetailModel> seriesDetail(
+  Ref ref, {
+  required int seriesId,
+}) async* {
+  final repo = ref.watch(seriesRepositoryProvider);
+  yield* repo.watchSeriesDetails(seriesId);
 }
 
 @riverpod
