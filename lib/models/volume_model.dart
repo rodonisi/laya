@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:fluvita/api/openapi.swagger.dart';
+import 'package:fluvita/database/app_database.dart';
 import 'package:fluvita/models/chapter_model.dart';
 
 part 'volume_model.freezed.dart';
@@ -37,6 +38,21 @@ sealed class VolumeModel with _$VolumeModel {
       wordCount: dto.wordCount,
       primaryColor: dto.primaryColor,
       secondaryColor: dto.secondaryColor,
+    );
+  }
+
+  factory VolumeModel.fromDatabaseModel(Volume table) {
+    return VolumeModel(
+      id: table.id,
+      seriesId: table.seriesId,
+      name: table.name ?? '',
+      chapters: [],
+      pages: 0,
+      pagesRead: 0,
+      avgHoursToRead: null,
+      wordCount: table.wordCount,
+      primaryColor: table.primaryColor,
+      secondaryColor: table.secondaryColor,
     );
   }
 

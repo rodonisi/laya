@@ -4,9 +4,11 @@ import 'package:drift_flutter/drift_flutter.dart';
 import 'package:fluvita/database/dao/series_dao.dart';
 import 'package:fluvita/database/dao/series_metadata_dao.dart';
 import 'package:fluvita/database/dao/storage_dao.dart';
+import 'package:fluvita/database/dao/volumes_dao.dart';
 import 'package:fluvita/database/tables/riverpod_storage.dart';
 import 'package:fluvita/database/tables/series.dart';
 import 'package:fluvita/database/tables/series_metadata.dart';
+import 'package:fluvita/database/tables/volumes.dart';
 import 'package:fluvita/utils/safe_platform.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -24,11 +26,14 @@ part 'app_database.g.dart';
     SeriesPeopleRoles,
     SeriesGenres,
     SeriesTags,
+    Volumes,
+    VolumeCovers,
   ],
   daos: [
     StorageDao,
     SeriesDao,
     SeriesMetadataDao,
+    VolumesDao,
   ],
 )
 class AppDatabase extends _$AppDatabase {

@@ -26,26 +26,6 @@ class ChapterCover extends _$ChapterCover {
 }
 
 @riverpod
-class VolumeCover extends _$VolumeCover {
-  @override
-  Future<ImageModel> build({required int volumeId}) async {
-    final client = ref.watch(restClientProvider);
-    final key = ref.watch(apiKeyProvider);
-
-    final res = await client.apiImageVolumeCoverGet(
-      volumeId: volumeId,
-      apiKey: key,
-    );
-
-    if (!res.isSuccessful) {
-      throw Exception('Failed to load volume cover: ${res.error}');
-    }
-
-    return ImageModel(data: res.bodyBytes);
-  }
-}
-
-@riverpod
 class LibraryCover extends _$LibraryCover {
   @override
   Future<ImageModel> build({required int libraryId}) async {
