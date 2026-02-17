@@ -6,7 +6,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'auth.g.dart';
 
 Duration? _retry(int retryCount, Object error) {
-  if (retryCount >= 5) return null;
+  if (retryCount >= 3) return null;
 
   return Duration(milliseconds: 200 * (1 << retryCount)); // Exponential backoff
 }
