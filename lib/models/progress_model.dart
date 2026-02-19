@@ -1,4 +1,5 @@
 import 'package:fluvita/api/openapi.swagger.dart';
+import 'package:fluvita/database/app_database.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'progress_model.freezed.dart';
@@ -15,21 +16,21 @@ sealed class ProgressModel with _$ProgressModel {
     required int seriesId,
     required int libraryId,
     String? bookScrollId,
-    DateTime? lastModifiedUtc,
+    DateTime? lastModified,
   }) = _ProgressModel;
 
   factory ProgressModel.fromJson(Map<String, dynamic> json) =>
       _$ProgressModelFromJson(json);
 
-  factory ProgressModel.fromProgressDto(ProgressDto dto) {
+  factory ProgressModel.fromDatabaseModel(ReadingProgressData row) {
     return ProgressModel(
-      volumeId: dto.volumeId,
-      chapterId: dto.chapterId,
-      pageNum: dto.pageNum,
-      seriesId: dto.seriesId,
-      libraryId: dto.libraryId,
-      bookScrollId: dto.bookScrollId,
-      lastModifiedUtc: dto.lastModifiedUtc,
+      volumeId: row.volumeId,
+      chapterId: row.chapterId,
+      pageNum: row.pageNum,
+      seriesId: row.seriesId,
+      libraryId: row.libraryId,
+      bookScrollId: row.bookScrollId,
+      lastModified: row.lastModified,
     );
   }
 }

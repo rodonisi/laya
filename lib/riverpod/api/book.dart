@@ -1,42 +1,27 @@
 import 'package:fluvita/models/book_chapter_model.dart';
 import 'package:fluvita/models/book_info_model.dart';
 import 'package:fluvita/riverpod/api/client.dart';
+import 'package:fluvita/riverpod/repository/book_repository.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'book.g.dart';
 
 @riverpod
-class BookInfo extends _$BookInfo {
-  @override
-  Future<BookInfoModel> build({required int chapterId}) async {
-    final client = ref.watch(restClientProvider);
-    final res = await client.apiBookChapterIdBookInfoGet(chapterId: chapterId);
-
-    if (!res.isSuccessful || res.body == null) {
-      throw Exception('Failed to load book info: ${res.error}');
-    }
-
-    return BookInfoModel.fromBookInfoDto(res.body!);
-  }
+Stream<BookInfoModel> bookInfo(Ref ref, {required int chapterId}) async* {
+  final repo = ref.watch(bookRepositoryProvider);
+  yield* repo.watchBookInfo(chapterId);
 }
 
 @riverpod
-class BookChapters extends _$BookChapters {
-  @override
-  Future<List<BookChapterModel>> build({
-    required int chapterId,
-  }) async {
-    final client = ref.watch(restClientProvider);
-    final res = await client.apiBookChapterIdChaptersGet(chapterId: chapterId);
-
-    if (!res.isSuccessful || res.body == null) {
-      throw Exception('Failed to load book chapters: ${res.error}');
-    }
-
-    return res.body?.map(BookChapterModel.fromChapterItemDto).toList() ?? [];
-  }
+Stream<List<BookChapterModel>> bookChapters(
+  Ref ref, {
+  required int chapterId,
+}) async* {
+  final repo = ref.watch(bookRepositoryProvider);
+  yield* repo.watchBookChapters(chapterId);
 }
 
+/// Raw HTML page content — ephemeral, not cached in the DB.
 @riverpod
 Future<String> bookPage(Ref ref, {required int chapterId, int? page}) async {
   final client = ref.watch(restClientProvider);

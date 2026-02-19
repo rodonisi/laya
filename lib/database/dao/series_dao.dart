@@ -149,6 +149,22 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
     });
   }
 
+  Stream<bool> watchWantToRead(int seriesId) {
+    return (select(series)..where((row) => row.id.equals(seriesId)))
+        .watchSingleOrNull()
+        .map((row) => row?.isWantToRead ?? false);
+  }
+
+  Stream<List<SeriesData>> watchWantToReadList() {
+    return (select(series)..where((row) => row.isWantToRead)).watch();
+  }
+
+  Future<void> upsertWantToRead(int seriesId, {required bool value}) async {
+    await (update(series)..where((row) => row.id.equals(seriesId))).write(
+      SeriesCompanion(isWantToRead: Value(value)),
+    );
+  }
+
   Future<void> upsertSeriesCover(SeriesCoversCompanion cover) async {
     await into(seriesCovers).insertOnConflictUpdate(cover);
   }
@@ -168,6 +184,12 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
   Future<void> clearIsRecentlyAdded() async {
     await (update(series)..where((row) => row.isRecentlyAdded)).write(
       const SeriesCompanion(isRecentlyAdded: Value(false)),
+    );
+  }
+
+  Future<void> clearWantToRead() async {
+    await (update(series)..where((row) => row.isWantToRead)).write(
+      const SeriesCompanion(isWantToRead: Value(false)),
     );
   }
 }

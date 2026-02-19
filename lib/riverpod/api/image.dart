@@ -24,3 +24,27 @@ class LibraryCover extends _$LibraryCover {
     return ImageModel(data: res.bodyBytes);
   }
 }
+
+@riverpod
+class ReaderImage extends _$ReaderImage {
+  @override
+  Future<ImageModel> build({
+    required int chapterId,
+    required int page,
+  }) async {
+    final client = ref.watch(restClientProvider);
+    final key = ref.watch(apiKeyProvider);
+
+    final res = await client.apiReaderImageGet(
+      chapterId: chapterId,
+      page: page,
+      apiKey: key,
+    );
+
+    if (!res.isSuccessful) {
+      throw Exception('Failed to load reader image: ${res.error}');
+    }
+
+    return ImageModel(data: res.bodyBytes);
+  }
+}

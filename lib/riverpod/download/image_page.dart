@@ -1,5 +1,5 @@
 import 'package:fluvita/models/image_model.dart';
-import 'package:fluvita/riverpod/api/reader.dart';
+import 'package:fluvita/riverpod/api/image.dart';
 import 'package:fluvita/riverpod/download/download_manager.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 

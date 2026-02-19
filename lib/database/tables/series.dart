@@ -37,6 +37,8 @@ class Series extends Table {
       boolean().withDefault(const Constant(false))();
   BoolColumn get isRecentlyUpdated =>
       boolean().withDefault(const Constant(false))();
+  BoolColumn get isWantToRead =>
+      boolean().withDefault(const Constant(false))();
 
   // Reading progress
   IntColumn get pagesRead => integer().withDefault(const Constant(0))();
