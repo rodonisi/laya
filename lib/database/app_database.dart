@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:fluvita/database/dao/chapters_dao.dart';
+import 'package:fluvita/database/dao/libraries_dao.dart';
 import 'package:fluvita/database/dao/reader_dao.dart';
 import 'package:fluvita/database/dao/series_dao.dart';
 import 'package:fluvita/database/dao/series_metadata_dao.dart';
@@ -9,6 +10,7 @@ import 'package:fluvita/database/dao/storage_dao.dart';
 import 'package:fluvita/database/dao/volumes_dao.dart';
 import 'package:fluvita/database/tables/chapters.dart';
 import 'package:fluvita/database/tables/continue_point.dart';
+import 'package:fluvita/database/tables/libraries.dart';
 import 'package:fluvita/database/tables/riverpod_storage.dart';
 import 'package:fluvita/database/tables/series.dart';
 import 'package:fluvita/database/tables/series_metadata.dart';
@@ -21,6 +23,7 @@ part 'app_database.g.dart';
 @DriftDatabase(
   tables: [
     RiverpodStorage,
+    Libraries,
     Series,
     SeriesMetadata,
     SeriesCovers,
@@ -38,6 +41,7 @@ part 'app_database.g.dart';
   ],
   daos: [
     StorageDao,
+    LibrariesDao,
     SeriesDao,
     SeriesMetadataDao,
     VolumesDao,

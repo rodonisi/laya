@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:fluvita/database/tables/libraries.dart';
 
 enum Format {
   epub,
@@ -22,7 +23,7 @@ class Series extends Table {
   TextColumn get originalName => text().nullable()();
   TextColumn get localizedName => text().nullable()();
   TextColumn get sortName => text().nullable()();
-  IntColumn get libraryId => integer()();
+  IntColumn get libraryId => integer().references(Libraries, #id)();
 
   TextColumn get format => textEnum<Format>()();
   IntColumn get pages => integer().withDefault(const Constant(0))();
