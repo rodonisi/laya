@@ -132,10 +132,14 @@ class _Cover extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final progress = ref
+        .watch(volumeProgressProvider(volumeId: volume.id))
+        .value;
+
     return AspectRatio(
       aspectRatio: LayoutConstants.coverAspectRatio,
       child: CoverCard(
-        progress: volume.progress,
+        progress: progress,
         coverImage: VolumeCoverImage(
           volumeId: volume.id,
           fit: BoxFit.cover,

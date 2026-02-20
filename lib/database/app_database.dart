@@ -11,13 +11,15 @@ import 'package:fluvita/database/dao/storage_dao.dart';
 import 'package:fluvita/database/dao/volumes_dao.dart';
 import 'package:fluvita/database/tables/book_info.dart';
 import 'package:fluvita/database/tables/chapters.dart';
-import 'package:fluvita/database/tables/continue_point.dart';
 import 'package:fluvita/database/tables/libraries.dart';
 import 'package:fluvita/database/tables/progress.dart';
 import 'package:fluvita/database/tables/riverpod_storage.dart';
 import 'package:fluvita/database/tables/series.dart';
 import 'package:fluvita/database/tables/series_metadata.dart';
 import 'package:fluvita/database/tables/volumes.dart';
+import 'package:fluvita/database/tables/want_to_read.dart';
+import 'package:fluvita/models/enums/format.dart';
+import 'package:fluvita/models/enums/library_type.dart';
 import 'package:fluvita/utils/safe_platform.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -44,6 +46,7 @@ part 'app_database.g.dart';
     ReadingProgress,
     BookInfo,
     BookChaptersTable,
+    WantToRead,
   ],
   daos: [
     StorageDao,

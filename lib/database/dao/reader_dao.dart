@@ -1,7 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:fluvita/database/app_database.dart';
 import 'package:fluvita/database/tables/chapters.dart';
-import 'package:fluvita/database/tables/continue_point.dart';
 import 'package:fluvita/database/tables/progress.dart';
 import 'package:fluvita/database/tables/series.dart';
 import 'package:fluvita/utils/logging.dart';
@@ -13,7 +12,7 @@ part 'reader_dao.g.dart';
 class ReaderDao extends DatabaseAccessor<AppDatabase> with _$ReaderDaoMixin {
   ReaderDao(super.attachedDatabase);
 
-  Stream<Chapter> continuePoint({required int seriesId}) {
+  Stream<Chapter> watchContinuePoint({required int seriesId}) {
     final query = select(continuePoints).join([
       innerJoin(
         chapters,
@@ -22,14 +21,43 @@ class ReaderDao extends DatabaseAccessor<AppDatabase> with _$ReaderDaoMixin {
     ])..where(continuePoints.seriesId.equals(seriesId));
 
     return query
+        .map((res) => res.readTable(chapters))
         .watchSingleOrNull()
-        .map((row) => row?.readTable(chapters))
         .whereNotNull();
+  }
+
+  Stream<double> watchContinuePointProgress({required int seriesId}) {
+    final query = select(continuePoints).join([
+      innerJoin(
+        chapters,
+        chapters.id.equalsExp(continuePoints.chapterId),
+      ),
+      innerJoin(
+        readingProgress,
+        readingProgress.chapterId.equalsExp(continuePoints.chapterId),
+      ),
+    ])..where(continuePoints.seriesId.equals(seriesId));
+
+    return query.watchSingleOrNull().whereNotNull().map((row) {
+      final progress = row.readTable(readingProgress);
+      final chapter = row.readTable(chapters);
+
+      if (chapter.pages == 0) return 0.0;
+      return progress.pagesRead / chapter.pages;
+    });
   }
 
   Future<void> upsertContinuePoint(ContinuePointsCompanion entry) async {
     log.d('upsert continue point $entry');
     await into(continuePoints).insertOnConflictUpdate(entry);
+  }
+
+  Future<void> upsertContinuePointBatch(
+    Iterable<ContinuePointsCompanion> incoming,
+  ) async {
+    await batch(
+      (batch) => batch.insertAllOnConflictUpdate(continuePoints, incoming),
+    );
   }
 
   Stream<ReadingProgressData?> watchProgress(int chapterId) {
@@ -41,6 +69,59 @@ class ReaderDao extends DatabaseAccessor<AppDatabase> with _$ReaderDaoMixin {
   Future<void> upsertProgress(ReadingProgressCompanion entry) async {
     log.d('upsert progress chapter=${entry.chapterId.value}');
     await into(readingProgress).insertOnConflictUpdate(entry);
+  }
+
+  Future<void> mergeProgress(ReadingProgressCompanion incoming) async {
+    await transaction(() async {
+      final local =
+          await (select(
+                readingProgress,
+              )..where((tbl) => tbl.chapterId.equals(incoming.chapterId.value)))
+              .getSingleOrNull();
+
+      final localWins =
+          local != null &&
+          local.dirty &&
+          local.lastModified.isAfter(incoming.lastModified.value);
+
+      if (!localWins) {
+        await into(readingProgress).insertOnConflictUpdate(incoming);
+      }
+    });
+  }
+
+  Future<void> mergeProgressBatch(
+    Iterable<ReadingProgressCompanion> incoming,
+  ) async {
+    await transaction(() async {
+      if (incoming.isEmpty) return;
+
+      final ids = incoming.map((e) => e.chapterId.value).toList();
+
+      final existing = {
+        for (final row in await (select(
+          readingProgress,
+        )..where((r) => r.chapterId.isIn(ids))).get())
+          row.chapterId: row,
+      };
+
+      final toWrite = <ReadingProgressCompanion>[];
+      for (final entry in incoming) {
+        final local = existing[entry.chapterId.value];
+
+        final localWins =
+            local != null &&
+            local.dirty &&
+            (!entry.lastModified.present ||
+                local.lastModified.isAfter(entry.lastModified.value));
+
+        if (!localWins) {
+          toWrite.add(entry);
+        }
+      }
+
+      await batch((b) => b.insertAllOnConflictUpdate(readingProgress, toWrite));
+    });
   }
 
   Stream<Chapter?> watchPrevChapter({
@@ -92,20 +173,41 @@ class ReaderDao extends DatabaseAccessor<AppDatabase> with _$ReaderDaoMixin {
   }
 
   Future<void> markSeriesRead(int seriesId, {required bool isRead}) async {
-    final query = update(chapters)
-      ..where((tbl) => tbl.seriesId.equals(seriesId));
-
-    if (isRead) {
-      await query.write(
-        ChaptersCompanion.custom(
-          pagesRead: chapters.pages,
+    await transaction(() async {
+      await (update(
+        readingProgress,
+      )..where((row) => row.seriesId.equals(seriesId))).write(
+        ReadingProgressCompanion.custom(
+          totalReads: readingProgress.totalReads + const Constant(1),
         ),
       );
-    } else {
-      await query.write(
-        const ChaptersCompanion(pagesRead: Value(0)),
-      );
-    }
+
+      final query =
+          (select(
+            chapters,
+          )..where((row) => row.seriesId.equals(seriesId))).join([
+            innerJoin(series, series.id.equalsExp(chapters.seriesId)),
+          ]);
+
+      final progressBatch = (await query.get()).map((join) {
+        final c = join.readTable(chapters);
+        final s = join.readTable(series);
+
+        return ReadingProgressCompanion(
+          chapterId: Value(c.id),
+          volumeId: Value(c.volumeId),
+          seriesId: Value(s.id),
+          libraryId: Value(s.libraryId),
+          pagesRead: Value(isRead ? c.pages : 0),
+          dirty: const Value(true),
+          // totalReads will already be incremented from step 1
+        );
+      });
+
+      await batch((batch) {
+        batch.insertAllOnConflictUpdate(readingProgress, progressBatch);
+      });
+    });
   }
 
   Future<void> markVolumeRead(
@@ -113,34 +215,84 @@ class ReaderDao extends DatabaseAccessor<AppDatabase> with _$ReaderDaoMixin {
     int volumeId, {
     required bool isRead,
   }) async {
-    final query = update(chapters)
-      ..where(
-        (tbl) => tbl.seriesId.equals(seriesId) & tbl.volumeId.equals(volumeId),
-      );
+    await transaction(() async {
+      await (update(
+            readingProgress,
+          )..where(
+            (tbl) =>
+                tbl.seriesId.equals(seriesId) & tbl.volumeId.equals(volumeId),
+          ))
+          .write(
+            ReadingProgressCompanion.custom(
+              totalReads: readingProgress.totalReads + const Constant(1),
+            ),
+          );
 
-    final volumeQuery = update(volumes)
-      ..where((tbl) => tbl.seriesId.equals(seriesId) & tbl.id.equals(volumeId));
+      final query =
+          (select(
+                chapters,
+              )..where(
+                (row) =>
+                    row.seriesId.equals(seriesId) &
+                    row.volumeId.equals(volumeId),
+              ))
+              .join([
+                innerJoin(series, series.id.equalsExp(chapters.seriesId)),
+              ]);
 
-    await query.write(
-      isRead
-          ? ChaptersCompanion.custom(pagesRead: chapters.pages)
-          : const ChaptersCompanion(pagesRead: Value(0)),
-    );
+      final progressBatch = (await query.get()).map((join) {
+        final c = join.readTable(chapters);
+        final s = join.readTable(series);
 
-    await volumeQuery.write(
-      isRead
-          ? VolumesCompanion.custom(pagesRead: volumes.pages)
-          : const VolumesCompanion(pagesRead: Value(0)),
-    );
+        return ReadingProgressCompanion(
+          chapterId: Value(c.id),
+          volumeId: Value(c.volumeId),
+          seriesId: Value(s.id),
+          libraryId: Value(s.libraryId),
+          pagesRead: Value(isRead ? c.pages : 0),
+          dirty: const Value(true),
+          // totalReads will already be incremented from step 1
+        );
+      });
+
+      await batch((batch) {
+        batch.insertAllOnConflictUpdate(readingProgress, progressBatch);
+      });
+    });
   }
 
   Future<void> markChapterRead(int chapterId, {required bool isRead}) async {
-    final query = update(chapters)..where((tbl) => tbl.id.equals(chapterId));
+    await transaction(() async {
+      (update(
+        readingProgress,
+      )..where((tbl) => tbl.chapterId.equals(chapterId))).write(
+        ReadingProgressCompanion.custom(
+          totalReads: readingProgress.totalReads + const Constant(1),
+        ),
+      );
 
-    await query.write(
-      isRead
-          ? ChaptersCompanion.custom(pagesRead: chapters.pages)
-          : const ChaptersCompanion(pagesRead: Value(0)),
-    );
+      final join =
+          await (select(
+            chapters,
+          )..where((tbl) => tbl.id.equals(chapterId))).join([
+            innerJoin(series, series.id.equalsExp(chapters.seriesId)),
+          ]).getSingle();
+
+      final c = join.readTable(chapters);
+      final s = join.readTable(series);
+
+      await into(
+        readingProgress,
+      ).insertOnConflictUpdate(
+        ReadingProgressCompanion(
+          chapterId: Value(c.id),
+          volumeId: Value(c.volumeId),
+          seriesId: Value(s.id),
+          libraryId: Value(s.libraryId),
+          pagesRead: Value(isRead ? c.pages : 0),
+          dirty: const Value(true),
+        ),
+      );
+    });
   }
 }

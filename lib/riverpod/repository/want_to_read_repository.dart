@@ -1,11 +1,12 @@
 import 'package:drift/drift.dart';
 import 'package:fluvita/api/openapi.swagger.dart';
 import 'package:fluvita/database/app_database.dart';
-import 'package:fluvita/database/tables/series.dart';
+import 'package:fluvita/mapping/dto/series_dto_mappings.dart';
 import 'package:fluvita/models/series_model.dart';
 import 'package:fluvita/riverpod/api/client.dart';
 import 'package:fluvita/riverpod/repository/database.dart';
 import 'package:fluvita/utils/logging.dart';
+import 'package:fluvita/utils/try_refresh.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'want_to_read_repository.g.dart';
@@ -24,8 +25,6 @@ class WantToReadRepository {
 
   WantToReadRepository(this._db, this._client);
 
-  // ── Queries ──────────────────────────────────────────────────────────────
-
   Stream<bool> watchWantToRead(int seriesId) {
     refreshWantToRead(seriesId);
     return _db.seriesDao.watchWantToRead(seriesId);
@@ -33,54 +32,47 @@ class WantToReadRepository {
 
   Stream<List<SeriesModel>> watchWantToReadList() {
     refreshWantToReadList();
-    return _db.seriesDao
-        .watchWantToReadList()
-        .map((list) => list.map(SeriesModel.fromDatabaseModel).toList());
+    return _db.seriesDao.watchWantToReadList().map(
+      (list) => list.map(SeriesModel.fromDatabaseModel).toList(),
+    );
   }
-
-  // ── Mutations ────────────────────────────────────────────────────────────
 
   Future<void> add(int seriesId) async {
     // Optimistic local write first so the UI reacts instantly.
-    await _db.seriesDao.upsertWantToRead(seriesId, value: true);
-    try {
-      await _client.add([seriesId]);
-    } catch (e) {
-      log.e(e);
-      // Roll back on failure.
-      await _db.seriesDao.upsertWantToRead(seriesId, value: false);
-    }
+    await _db.seriesDao.upsertWantToRead(
+      WantToReadCompanion(seriesId: Value(seriesId), dirty: const Value(true)),
+    );
   }
 
   Future<void> remove(int seriesId) async {
-    await _db.seriesDao.upsertWantToRead(seriesId, value: false);
-    try {
-      await _client.remove([seriesId]);
-    } catch (e) {
-      log.e(e);
-      await _db.seriesDao.upsertWantToRead(seriesId, value: true);
-    }
+    await _db.seriesDao.removeWantToRead(seriesId: seriesId);
   }
 
-  // ── Refresh ───────────────────────────────────────────────────────────────
-
   Future<void> refreshWantToRead(int seriesId) async {
-    try {
+    await tryRefresh(() async {
       final isWantToRead = await _client.getWantToRead(seriesId);
-      await _db.seriesDao.upsertWantToRead(seriesId, value: isWantToRead);
-    } catch (e) {
-      log.e(e);
-    }
+      if (isWantToRead) {
+        await _db.seriesDao.upsertWantToRead(
+          WantToReadCompanion(seriesId: Value(seriesId)),
+        );
+      } else {
+        await _db.seriesDao.removeWantToRead(seriesId: seriesId);
+      }
+    });
   }
 
   Future<void> refreshWantToReadList() async {
     try {
       final series = await _client.getWantToReadList();
-      // Mark all returned series as want-to-read; existing DB rows get
-      // the flag cleared first so stale entries are removed.
+      final wantToReads = series.map(
+        (s) => WantToReadCompanion(
+          seriesId: s.id,
+        ),
+      );
       await _db.transaction(() async {
         await _db.seriesDao.clearWantToRead();
         await _db.seriesDao.upsertSeriesBatch(series);
+        await _db.seriesDao.upsertWantToReadBatch(wantToReads);
       });
     } catch (e) {
       log.e(e);
@@ -91,7 +83,8 @@ class WantToReadRepository {
 class WantToReadRemoteOperations {
   final Openapi _client;
 
-  const WantToReadRemoteOperations({required Openapi client}) : _client = client;
+  const WantToReadRemoteOperations({required Openapi client})
+    : _client = client;
 
   Future<bool> getWantToRead(int seriesId) async {
     final res = await _client.apiWantToReadGet(seriesId: seriesId);
@@ -124,7 +117,7 @@ class WantToReadRemoteOperations {
       throw Exception('Failed to load want-to-read list: ${res.error}');
     }
     return res.body!.map(
-      (dto) => _mapSeriesCompanion(dto),
+      (dto) => dto.toSeriesCompanion(),
     );
   }
 
@@ -144,28 +137,5 @@ class WantToReadRemoteOperations {
     if (!res.isSuccessful) {
       throw Exception('Failed to remove from want-to-read: ${res.error}');
     }
-  }
-
-  static SeriesCompanion _mapSeriesCompanion(SeriesDto dto) {
-    return SeriesCompanion(
-      id: Value(dto.id!),
-      name: Value(dto.name!),
-      originalName: Value(dto.originalName),
-      localizedName: Value(dto.localizedName),
-      sortName: Value(dto.sortName!),
-      libraryId: Value(dto.libraryId!),
-      format: Value(Format.fromDtoFormat(dto.format!)),
-      pages: Value(dto.pages!),
-      wordCount: Value(dto.wordCount ?? 0),
-      avgHoursToRead: Value(dto.avgHoursToRead),
-      primaryColor: Value(dto.primaryColor),
-      secondaryColor: Value(dto.secondaryColor),
-      pagesRead: Value(dto.pagesRead!),
-      created: Value(dto.created!),
-      lastModified: Value(DateTime.now()),
-      lastChapterAdded: Value(dto.lastChapterAddedUtc),
-      lastRead: Value(dto.latestReadDate),
-      isWantToRead: const Value(true),
-    );
   }
 }

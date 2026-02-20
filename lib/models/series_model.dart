@@ -2,10 +2,10 @@ import 'package:fluvita/api/openapi.swagger.dart';
 import 'package:fluvita/database/app_database.dart';
 import 'package:fluvita/database/dao/series_dao.dart';
 import 'package:fluvita/database/dao/series_metadata_dao.dart';
-import 'package:fluvita/database/tables/series.dart';
-import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:fluvita/models/chapter_model.dart';
+import 'package:fluvita/models/enums/format.dart';
 import 'package:fluvita/models/volume_model.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'series_model.freezed.dart';
 part 'series_model.g.dart';
@@ -20,7 +20,6 @@ sealed class SeriesModel with _$SeriesModel {
     required String name,
     required Format format,
     required int pages,
-    required int pagesRead,
     required double avgHoursToRead,
     required int? wordCount,
     required String? primaryColor,
@@ -30,21 +29,6 @@ sealed class SeriesModel with _$SeriesModel {
   factory SeriesModel.fromJson(Map<String, Object?> json) =>
       _$SeriesModelFromJson(json);
 
-  factory SeriesModel.fromSeriesDto(SeriesDto dto) {
-    return SeriesModel(
-      id: dto.id!,
-      libraryId: dto.libraryId!,
-      name: dto.name ?? 'Untitled',
-      format: Format.fromDtoFormat(dto.format!),
-      pages: dto.pages!,
-      pagesRead: dto.pagesRead!,
-      avgHoursToRead: dto.avgHoursToRead!,
-      wordCount: dto.wordCount,
-      primaryColor: dto.primaryColor,
-      secondaryColor: dto.secondaryColor,
-    );
-  }
-
   factory SeriesModel.fromDatabaseModel(SeriesData table) {
     return SeriesModel(
       id: table.id,
@@ -52,17 +36,11 @@ sealed class SeriesModel with _$SeriesModel {
       name: table.name,
       format: table.format,
       pages: table.pages,
-      pagesRead: table.pagesRead,
       avgHoursToRead: table.avgHoursToRead ?? 0,
       wordCount: table.wordCount,
       primaryColor: table.primaryColor,
       secondaryColor: table.secondaryColor,
     );
-  }
-
-  double get progress {
-    if (pages == 0) return 0.0;
-    return pagesRead / pages;
   }
 }
 

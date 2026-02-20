@@ -23,6 +23,9 @@ class SeriesCard extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final provider = seriesProvider(seriesId: series.id);
+    final progress = ref
+        .watch(seriesProgressProvider(seriesId: series.id))
+        .value;
 
     final state = useState(series);
 
@@ -73,7 +76,7 @@ class SeriesCard extends HookConsumerWidget {
           },
           size: LayoutConstants.smallIcon,
         ),
-        progress: state.value.progress,
+        progress: progress,
         coverImage: SeriesCoverImage(seriesId: state.value.id),
         onTap: () {
           SeriesDetailRoute(

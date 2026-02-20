@@ -2,10 +2,10 @@ import 'package:drift/drift.dart';
 import 'package:fluvita/api/openapi.swagger.dart';
 import 'package:fluvita/database/app_database.dart';
 import 'package:fluvita/database/dao/volumes_dao.dart';
+import 'package:fluvita/mapping/dto/volume_dto_mappings.dart';
 import 'package:fluvita/models/image_model.dart';
 import 'package:fluvita/models/volume_model.dart';
 import 'package:fluvita/riverpod/api/client.dart';
-import 'package:fluvita/riverpod/repository/chapters_repository.dart';
 import 'package:fluvita/riverpod/repository/database.dart';
 import 'package:fluvita/riverpod/settings.dart';
 import 'package:fluvita/utils/logging.dart';
@@ -35,6 +35,10 @@ class VolumesRepository {
     return _db.volumesDao
         .watchVolume(volumeId)
         .map(VolumeModel.fromDatabaseModel);
+  }
+
+  Stream<int> watchPagesRead({required int volumeId}) {
+    return _db.volumesDao.watchPagesRead(volumeId: volumeId).map((n) => n ?? 0);
   }
 
   Stream<ImageModel> watchVolumeCover(int volumeId) {
@@ -80,7 +84,7 @@ class VolumeRemoteOperations {
       throw Exception('Failed to load volume: ${res.error}');
     }
 
-    return mapVolumeCompanion(res.body!);
+    return res.body!.toVolumeCompanion();
   }
 
   Future<VolumeCoversCompanion> getVolumeCover(int volumeId) async {
@@ -96,31 +100,6 @@ class VolumeRemoteOperations {
     return VolumeCoversCompanion(
       volumeId: Value(volumeId),
       image: Value(res.bodyBytes),
-    );
-  }
-
-  static VolumeWithChaptersCompanion mapVolumeCompanion(VolumeDto dto) {
-    return VolumeWithChaptersCompanion(
-      volume: VolumesCompanion(
-        id: Value(dto.id!),
-        seriesId: Value(dto.seriesId!),
-        minNumber: Value(dto.minNumber!),
-        maxNumber: Value(dto.maxNumber!),
-        name: Value(dto.name),
-        wordCount: Value(dto.wordCount!),
-        pages: Value(dto.pages!),
-        pagesRead: Value(dto.pagesRead!),
-        avgHoursToRead: Value(dto.avgHoursToRead),
-        primaryColor: Value(dto.primaryColor),
-        secondaryColor: Value(dto.secondaryColor),
-        created: Value(dto.createdUtc ?? DateTime.now()),
-        lastModified: Value(DateTime.now()),
-      ),
-      chapters: (dto.chapters ?? []).map(
-        (c) => ChapterRemoteOperations.mapChapterCompanion(c).copyWith(
-          seriesId: Value(dto.seriesId!),
-        ),
-      ),
     );
   }
 }

@@ -2,15 +2,16 @@ import 'package:drift/drift.dart';
 import 'package:fluvita/api/openapi.swagger.dart';
 import 'package:fluvita/database/app_database.dart';
 import 'package:fluvita/database/dao/series_dao.dart';
-import 'package:fluvita/database/tables/series.dart';
+import 'package:fluvita/mapping/dto/chapter_dto_mappings.dart';
+import 'package:fluvita/mapping/dto/series_dto_mappings.dart';
+import 'package:fluvita/mapping/dto/volume_dto_mappings.dart';
 import 'package:fluvita/models/image_model.dart';
 import 'package:fluvita/models/series_model.dart';
 import 'package:fluvita/riverpod/api/client.dart';
-import 'package:fluvita/riverpod/repository/chapters_repository.dart';
 import 'package:fluvita/riverpod/repository/database.dart';
-import 'package:fluvita/riverpod/repository/volumes_repository.dart';
 import 'package:fluvita/riverpod/settings.dart';
 import 'package:fluvita/utils/logging.dart';
+import 'package:fluvita/utils/try_refresh.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'series_repository.g.dart';
@@ -55,12 +56,10 @@ class SeriesRepository {
   }
 
   Future<void> refreshRecentlyAdded() async {
-    try {
+    await tryRefresh(() async {
       final series = await _client.getRecentlyAdded();
       await _db.seriesDao.upsertSeriesBatch(series);
-    } catch (e) {
-      log.e(e);
-    }
+    });
   }
 
   Future<void> refreshRecentlyUpdated() async {
@@ -82,15 +81,13 @@ class SeriesRepository {
   }
 
   Future<void> refreshSeriesDetails(int seriesId) async {
-    try {
+    tryRefresh(() async {
       final details = await _client.getSeriesDetail(seriesId);
       await _db.seriesDao.upsertSeriesDetail(
         seriesId: seriesId,
         entries: details,
       );
-    } catch (e) {
-      log.e(e);
-    }
+    });
   }
 
   Future<void> refreshSeriesCover(int seriesId) async {
@@ -105,7 +102,9 @@ class SeriesRepository {
   Stream<List<SeriesModel>> watchAllSeries({int? libraryId}) {
     refreshAllSeries(libraryId: libraryId);
     return _db.seriesDao
-        .watchAllSeries(libraryId: libraryId)
+        .allSeries(libraryId: libraryId)
+        .watch()
+        .distinct()
         .map(
           (list) => list.map(SeriesModel.fromDatabaseModel).toList(),
         );
@@ -137,6 +136,10 @@ class SeriesRepository {
     return _db.seriesDao
         .watchSeries(seriesId)
         .map(SeriesModel.fromDatabaseModel);
+  }
+
+  Stream<int> watchPagesRead({required int seriesId}) {
+    return _db.seriesDao.watchPagesRead(seriesId: seriesId).map((n) => n ?? 0);
   }
 
   Stream<ImageModel> watchSeriesCover(int seriesId) {
@@ -189,7 +192,7 @@ class SeriesRemoteOperations {
       throw Exception('Failed to load series: ${res.error}');
     }
 
-    return res.body!.map(_mapSeriesCompanion);
+    return res.body!.map((dto) => dto.toSeriesCompanion());
   }
 
   Future<Iterable<SeriesCompanion>> getOnDeck() async {
@@ -200,7 +203,7 @@ class SeriesRemoteOperations {
     }
 
     return res.body!.map(
-      (dto) => _mapSeriesCompanion(dto).copyWith(isOnDeck: const Value(true)),
+      (dto) => dto.toSeriesCompanion().copyWith(isOnDeck: const Value(true)),
     );
   }
 
@@ -224,7 +227,7 @@ class SeriesRemoteOperations {
 
     return res.body!.map(
       (dto) =>
-          _mapSeriesCompanion(dto).copyWith(isRecentlyAdded: const Value(true)),
+          dto.toSeriesCompanion().copyWith(isRecentlyAdded: const Value(true)),
     );
   }
 
@@ -252,7 +255,7 @@ class SeriesRemoteOperations {
       throw Exception('Failed to load series: ${res.error}');
     }
 
-    return _mapSeriesCompanion(res.body!);
+    return res.body!.toSeriesCompanion();
   }
 
   Future<SeriesCoversCompanion> getSeriesCover(int seriesId) async {
@@ -280,25 +283,38 @@ class SeriesRemoteOperations {
       throw Exception('Failed to load series detail: ${res.error}');
     }
 
-    final storyline = (res.body!.specials ?? []).map(
-      (c) => ChapterRemoteOperations.mapChapterCompanion(c).copyWith(
+    final dto = res.body!;
+
+    final storyline = (dto.specials ?? []).map(
+      (c) => c.toChapterCompanion().copyWith(
         seriesId: Value(seriesId),
         isStoryline: const Value(true),
       ),
     );
-    final specials = (res.body!.specials ?? []).map(
-      (c) => ChapterRemoteOperations.mapChapterCompanion(c).copyWith(
+    final specials = (dto.specials ?? []).map(
+      (c) => c.toChapterCompanion().copyWith(
         seriesId: Value(seriesId),
         isSpecial: const Value(true),
       ),
     );
-    final chapters = (res.body!.chapters ?? []).map(
-      (c) => ChapterRemoteOperations.mapChapterCompanion(c).copyWith(
+    final chapters = (dto.chapters ?? []).map(
+      (c) => c.toChapterCompanion().copyWith(
         seriesId: Value(seriesId),
       ),
     );
-    final volumes = (res.body!.volumes ?? []).map(
-      (v) => VolumeRemoteOperations.mapVolumeCompanion(v),
+    final volumes = (dto.volumes ?? []).map(
+      (v) => v.toVolumeCompanion(),
+    );
+
+    final allChapters = <ChapterDto>{
+      ...dto.chapters ?? [],
+      ...dto.specials ?? [],
+      ...dto.storylineChapters ?? [],
+      ...dto.volumes?.map((v) => v.chapters).expand((l) => l ?? []) ?? [],
+    };
+
+    final progress = allChapters.map(
+      (c) => c.toPartialReadingProgressCompanion(),
     );
 
     return SeriesDetailCompanions(
@@ -306,28 +322,7 @@ class SeriesRemoteOperations {
       specials: specials,
       chapters: chapters,
       volumes: volumes,
-    );
-  }
-
-  SeriesCompanion _mapSeriesCompanion(SeriesDto dto) {
-    return SeriesCompanion(
-      id: Value(dto.id!),
-      name: Value(dto.name!),
-      originalName: Value(dto.originalName),
-      localizedName: Value(dto.localizedName),
-      sortName: Value(dto.sortName!),
-      libraryId: Value(dto.libraryId!),
-      format: Value(Format.fromDtoFormat(dto.format!)),
-      pages: Value(dto.pages!),
-      wordCount: Value(dto.wordCount ?? 0),
-      avgHoursToRead: Value(dto.avgHoursToRead),
-      primaryColor: Value(dto.primaryColor),
-      secondaryColor: Value(dto.secondaryColor),
-      pagesRead: Value(dto.pagesRead!),
-      created: Value(dto.created!),
-      lastModified: Value(DateTime.now()),
-      lastChapterAdded: Value(dto.lastChapterAddedUtc),
-      lastRead: Value(dto.latestReadDate),
+      progress: progress,
     );
   }
 }

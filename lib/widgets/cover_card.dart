@@ -21,12 +21,12 @@ class CoverCard extends StatelessWidget {
     this.icon,
     this.actionLabel = 'Read',
     this.actionIcon = const Icon(LucideIcons.bookOpen),
-    required this.progress,
     required this.coverImage,
     this.downloadStatusIcon,
     this.onTap,
     this.onRead,
-  });
+    double? progress,
+  }) : progress = progress ?? 0.0;
 
   @override
   Widget build(BuildContext context) {

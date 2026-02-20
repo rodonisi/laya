@@ -25,8 +25,6 @@ class BookRepository {
 
   BookRepository(this._db, this._client);
 
-  // ── Book info ────────────────────────────────────────────────────────────
-
   Stream<BookInfoModel> watchBookInfo(int chapterId) {
     refreshBookInfo(chapterId);
     return _db.bookDao
@@ -44,13 +42,9 @@ class BookRepository {
     }
   }
 
-  // ── Book chapters (epub TOC) ─────────────────────────────────────────────
-
   Stream<List<BookChapterModel>> watchBookChapters(int chapterId) {
     refreshBookChapters(chapterId);
-    return _db.bookDao
-        .watchBookChapters(chapterId)
-        .map(_buildTree);
+    return _db.bookDao.watchBookChapters(chapterId).map(_buildTree);
   }
 
   Future<void> refreshBookChapters(int chapterId) async {
@@ -62,11 +56,9 @@ class BookRepository {
     }
   }
 
-  /// Reconstructs the nested TOC tree from flat DB rows.
   static List<BookChapterModel> _buildTree(
     List<BookChaptersTableData> rows,
   ) {
-    // Top-level entries have no parentPage.
     List<BookChapterModel> build(int? parentPage) {
       return rows
           .where((r) => r.parentPage == parentPage)

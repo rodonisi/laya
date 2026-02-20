@@ -6,6 +6,7 @@ import 'package:fluvita/models/progress_model.dart';
 import 'package:fluvita/riverpod/api/client.dart';
 import 'package:fluvita/riverpod/repository/database.dart';
 import 'package:fluvita/utils/logging.dart';
+import 'package:fluvita/utils/try_refresh.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:stream_transform/stream_transform.dart';
 
@@ -23,15 +24,20 @@ class ReaderRepository {
   final AppDatabase _db;
   final ReaderRemoteOperations _client;
 
-  ReaderRepository(this._db, this._client);
-
-  // ── Continue point ───────────────────────────────────────────────────────
+  ReaderRepository(this._db, this._client) {
+    refreshContinuePointsAndProgress();
+  }
 
   Stream<ChapterModel> watchContinuePoint({required int seriesId}) {
     refreshContinuePoint(seriesId);
     return _db.readerDao
-        .continuePoint(seriesId: seriesId)
+        .watchContinuePoint(seriesId: seriesId)
         .map(ChapterModel.fromDatabaseModel);
+  }
+
+  Stream<double> watchContinuePointProgress({required int seriesId}) {
+    refreshContinuePoint(seriesId);
+    return _db.readerDao.watchContinuePointProgress(seriesId: seriesId);
   }
 
   Future<void> refreshContinuePoint(int seriesId) async {
@@ -43,7 +49,27 @@ class ReaderRepository {
     }
   }
 
-  // ── Reading progress ─────────────────────────────────────────────────────
+  Future<void> refreshContinuePointsAndProgress() async {
+    await tryRefresh(() async {
+      final series = await _db.seriesDao.allSeries().get();
+      final updates = await Future.wait(
+        series.map((s) async {
+          final continuePoint = await _client.getContinuePoint(s.id);
+          final progress = await _client.getProgress(
+            continuePoint.chapterId.value,
+          );
+
+          return (continuePoint: continuePoint, progress: progress);
+        }),
+      );
+      await _db.readerDao.upsertContinuePointBatch(
+        updates.map((u) => u.continuePoint),
+      );
+      await _db.readerDao.mergeProgressBatch(
+        updates.map((u) => u.progress),
+      );
+    });
+  }
 
   Stream<ProgressModel> watchProgress(int chapterId) {
     refreshProgress(chapterId);
@@ -56,13 +82,11 @@ class ReaderRepository {
   Future<void> refreshProgress(int chapterId) async {
     try {
       final entry = await _client.getProgress(chapterId);
-      await _db.readerDao.upsertProgress(entry);
+      await _db.readerDao.mergeProgress(entry);
     } catch (e) {
       log.e(e);
     }
   }
-
-  // ── Prev / next chapter (local DB query) ─────────────────────────────────
 
   Stream<int?> watchPrevChapterId({
     required int seriesId,
@@ -92,7 +116,20 @@ class ReaderRepository {
         .map((chapter) => chapter?.id);
   }
 
-  // ── Mark read ────────────────────────────────────────────────────────────
+  Future<void> saveProgress(ProgressModel progress) async {
+    await _db.readerDao.upsertProgress(
+      ReadingProgressCompanion(
+        chapterId: Value(progress.chapterId),
+        volumeId: Value(progress.volumeId),
+        seriesId: Value(progress.seriesId),
+        libraryId: Value(progress.libraryId),
+        pagesRead: Value(progress.pageNum),
+        bookScrollId: Value(progress.bookScrollId),
+        lastModified: Value(DateTime.timestamp()),
+        dirty: const Value(true),
+      ),
+    );
+  }
 
   Future<void> markSeriesRead(int seriesId) async {
     await _db.readerDao.markSeriesRead(seriesId, isRead: true);
@@ -185,7 +222,7 @@ class ReaderRemoteOperations {
       volumeId: Value(dto.volumeId),
       seriesId: Value(dto.seriesId),
       libraryId: Value(dto.libraryId),
-      pageNum: Value(dto.pageNum),
+      pagesRead: Value(dto.pageNum),
       bookScrollId: Value(dto.bookScrollId),
       lastModified: Value.absentIfNull(dto.lastModifiedUtc),
     );

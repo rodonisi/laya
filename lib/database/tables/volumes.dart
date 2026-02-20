@@ -9,7 +9,6 @@ class Volumes extends Table {
   TextColumn get name => text().nullable()();
   IntColumn get wordCount => integer().withDefault(const Constant(0))();
   IntColumn get pages => integer()();
-  IntColumn get pagesRead => integer()();
   RealColumn get avgHoursToRead => real().nullable()();
   TextColumn get primaryColor => text().nullable()();
   TextColumn get secondaryColor => text().nullable()();

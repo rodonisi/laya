@@ -27,16 +27,6 @@ class VolumeDetailPage extends HookConsumerWidget {
     final tabs = <Widget>[];
     final views = <Widget>[];
 
-    final unread = volume.chapters.where(
-      (c) => c.totalReads <= 0 || c.progress < 1,
-    );
-    if (unread.isNotEmpty) {
-      tabs.add(Tab(text: 'Unread Chapters (${unread.length})'));
-      views.add(
-        ChapterGrid(seriesId: volume.seriesId, chapters: unread.toList()),
-      );
-    }
-
     if (volume.chapters.isNotEmpty) {
       tabs.add(Tab(text: 'Chapters (${volume.chapters.length})'));
       views.add(

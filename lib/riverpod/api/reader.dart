@@ -12,6 +12,12 @@ Stream<ChapterModel> continuePoint(Ref ref, {required int seriesId}) async* {
 }
 
 @riverpod
+Stream<double> continuePointProgress(Ref ref, {required int seriesId}) async* {
+  final repo = ref.watch(readerRepositoryProvider);
+  yield* repo.watchContinuePointProgress(seriesId: seriesId);
+}
+
+@riverpod
 Stream<ProgressModel> bookProgress(Ref ref, {required int chapterId}) async* {
   final repo = ref.watch(readerRepositoryProvider);
   yield* repo.watchProgress(chapterId);

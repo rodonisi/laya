@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:fluvita/api/openapi.swagger.dart';
 import 'package:fluvita/database/app_database.dart';
-import 'package:fluvita/database/tables/series.dart';
+import 'package:fluvita/mapping/dto/chapter_dto_mappings.dart';
 import 'package:fluvita/models/chapter_model.dart';
 import 'package:fluvita/models/image_model.dart';
 import 'package:fluvita/riverpod/api/client.dart';
@@ -37,6 +37,12 @@ class ChaptersRepository {
     return _db.chaptersDao
         .watchChapter(chapterId)
         .map(ChapterModel.fromDatabaseModel);
+  }
+
+  Stream<int> watchPagesRead({required int chapterId}) {
+    return _db.chaptersDao
+        .watchPagesRead(chapterId: chapterId)
+        .map((n) => n ?? 0);
   }
 
   Stream<ImageModel> watchChapterCover(int chapterId) {
@@ -87,7 +93,7 @@ class ChapterRemoteOperations {
       throw Exception('Failed to load chapter: ${res.error}');
     }
 
-    return mapChapterCompanion(res.body!);
+    return res.body!.toChapterCompanion();
   }
 
   Future<ChapterCoversCompanion> getChapterCover(int chapterId) async {
@@ -103,34 +109,6 @@ class ChapterRemoteOperations {
     return ChapterCoversCompanion(
       chapterId: Value(chapterId),
       image: Value(res.bodyBytes),
-    );
-  }
-
-  static ChaptersCompanion mapChapterCompanion(ChapterDto dto) {
-    return ChaptersCompanion(
-      id: Value(dto.id!),
-      volumeId: Value(dto.volumeId!),
-      title: Value(dto.titleName),
-      description: Value(dto.summary),
-      summary: Value(dto.summary),
-      isbn: Value(dto.isbn),
-      format: Value(
-        dto.format != null ? Format.fromDtoFormat(dto.format!) : .unknown,
-      ),
-      language: Value(dto.language),
-      sortOrder: Value(dto.sortOrder ?? 0.0),
-      pages: Value(dto.pages!),
-      pagesRead: Value(dto.pagesRead!),
-      wordCount: Value(dto.wordCount ?? 0),
-      avgHoursToRead: Value(dto.avgHoursToRead ?? 0.0),
-      primaryColor: Value(dto.primaryColor),
-      secondaryColor: Value(dto.secondaryColor),
-      totalReads: Value(dto.totalReads ?? 0),
-      isSpecial: Value(dto.isSpecial ?? false),
-      releaseDate: Value(dto.releaseDate ?? DateTime.now()),
-      created: Value(dto.createdUtc ?? DateTime.now()),
-      lastModified: Value(DateTime.now()),
-      lastReadingProgress: Value(dto.lastReadingProgressUtc ?? DateTime.now()),
     );
   }
 }

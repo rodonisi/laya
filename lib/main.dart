@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:fluvita/riverpod/report_queue.dart';
 import 'package:fluvita/riverpod/theme.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:fluvita/riverpod/router.dart';
@@ -39,8 +38,6 @@ class EagerProviders extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.watch(queueWorkerProvider);
-
     return child;
   }
 }

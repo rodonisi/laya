@@ -26,6 +26,9 @@ class ChapterCard extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final provider = chapterProvider(chapterId: chapter.id);
+    final progress = ref
+        .watch(chapterProgressProvider(chapterId: chapter.id))
+        .value;
 
     final state = useState(chapter);
 
@@ -119,7 +122,7 @@ class ChapterCard extends HookConsumerWidget {
       child: CoverCard(
         title: state.value.title,
         coverImage: ChapterCoverImage(chapterId: state.value.id),
-        progress: state.value.progress,
+        progress: progress,
         downloadStatusIcon: downloadIcon, // Pass the determined icon here
         onTap: () {
           ReaderRoute(

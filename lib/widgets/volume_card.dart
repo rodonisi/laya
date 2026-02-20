@@ -20,6 +20,9 @@ class VolumeCard extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final provider = volumeProvider(volumeId: volume.id);
+    final progress = ref
+        .watch(volumeProgressProvider(volumeId: volume.id))
+        .value;
 
     final state = useState(volume);
 
@@ -56,7 +59,7 @@ class VolumeCard extends HookConsumerWidget {
       child: CoverCard(
         title: title,
         coverImage: VolumeCoverImage(volumeId: state.value.id),
-        progress: state.value.progress,
+        progress: progress,
         onRead: () {
           if (state.value.chapters.isNotEmpty) {
             ReaderRoute(

@@ -1,5 +1,5 @@
 import 'package:fluvita/database/app_database.dart';
-import 'package:fluvita/database/tables/libraries.dart';
+import 'package:fluvita/models/enums/library_type.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'library_model.freezed.dart';

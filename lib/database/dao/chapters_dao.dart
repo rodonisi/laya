@@ -1,12 +1,13 @@
 import 'package:drift/drift.dart';
 import 'package:fluvita/database/app_database.dart';
 import 'package:fluvita/database/tables/chapters.dart';
+import 'package:fluvita/database/tables/progress.dart';
 import 'package:fluvita/utils/logging.dart';
 import 'package:stream_transform/stream_transform.dart';
 
 part 'chapters_dao.g.dart';
 
-@DriftAccessor(tables: [Chapters, ChapterCovers])
+@DriftAccessor(tables: [Chapters, ChapterCovers, ReadingProgress])
 class ChaptersDao extends DatabaseAccessor<AppDatabase>
     with _$ChaptersDaoMixin {
   ChaptersDao(super.attachedDatabase);
@@ -17,6 +18,16 @@ class ChaptersDao extends DatabaseAccessor<AppDatabase>
         )..where((row) => row.id.equals(chapterId)))
         .watchSingleOrNull()
         .whereNotNull();
+  }
+
+  Stream<int?> watchPagesRead({required int chapterId}) {
+    final query = selectOnly(readingProgress)
+      ..where(readingProgress.chapterId.equals(chapterId))
+      ..addColumns([readingProgress.pagesRead]);
+
+    return query.watchSingleOrNull().map(
+      (row) => row?.read(readingProgress.pagesRead),
+    );
   }
 
   Stream<ChapterCover> watchChapterCover({required int chapterId}) {

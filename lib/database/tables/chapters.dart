@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:fluvita/database/tables/series.dart';
 import 'package:fluvita/database/tables/volumes.dart';
+import 'package:fluvita/models/enums/format.dart';
 
 class Chapters extends Table {
   IntColumn get id => integer()();
@@ -14,7 +15,6 @@ class Chapters extends Table {
   TextColumn get language => text().nullable()();
   RealColumn get sortOrder => real()();
   IntColumn get pages => integer()();
-  IntColumn get pagesRead => integer()();
   IntColumn get wordCount => integer()();
   RealColumn get avgHoursToRead => real()();
   TextColumn get primaryColor => text().nullable()();

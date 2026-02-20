@@ -1,21 +1,5 @@
 import 'package:drift/drift.dart';
-
-enum LibraryType {
-  unknown,
-  book,
-  comic,
-  image,
-  lightNovel,
-  manga
-  ;
-
-  factory LibraryType.fromDtoType(int type) => switch (type) {
-    2 => .book,
-    0 => .manga,
-    5 => .comic,
-    _ => .unknown,
-  };
-}
+import 'package:fluvita/models/enums/library_type.dart';
 
 class Libraries extends Table {
   IntColumn get id => integer()();

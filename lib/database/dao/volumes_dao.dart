@@ -1,13 +1,14 @@
 import 'package:drift/drift.dart';
 import 'package:fluvita/database/app_database.dart';
 import 'package:fluvita/database/tables/chapters.dart';
+import 'package:fluvita/database/tables/progress.dart';
 import 'package:fluvita/database/tables/volumes.dart';
 import 'package:fluvita/utils/logging.dart';
 import 'package:stream_transform/stream_transform.dart';
 
 part 'volumes_dao.g.dart';
 
-@DriftAccessor(tables: [Volumes, VolumeCovers, Chapters])
+@DriftAccessor(tables: [Volumes, VolumeCovers, Chapters, ReadingProgress])
 class VolumesDao extends DatabaseAccessor<AppDatabase> with _$VolumesDaoMixin {
   VolumesDao(super.attachedDatabase);
 
@@ -31,6 +32,17 @@ class VolumesDao extends DatabaseAccessor<AppDatabase> with _$VolumesDaoMixin {
         );
       }
     });
+  }
+
+  Stream<int?> watchPagesRead({required int volumeId}) {
+    final pagesReadSum = readingProgress.pagesRead.sum();
+
+    final query = selectOnly(readingProgress)
+      ..addColumns([pagesReadSum])
+      ..where(readingProgress.volumeId.equals(volumeId))
+      ..groupBy([readingProgress.volumeId]);
+
+    return query.watchSingleOrNull().map((row) => row?.read(pagesReadSum));
   }
 
   Stream<VolumeCover> watchVolumeCover({required int volumeId}) {

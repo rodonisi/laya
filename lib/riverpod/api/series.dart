@@ -3,6 +3,7 @@ import 'package:fluvita/models/series_model.dart';
 import 'package:fluvita/riverpod/repository/series_metadata_repository.dart';
 import 'package:fluvita/riverpod/repository/series_repository.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:rxdart/rxdart.dart';
 
 part 'series.g.dart';
 
@@ -10,6 +11,15 @@ part 'series.g.dart';
 Stream<SeriesModel> series(Ref ref, {required int seriesId}) async* {
   final repo = ref.watch(seriesRepositoryProvider);
   yield* repo.watchSeries(seriesId);
+}
+
+@riverpod
+Stream<double> seriesProgress(Ref ref, {required int seriesId}) async* {
+  final repo = ref.watch(seriesRepositoryProvider);
+  final series = repo.watchSeries(seriesId);
+  final pagesRead = repo.watchPagesRead(seriesId: seriesId);
+
+  yield* Rx.combineLatest2(series, pagesRead, (s, n) => n / s.pages);
 }
 
 @riverpod

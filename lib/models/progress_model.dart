@@ -1,4 +1,3 @@
-import 'package:fluvita/api/openapi.swagger.dart';
 import 'package:fluvita/database/app_database.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -26,7 +25,7 @@ sealed class ProgressModel with _$ProgressModel {
     return ProgressModel(
       volumeId: row.volumeId,
       chapterId: row.chapterId,
-      pageNum: row.pageNum,
+      pageNum: row.pagesRead,
       seriesId: row.seriesId,
       libraryId: row.libraryId,
       bookScrollId: row.bookScrollId,

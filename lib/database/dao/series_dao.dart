@@ -1,103 +1,127 @@
 import 'package:drift/drift.dart';
 import 'package:fluvita/database/app_database.dart';
 import 'package:fluvita/database/dao/volumes_dao.dart';
+import 'package:fluvita/database/tables/progress.dart';
 import 'package:fluvita/database/tables/series.dart';
 import 'package:fluvita/database/tables/volumes.dart';
 import 'package:fluvita/database/tables/chapters.dart';
+import 'package:fluvita/database/tables/want_to_read.dart';
 import 'package:fluvita/utils/logging.dart';
 import 'package:rxdart/rxdart.dart';
 
 part 'series_dao.g.dart';
 
-@DriftAccessor(tables: [Series, SeriesCovers, Volumes, Chapters])
+@DriftAccessor(
+  tables: [
+    Series,
+    SeriesCovers,
+    Volumes,
+    Chapters,
+    ReadingProgress,
+    WantToRead,
+  ],
+)
 class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
   SeriesDao(super.attachedDatabase);
 
   Stream<SeriesData> watchSeries(int seriesId) {
-    return (select(
-      series,
-    )..where((row) => row.id.equals(seriesId))).watchSingle();
+    return managers.series
+        .filter((s) => s.id(seriesId))
+        .watchSingleOrNull()
+        .whereNotNull()
+        .distinct();
   }
 
-  Stream<List<SeriesData>> watchAllSeries({int? libraryId}) {
+  Stream<int?> watchPagesRead({required int seriesId}) {
+    final pagesReadSum = readingProgress.pagesRead.sum();
+
+    final query = selectOnly(readingProgress)
+      ..addColumns([pagesReadSum])
+      ..where(readingProgress.seriesId.equals(seriesId))
+      ..groupBy([readingProgress.seriesId]);
+
+    return query.watchSingleOrNull().map((row) => row?.read(pagesReadSum));
+  }
+
+  MultiSelectable<SeriesData> allSeries({int? libraryId}) {
     final query = select(series);
     if (libraryId != null) {
-      return (query..where((row) => row.libraryId.equals(libraryId))).watch();
+      return (query..where((row) => row.libraryId.equals(libraryId)));
     }
 
-    return query.watch();
+    return query;
+  }
+
+  MultiSelectable<Chapter> allChapters({required int seriesId}) {
+    return managers.chapters.filter((f) => f.seriesId.id(seriesId));
   }
 
   Stream<List<SeriesData>> watchOnDeck() {
-    return (select(series)
-          ..where((row) => row.isOnDeck)
-          ..orderBy([(t) => OrderingTerm.desc(t.lastRead)]))
+    return managers.series
+        .filter((f) => f.isOnDeck(true))
+        .orderBy((o) => o.lastRead.desc())
         .watch();
   }
 
   Stream<List<SeriesData>> watchRecentlyUpdated() {
-    return (select(series)
-          ..where((row) => row.isRecentlyUpdated)
-          ..orderBy([(t) => OrderingTerm.desc(t.lastChapterAdded)]))
+    return managers.series
+        .filter((f) => f.isRecentlyUpdated(true))
+        .orderBy((o) => o.lastChapterAdded.desc())
         .watch();
   }
 
   Stream<List<SeriesData>> watchRecentlyAdded() {
-    return (select(series)
-          ..where((row) => row.isRecentlyAdded)
-          ..orderBy([(t) => OrderingTerm.desc(t.created)]))
+    return managers.series
+        .filter((f) => f.isRecentlyAdded(true))
+        .orderBy((o) => o.created.desc())
         .watch();
   }
 
   Stream<SeriesCover> watchSeriesCover({required int seriesId}) {
-    return (select(
-          seriesCovers,
-        )..where((row) => row.seriesId.equals(seriesId)))
+    return managers.seriesCovers
+        .filter((f) => f.seriesId.id(seriesId))
         .watchSingleOrNull()
         .whereNotNull()
         .distinct();
   }
 
   Stream<SeriesDetailWithRelations> watchSeriesDetail(int seriesId) {
-    final volumesStream =
-        (select(
-                volumes,
-              )
-              ..where((row) => row.seriesId.equals(seriesId))
-              ..orderBy([
-                (volumes) => OrderingTerm.asc(volumes.minNumber),
-                (volumes) => OrderingTerm.asc(volumes.maxNumber),
-              ]))
-            .watch();
-    final chaptersQuery =
-        (select(
-            chapters,
-          )
-          ..where((row) => row.seriesId.equals(seriesId))
-          ..orderBy([(chapters) => OrderingTerm.asc(chapters.sortOrder)]));
-    final chaptersStream = chaptersQuery.watch();
-    final specialsStream =
-        (chaptersQuery..where((row) => row.isSpecial.equals(true))).watch();
-    final storylineStream =
-        (chaptersQuery..where((row) => row.isStoryline.equals(true))).watch();
+    final volumesStream = managers.volumes
+        .filter((f) => f.seriesId.id(seriesId))
+        .orderBy((o) => o.minNumber.asc() & o.maxNumber.asc())
+        .withReferences((fetch) => fetch(chaptersRefs: true))
+        .map(
+          (m) => VolumeWithRelations(
+            volume: m.$1,
+            chapters: m.$2.chaptersRefs.prefetchedData ?? [],
+          ),
+        )
+        .watch();
+
+    final baseChaptersManager = managers.chapters
+        .filter((f) => f.seriesId.id(seriesId))
+        .orderBy((o) => o.sortOrder.asc());
+
+    final chaptersStream = baseChaptersManager.watch();
+
+    final specialsStream = baseChaptersManager
+        .filter((f) => f.isSpecial.equals(true))
+        .watch();
+
+    final storylineStream = baseChaptersManager
+        .filter((f) => f.isStoryline.equals(true))
+        .watch();
 
     return Rx.combineLatest4(
       volumesStream,
       chaptersStream,
       specialsStream,
       storylineStream,
-      (v, c, s, sl) => SeriesDetailWithRelations(
-        volumes: v
-            .map(
-              (v) => VolumeWithRelations(
-                volume: v,
-                chapters: c.where((c) => c.volumeId == v.id).toList(),
-              ),
-            )
-            .toList(),
-        chapters: c,
-        storylineChapters: sl,
-        specials: s,
+      (vList, cList, sList, slList) => SeriesDetailWithRelations(
+        volumes: vList,
+        chapters: cList,
+        storylineChapters: slList,
+        specials: sList,
       ),
     );
   }
@@ -125,6 +149,20 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
       await db.chaptersDao.upsertChapterBatch(entries.specials);
       await db.chaptersDao.upsertChapterBatch(entries.storyline);
       await db.volumesDao.upsertVolumeBatch(entries.volumes);
+
+      final s = await (select(
+        series,
+      )..where((tbl) => tbl.id.equals(seriesId))).getSingle();
+
+      final progress = entries.progress.map(
+        (c) => c.copyWith(
+          seriesId: Value(seriesId),
+          libraryId: Value(s.libraryId),
+          dirty: const Value(false),
+        ),
+      );
+
+      await db.readerDao.mergeProgressBatch(progress);
     });
   }
 
@@ -150,19 +188,35 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
   }
 
   Stream<bool> watchWantToRead(int seriesId) {
-    return (select(series)..where((row) => row.id.equals(seriesId)))
+    return managers.wantToRead
+        .filter((f) => f.seriesId.id(seriesId))
         .watchSingleOrNull()
-        .map((row) => row?.isWantToRead ?? false);
+        .map((i) => i != null);
   }
 
   Stream<List<SeriesData>> watchWantToReadList() {
-    return (select(series)..where((row) => row.isWantToRead)).watch();
+    return select(wantToRead)
+        .join([innerJoin(series, series.id.equalsExp(wantToRead.seriesId))])
+        .map((res) => res.readTable(series))
+        .watch();
   }
 
-  Future<void> upsertWantToRead(int seriesId, {required bool value}) async {
-    await (update(series)..where((row) => row.id.equals(seriesId))).write(
-      SeriesCompanion(isWantToRead: Value(value)),
+  Future<void> upsertWantToRead(WantToReadCompanion entry) async {
+    await into(wantToRead).insertOnConflictUpdate(entry);
+  }
+
+  Future<void> upsertWantToReadBatch(
+    Iterable<WantToReadCompanion> entries,
+  ) async {
+    await batch(
+      (batch) => batch.insertAllOnConflictUpdate(wantToRead, entries),
     );
+  }
+
+  Future<void> removeWantToRead({required int seriesId}) async {
+    await (delete(
+      wantToRead,
+    )..where((tbl) => tbl.seriesId.equals(seriesId))).go();
   }
 
   Future<void> upsertSeriesCover(SeriesCoversCompanion cover) async {
@@ -188,9 +242,7 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
   }
 
   Future<void> clearWantToRead() async {
-    await (update(series)..where((row) => row.isWantToRead)).write(
-      const SeriesCompanion(isWantToRead: Value(false)),
-    );
+    await delete(wantToRead).go();
   }
 }
 
@@ -213,11 +265,13 @@ class SeriesDetailCompanions {
   final Iterable<ChaptersCompanion> specials;
   final Iterable<ChaptersCompanion> chapters;
   final Iterable<VolumeWithChaptersCompanion> volumes;
+  final Iterable<ReadingProgressCompanion> progress;
 
   const SeriesDetailCompanions({
     required this.storyline,
     required this.specials,
     required this.chapters,
     required this.volumes,
+    required this.progress,
   });
 }

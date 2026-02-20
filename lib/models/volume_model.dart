@@ -15,7 +15,6 @@ sealed class VolumeModel with _$VolumeModel {
     required int seriesId,
     required List<ChapterModel> chapters,
     required int pages,
-    required int pagesRead,
     double? avgHoursToRead,
     int? wordCount,
     String? primaryColor,
@@ -32,16 +31,10 @@ sealed class VolumeModel with _$VolumeModel {
       name: data.volume.name ?? '',
       chapters: data.chapters.map(ChapterModel.fromDatabaseModel).toList(),
       pages: data.volume.pages,
-      pagesRead: data.volume.pagesRead,
       avgHoursToRead: data.volume.avgHoursToRead,
       wordCount: data.volume.wordCount,
       primaryColor: data.volume.primaryColor,
       secondaryColor: data.volume.secondaryColor,
     );
-  }
-
-  double get progress {
-    if (pages == 0) return 0.0;
-    return pagesRead / pages;
   }
 }

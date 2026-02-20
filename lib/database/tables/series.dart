@@ -1,20 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:fluvita/database/tables/libraries.dart';
-
-enum Format {
-  epub,
-  archive,
-  unknown
-  ;
-
-  factory Format.fromDtoFormat(int value) {
-    return switch (value) {
-      3 => Format.epub,
-      1 => Format.archive,
-      _ => Format.unknown,
-    };
-  }
-}
+import 'package:fluvita/models/enums/format.dart';
 
 @DataClassName('SeriesData')
 class Series extends Table {
@@ -37,21 +23,11 @@ class Series extends Table {
       boolean().withDefault(const Constant(false))();
   BoolColumn get isRecentlyUpdated =>
       boolean().withDefault(const Constant(false))();
-  BoolColumn get isWantToRead =>
-      boolean().withDefault(const Constant(false))();
 
-  // Reading progress
-  IntColumn get pagesRead => integer().withDefault(const Constant(0))();
-
-  // Timestamps
   DateTimeColumn get created => dateTime()();
-  DateTimeColumn get lastModified => dateTime().nullable()();
   DateTimeColumn get lastChapterAdded => dateTime().nullable()();
   DateTimeColumn get lastRead => dateTime().nullable()();
-
-  // Offline support
-  BoolColumn get isDownloaded => boolean().withDefault(const Constant(false))();
-  DateTimeColumn get cachedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get lastSynced => dateTime().withDefault(currentDateAndTime)();
 
   @override
   Set<Column> get primaryKey => {id};

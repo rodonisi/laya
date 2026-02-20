@@ -175,6 +175,14 @@ class _Cover extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final continuePoint = ref.watch(continuePointProvider(seriesId: seriesId));
+    final progress =
+        ref
+            .watch(
+              continuePointProgressProvider(seriesId: seriesId),
+            )
+            .value ??
+        0.0;
+
     return AspectRatio(
       aspectRatio: LayoutConstants.chapterCardAspectRatio,
       child: Async(
@@ -182,7 +190,7 @@ class _Cover extends ConsumerWidget {
         data: (data) => CoverCard(
           title: data.title,
           actionLabel: 'Continue',
-          progress: data.progress,
+          progress: progress,
           coverImage: SeriesCoverImage(
             seriesId: seriesId,
             fit: BoxFit.cover,
