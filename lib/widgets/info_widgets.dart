@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:fluvita/riverpod/api/want_to_read.dart';
+import 'package:fluvita/riverpod/providers/want_to_read.dart';
 import 'package:fluvita/utils/extensions/int.dart';
 import 'package:fluvita/utils/layout_constants.dart';
 import 'package:fluvita/widgets/async_value.dart';

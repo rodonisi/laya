@@ -11,6 +11,7 @@ import 'package:fluvita/database/dao/storage_dao.dart';
 import 'package:fluvita/database/dao/volumes_dao.dart';
 import 'package:fluvita/database/tables/book_info.dart';
 import 'package:fluvita/database/tables/chapters.dart';
+import 'package:fluvita/database/tables/download.dart';
 import 'package:fluvita/database/tables/libraries.dart';
 import 'package:fluvita/database/tables/progress.dart';
 import 'package:fluvita/database/tables/riverpod_storage.dart';
@@ -46,6 +47,8 @@ part 'app_database.g.dart';
     ReadingProgress,
     BookChaptersTable,
     WantToRead,
+    EpubPages,
+    ImagePages,
   ],
   daos: [
     StorageDao,

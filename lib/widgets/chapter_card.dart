@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fluvita/models/chapter_model.dart';
-import 'package:fluvita/riverpod/api/chapter.dart';
-import 'package:fluvita/riverpod/api/reader.dart';
+import 'package:fluvita/riverpod/providers/chapter.dart';
+import 'package:fluvita/riverpod/providers/reader.dart';
 import 'package:fluvita/riverpod/download/chapter_config.dart';
 import 'package:fluvita/riverpod/download/download_manager.dart';
 import 'package:fluvita/riverpod/router.dart';

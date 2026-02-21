@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:fluvita/riverpod/api/book.dart';
-import 'package:fluvita/riverpod/api/client.dart';
+import 'package:fluvita/riverpod/providers/book.dart';
+import 'package:fluvita/riverpod/providers/client.dart';
 import 'package:fluvita/utils/converters/document_fragment_converter.dart';
 import 'package:fluvita/utils/extensions/element.dart';
 import 'package:fluvita/utils/html_constants.dart';

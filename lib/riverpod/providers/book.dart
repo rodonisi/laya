@@ -1,5 +1,5 @@
 import 'package:fluvita/models/book_chapter_model.dart';
-import 'package:fluvita/riverpod/api/client.dart';
+import 'package:fluvita/riverpod/providers/client.dart';
 import 'package:fluvita/riverpod/repository/book_repository.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 

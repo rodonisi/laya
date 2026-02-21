@@ -4,7 +4,7 @@ import 'package:fluvita/database/app_database.dart';
 import 'package:fluvita/mapping/dto/chapter_dto_mappings.dart';
 import 'package:fluvita/models/chapter_model.dart';
 import 'package:fluvita/models/image_model.dart';
-import 'package:fluvita/riverpod/api/client.dart';
+import 'package:fluvita/riverpod/providers/client.dart';
 import 'package:fluvita/riverpod/repository/database.dart';
 import 'package:fluvita/riverpod/settings.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fluvita/models/volume_model.dart';
-import 'package:fluvita/riverpod/api/reader.dart';
-import 'package:fluvita/riverpod/api/volume.dart';
+import 'package:fluvita/riverpod/providers/reader.dart';
+import 'package:fluvita/riverpod/providers/volume.dart';
 import 'package:fluvita/riverpod/router.dart';
 import 'package:fluvita/widgets/actions_menu.dart';
 import 'package:fluvita/widgets/cover_card.dart';

@@ -4,7 +4,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fluvita/pages/reader/reader_controls.dart';
 import 'package:fluvita/pages/reader/reader_header.dart';
 import 'package:fluvita/pages/reader/toc_drawer.dart';
-import 'package:fluvita/riverpod/api/reader.dart';
+import 'package:fluvita/riverpod/providers/reader.dart';
 import 'package:fluvita/riverpod/reader.dart';
 import 'package:fluvita/riverpod/reader_navigation.dart';
 import 'package:fluvita/riverpod/router.dart';

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fluvita/models/library_model.dart';
 import 'package:fluvita/pages/library/libraries_page/app_list_tile.dart';
-import 'package:fluvita/riverpod/api/library.dart';
+import 'package:fluvita/riverpod/providers/library.dart';
 import 'package:fluvita/riverpod/router.dart';
 import 'package:fluvita/utils/layout_constants.dart';
 import 'package:fluvita/widgets/async_value.dart';

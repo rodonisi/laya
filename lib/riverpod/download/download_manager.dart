@@ -1,7 +1,7 @@
 import 'package:fluvita/models/image_model.dart';
-import 'package:fluvita/riverpod/api/book.dart';
-import 'package:fluvita/riverpod/api/chapter.dart';
-import 'package:fluvita/riverpod/api/image.dart';
+import 'package:fluvita/riverpod/providers/book.dart';
+import 'package:fluvita/riverpod/providers/chapter.dart';
+import 'package:fluvita/riverpod/providers/image.dart';
 import 'package:fluvita/riverpod/epub_page_content.dart';
 import 'package:fluvita/utils/logging.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';

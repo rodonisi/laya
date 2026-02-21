@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fluvita/widgets/login_guard.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:fluvita/pages/home/collapsible_section.dart';
-import 'package:fluvita/riverpod/api/series.dart';
+import 'package:fluvita/riverpod/providers/series.dart';
 import 'package:fluvita/widgets/sliver_bottom_padding.dart';
 
 class HomePage extends ConsumerWidget {

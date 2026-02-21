@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:fluvita/models/volume_model.dart';
 import 'package:fluvita/pages/library/series_detail_page/series_info_background.dart';
-import 'package:fluvita/riverpod/api/reader.dart';
-import 'package:fluvita/riverpod/api/volume.dart';
+import 'package:fluvita/riverpod/providers/reader.dart';
+import 'package:fluvita/riverpod/providers/volume.dart';
 import 'package:fluvita/utils/layout_constants.dart';
 import 'package:fluvita/widgets/actions_menu.dart';
 import 'package:fluvita/widgets/adaptive_sliver_app_bar.dart';

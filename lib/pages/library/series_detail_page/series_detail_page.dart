@@ -5,7 +5,7 @@ import 'package:fluvita/widgets/volume_card.dart';
 import 'package:fluvita/widgets/adaptive_sliver_grid.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:fluvita/models/volume_model.dart';
-import 'package:fluvita/riverpod/api/series.dart';
+import 'package:fluvita/riverpod/providers/series.dart';
 import 'package:fluvita/widgets/async_value.dart';
 import 'package:fluvita/widgets/sliver_bottom_padding.dart';
 

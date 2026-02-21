@@ -1,6 +1,6 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/widgets.dart';
-import 'package:fluvita/riverpod/api/series.dart';
+import 'package:fluvita/riverpod/providers/series.dart';
 import 'package:fluvita/riverpod/repository/chapters_repository.dart';
 import 'package:fluvita/riverpod/repository/libraries_repository.dart';
 import 'package:fluvita/riverpod/repository/reader_repository.dart';

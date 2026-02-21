@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:fluvita/riverpod/api/want_to_read.dart';
+import 'package:fluvita/riverpod/providers/want_to_read.dart';
 import 'package:fluvita/widgets/login_guard.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:fluvita/widgets/async_value.dart';
