@@ -6,12 +6,11 @@ import 'package:fluvita/riverpod/providers/download.dart';
 import 'package:fluvita/riverpod/providers/reader.dart';
 import 'package:fluvita/riverpod/repository/download_repository.dart';
 import 'package:fluvita/riverpod/router.dart';
-import 'package:fluvita/utils/layout_constants.dart';
 import 'package:fluvita/widgets/actions_menu.dart';
 import 'package:fluvita/widgets/cover_card.dart';
 import 'package:fluvita/widgets/cover_image.dart';
+import 'package:fluvita/widgets/download_status_icon.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class ChapterCard extends HookConsumerWidget {
   const ChapterCard({
@@ -64,30 +63,6 @@ class ChapterCard extends HookConsumerWidget {
     final downloadProgress =
         (totalPages > 0 && isDownloading) ? downloadedPages / totalPages : null;
 
-    Widget? downloadIcon;
-    if (isDownloading) {
-      downloadIcon = Card(
-        child: Padding(
-          padding: LayoutConstants.smallEdgeInsets,
-          child: SizedBox.square(
-            dimension: 16,
-            child: CircularProgressIndicator(value: downloadProgress),
-          ),
-        ),
-      );
-    } else if (isDownloaded) {
-      downloadIcon = Card(
-        child: Padding(
-          padding: LayoutConstants.smallEdgeInsets,
-          child: Icon(
-            LucideIcons.download,
-            color: Theme.of(context).colorScheme.tertiary,
-            size: 16,
-          ),
-        ),
-      );
-    }
-
     final repo = ref.read(downloadRepositoryProvider);
 
     void Function()? onDownloadChapterAction;
@@ -118,7 +93,11 @@ class ChapterCard extends HookConsumerWidget {
         title: state.value.title,
         coverImage: ChapterCoverImage(chapterId: state.value.id),
         progress: progress,
-        downloadStatusIcon: downloadIcon,
+        downloadStatusIcon: DownloadStatusIcon(
+          isDownloaded: isDownloaded,
+          isDownloading: isDownloading,
+          progress: downloadProgress,
+        ),
         onTap: () {
           ReaderRoute(
             seriesId: seriesId,

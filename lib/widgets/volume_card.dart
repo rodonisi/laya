@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fluvita/models/volume_model.dart';
+import 'package:fluvita/riverpod/providers/download.dart';
 import 'package:fluvita/riverpod/providers/reader.dart';
 import 'package:fluvita/riverpod/providers/volume.dart';
+import 'package:fluvita/riverpod/repository/download_repository.dart';
 import 'package:fluvita/riverpod/router.dart';
 import 'package:fluvita/widgets/actions_menu.dart';
 import 'package:fluvita/widgets/cover_card.dart';
 import 'package:fluvita/widgets/cover_image.dart';
+import 'package:fluvita/widgets/download_status_icon.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 class VolumeCard extends HookConsumerWidget {
@@ -47,6 +50,35 @@ class VolumeCard extends HookConsumerWidget {
         ? state.value.name
         : 'Volume ${state.value.name}';
 
+    // Stable sorted list of chapter IDs for the download provider.
+    final chapterIds = useMemoized(
+      () => ([...state.value.chapters.map((c) => c.id)]..sort()),
+      [state.value.chapters],
+    );
+
+    final downloadProgress = ref
+        .watch(volumeDownloadProgressProvider(chapterIds: chapterIds))
+        .value;
+
+    final total = downloadProgress?.total ?? chapterIds.length;
+    final downloaded = downloadProgress?.downloaded ?? 0;
+    final isAllDownloaded = total > 0 && downloaded >= total;
+    final isDownloading = !isAllDownloaded && downloaded > 0;
+    final downloadRatio =
+        (total > 0 && isDownloading) ? downloaded / total : null;
+
+    final repo = ref.read(downloadRepositoryProvider);
+
+    void Function()? onDownloadVolume;
+    void Function()? onRemoveVolumeDownload;
+
+    if (!isAllDownloaded && !isDownloading) {
+      onDownloadVolume = () => repo.downloadVolume(chapterIds: chapterIds);
+    } else {
+      onRemoveVolumeDownload = () =>
+          repo.deleteVolume(chapterIds: chapterIds);
+    }
+
     return ActionsContextMenu(
       onMarkRead: () async {
         await ref.read(markReadProvider.notifier).markRead();
@@ -56,10 +88,17 @@ class VolumeCard extends HookConsumerWidget {
         await ref.read(markReadProvider.notifier).markUnread();
         ref.invalidate(provider);
       },
+      onDownloadVolume: onDownloadVolume,
+      onRemoveVolumeDownload: onRemoveVolumeDownload,
       child: CoverCard(
         title: title,
         coverImage: VolumeCoverImage(volumeId: state.value.id),
         progress: progress,
+        downloadStatusIcon: DownloadStatusIcon(
+          isDownloaded: isAllDownloaded,
+          isDownloading: isDownloading,
+          progress: downloadRatio,
+        ),
         onRead: () {
           if (state.value.chapters.isNotEmpty) {
             ReaderRoute(

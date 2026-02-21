@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fluvita/models/series_model.dart';
+import 'package:fluvita/riverpod/providers/download.dart';
 import 'package:fluvita/riverpod/providers/reader.dart';
 import 'package:fluvita/riverpod/providers/series.dart';
 import 'package:fluvita/riverpod/providers/want_to_read.dart';
+import 'package:fluvita/riverpod/repository/download_repository.dart';
 import 'package:fluvita/riverpod/router.dart';
 import 'package:fluvita/utils/layout_constants.dart';
 import 'package:fluvita/widgets/actions_menu.dart';
 import 'package:fluvita/widgets/cover_card.dart';
 import 'package:fluvita/widgets/cover_image.dart';
+import 'package:fluvita/widgets/download_status_icon.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -46,6 +49,29 @@ class SeriesCard extends HookConsumerWidget {
 
     final markReadProvider = markSeriesReadProvider(seriesId: state.value.id);
 
+    final downloadProgress = ref
+        .watch(seriesDownloadProgressProvider(seriesId: state.value.id))
+        .value;
+
+    final total = downloadProgress?.total ?? 0;
+    final downloaded = downloadProgress?.downloaded ?? 0;
+    final isAllDownloaded = total > 0 && downloaded >= total;
+    final isDownloading = !isAllDownloaded && downloaded > 0;
+    final downloadRatio =
+        (total > 0 && isDownloading) ? downloaded / total : null;
+
+    final repo = ref.read(downloadRepositoryProvider);
+
+    void Function()? onDownloadSeries;
+    void Function()? onRemoveSeriesDownload;
+
+    if (!isAllDownloaded && !isDownloading) {
+      onDownloadSeries = () => repo.downloadSeries(seriesId: state.value.id);
+    } else {
+      onRemoveSeriesDownload =
+          () => repo.deleteSeries(seriesId: state.value.id);
+    }
+
     return ActionsContextMenu(
       onMarkRead: () async {
         await ref.read(markReadProvider.notifier).markRead();
@@ -55,7 +81,6 @@ class SeriesCard extends HookConsumerWidget {
         await ref.read(markReadProvider.notifier).markUnread();
         ref.invalidate(provider);
       },
-
       onAddWantToRead: isWantToRead
           ? null
           : () async {
@@ -66,6 +91,8 @@ class SeriesCard extends HookConsumerWidget {
               await ref.read(wantToRead.notifier).remove();
             }
           : null,
+      onDownloadSeries: onDownloadSeries,
+      onRemoveSeriesDownload: onRemoveSeriesDownload,
       child: CoverCard(
         title: state.value.name,
         icon: Icon(
@@ -78,6 +105,11 @@ class SeriesCard extends HookConsumerWidget {
         ),
         progress: progress,
         coverImage: SeriesCoverImage(seriesId: state.value.id),
+        downloadStatusIcon: DownloadStatusIcon(
+          isDownloaded: isAllDownloaded,
+          isDownloading: isDownloading,
+          progress: downloadRatio,
+        ),
         onTap: () {
           SeriesDetailRoute(
             libraryId: state.value.libraryId,

@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 import 'package:fluvita/database/app_database.dart';
+import 'package:fluvita/database/converters/page_content_converter.dart';
 import 'package:fluvita/models/enums/format.dart';
 import 'package:fluvita/riverpod/providers/client.dart';
 import 'package:fluvita/riverpod/repository/book_repository.dart';
@@ -11,6 +12,7 @@ import 'package:fluvita/riverpod/repository/database.dart';
 import 'package:fluvita/riverpod/settings.dart';
 import 'package:fluvita/utils/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:rxdart/rxdart.dart';
 
 part 'download_repository.g.dart';
 
@@ -56,13 +58,17 @@ class DownloadRepository {
 
   /// Reactive stream of the full-download flag. Suitable for driving UI.
   Stream<bool> watchIsChapterDownloaded({required int chapterId}) {
-    return _db.downloadDao.isChapterDownloaded(chapterId: chapterId).watchSingle();
+    return _db.downloadDao
+        .isChapterDownloaded(chapterId: chapterId)
+        .watchSingle();
   }
 
   /// Emits the number of pages currently stored for [chapterId].
   /// Pair with the total page count from the chapter model for a progress ratio.
   Stream<int> watchDownloadedPageCount({required int chapterId}) {
-    return _db.downloadDao.totalDownloadedPages(chapterId: chapterId).watchSingle();
+    return _db.downloadDao
+        .totalDownloadedPages(chapterId: chapterId)
+        .watchSingle();
   }
 
   // ---------------------------------------------------------------------------
@@ -108,28 +114,24 @@ class DownloadRepository {
 
         log.d('downloading page $page/$totalPages of chapter $chapterId');
 
-        final Uint8List blob;
-        switch (format) {
-          case Format.epub:
-            final content = await _bookClient.getPageContent(
-              chapterId: chapterId,
-              page: page,
-            );
-            blob = Uint8List.fromList(
-              utf8.encode(jsonEncode(pageContentConverter.toSql(content))),
-            );
-          case Format.archive:
-          case Format.unknown:
-            blob = await _bookClient.getImagePage(
-              chapterId: chapterId,
-              page: page,
-            );
-        }
+        final Uint8List blob = switch (format) {
+          .epub => pageContentConverter.toSql(
+            await _bookClient.getPageContent(chapterId: chapterId, page: page),
+          ),
+          .archive => await _bookClient.getImagePage(
+            chapterId: chapterId,
+            page: page,
+          ),
+          _ => throw Exception('unsupported format'),
+        };
 
         await _db.downloadDao.insertPage(
-          chapterId: chapterId,
-          page: page,
-          data: blob,
+          DownloadedPagesCompanion.insert(
+            chapterId: chapterId,
+            page: page,
+            data: blob,
+            lastSync: Value(DateTime.timestamp()),
+          ),
         );
       }
 
@@ -159,6 +161,76 @@ class DownloadRepository {
     cancelDownload(chapterId: chapterId);
     await _db.downloadDao.deleteChapter(chapterId: chapterId);
     log.d('deleted local pages for chapter $chapterId');
+  }
+
+  // ---------------------------------------------------------------------------
+  // Volume batch operations
+  // ---------------------------------------------------------------------------
+
+  /// Emits `({downloaded, total})` for the given set of chapter IDs.
+  /// [chapterIds] must be a stable sorted list; list identity is used for
+  /// provider caching.
+  Stream<({int downloaded, int total})> watchVolumeDownloadProgress({
+    required List<int> chapterIds,
+  }) {
+    final downloadedStream = _db.downloadDao.watchDownloadedChapterCountByIds(
+      chapterIds: chapterIds,
+    );
+    return downloadedStream.map(
+      (downloaded) => (downloaded: downloaded, total: chapterIds.length),
+    );
+  }
+
+  /// Downloads every chapter in [chapterIds] sequentially.
+  Future<void> downloadVolume({required List<int> chapterIds}) async {
+    for (final id in chapterIds) {
+      await downloadChapter(chapterId: id);
+    }
+  }
+
+  /// Cancels and deletes all downloaded pages for the chapters in [chapterIds].
+  Future<void> deleteVolume({required List<int> chapterIds}) async {
+    for (final id in chapterIds) {
+      await deleteChapter(chapterId: id);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Series batch operations
+  // ---------------------------------------------------------------------------
+
+  /// Emits `({downloaded, total})` for all chapters belonging to [seriesId].
+  Stream<({int downloaded, int total})> watchSeriesDownloadProgress({
+    required int seriesId,
+  }) {
+    final downloadedStream = _db.downloadDao
+        .watchDownloadedChapterCountBySeries(seriesId: seriesId);
+    final totalStream = _db.downloadDao.watchTotalChapterCountBySeries(
+      seriesId: seriesId,
+    );
+
+    return Rx.combineLatest2(
+      downloadedStream,
+      totalStream,
+      (downloaded, total) => (downloaded: downloaded, total: total),
+    );
+  }
+
+  /// Downloads every chapter in [seriesId] sequentially, querying chapter IDs
+  /// from the DB.
+  Future<void> downloadSeries({required int seriesId}) async {
+    final chapters = await _db.seriesDao.allChapters(seriesId: seriesId).get();
+    for (final chapter in chapters) {
+      await downloadChapter(chapterId: chapter.id);
+    }
+  }
+
+  /// Cancels and deletes all downloaded pages for every chapter in [seriesId].
+  Future<void> deleteSeries({required int seriesId}) async {
+    final chapters = await _db.seriesDao.allChapters(seriesId: seriesId).get();
+    for (final chapter in chapters) {
+      await deleteChapter(chapterId: chapter.id);
+    }
   }
 }
 

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:fluvita/api/openapi.swagger.dart';
 import 'package:fluvita/database/app_database.dart';
+import 'package:fluvita/database/converters/page_content_converter.dart';
 import 'package:fluvita/models/book_chapter_model.dart';
 import 'package:fluvita/models/image_model.dart';
 import 'package:fluvita/models/page_content.dart';
@@ -27,12 +28,6 @@ BookRepository bookRepository(Ref ref) {
   final client = BookRemoteOperations(client: restClient, apiKey: apiKey!);
   return BookRepository(db, client);
 }
-
-JsonTypeConverter2<PageContent, Uint8List, Object?> pageContentConverter =
-    TypeConverter.jsonb(
-      fromJson: (json) => PageContent.fromJson(json as Map<String, Object?>),
-      toJson: (pref) => pref.toJson(),
-    );
 
 class BookRepository {
   final AppDatabase _db;
@@ -257,7 +252,7 @@ class BookRemoteOperations {
       }
     }
 
-    final html = _getRawBookPage(chapterId: chapterId, page: page);
+    final html = await _getRawBookPage(chapterId: chapterId, page: page);
     final doc = parseFragment(html);
     for (var node in doc.nodes) {
       await walk(node);

@@ -23,3 +23,27 @@ Stream<int> chapterDownloadedPageCount(
   final repo = ref.watch(downloadRepositoryProvider);
   return repo.watchDownloadedPageCount(chapterId: chapterId);
 }
+
+/// Emits `({downloaded, total})` for a volume identified by its chapter IDs.
+///
+/// [chapterIds] must be a stable sorted list (list identity is used for
+/// provider caching).
+@riverpod
+Stream<({int downloaded, int total})> volumeDownloadProgress(
+  Ref ref, {
+  required List<int> chapterIds,
+}) {
+  final repo = ref.watch(downloadRepositoryProvider);
+  return repo.watchVolumeDownloadProgress(chapterIds: chapterIds);
+}
+
+/// Emits `({downloaded, total})` for every chapter belonging to [seriesId].
+@riverpod
+Stream<({int downloaded, int total})> seriesDownloadProgress(
+  Ref ref, {
+  required int seriesId,
+}) {
+  final repo = ref.watch(downloadRepositoryProvider);
+  return repo.watchSeriesDownloadProgress(seriesId: seriesId);
+}
+
