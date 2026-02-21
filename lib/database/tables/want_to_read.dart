@@ -4,6 +4,7 @@ import 'package:fluvita/database/tables/series.dart';
 class WantToRead extends Table {
   IntColumn get seriesId => integer().references(Series, #id)();
 
+  BoolColumn get isWantToRead => boolean().withDefault(const Constant(true))();
   BoolColumn get dirty => boolean().withDefault(const Constant(false))();
 
   @override

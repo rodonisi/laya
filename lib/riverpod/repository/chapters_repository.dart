@@ -7,7 +7,6 @@ import 'package:fluvita/models/image_model.dart';
 import 'package:fluvita/riverpod/api/client.dart';
 import 'package:fluvita/riverpod/repository/database.dart';
 import 'package:fluvita/riverpod/settings.dart';
-import 'package:fluvita/utils/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'chapters_repository.g.dart';
@@ -46,32 +45,16 @@ class ChaptersRepository {
   }
 
   Stream<ImageModel> watchChapterCover(int chapterId) {
-    refreshChapterCover(chapterId);
     return _db.chaptersDao
         .watchChapterCover(chapterId: chapterId)
         .map((cover) => ImageModel(data: cover.image));
   }
 
-  Future<void> refreshChapter({
-    required int seriesId,
-    required int chapterId,
-  }) async {
-    try {
-      final chapter = await _client.getChapter(chapterId);
-      await _db.chaptersDao.upsertChapter(
-        chapter.copyWith(seriesId: Value(seriesId)),
-      );
-    } catch (e) {
-      log.e(e);
-    }
-  }
-
-  Future<void> refreshChapterCover(int chapterId) async {
-    try {
-      final chapterCover = await _client.getChapterCover(chapterId);
+  Future<void> fetchMissingCovers() async {
+    final missing = await _db.chaptersDao.getMissingCovers();
+    for (final id in missing) {
+      final chapterCover = await _client.getChapterCover(id);
       await _db.chaptersDao.upsertChapterCover(chapterCover);
-    } catch (e) {
-      log.e(e);
     }
   }
 }

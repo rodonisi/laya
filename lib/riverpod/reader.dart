@@ -6,7 +6,6 @@ import 'package:fluvita/models/enums/format.dart';
 import 'package:fluvita/models/progress_model.dart';
 import 'package:fluvita/models/read_direction.dart';
 import 'package:fluvita/models/series_model.dart';
-import 'package:fluvita/riverpod/api/book.dart';
 import 'package:fluvita/riverpod/api/chapter.dart';
 import 'package:fluvita/riverpod/api/reader.dart';
 import 'package:fluvita/riverpod/api/series.dart';
@@ -50,9 +49,6 @@ class Reader extends _$Reader {
             chapterProvider(chapterId: chapterId).future,
           )
         : await ref.watch(continuePointProvider(seriesId: seriesId).future);
-    final info = await ref.watch(
-      bookInfoProvider(chapterId: chapter.id).future,
-    );
     final progress = await ref.watch(
       bookProgressProvider(chapterId: chapter.id).future,
     );
@@ -61,12 +57,12 @@ class Reader extends _$Reader {
     );
 
     return ReaderState(
-      libraryId: info.libraryId!,
+      libraryId: series.libraryId,
       series: series,
-      volumeId: info.volumeId!,
+      volumeId: chapter.volumeId,
       chapter: chapter,
-      title: info.seriesName ?? 'Untitled',
-      totalPages: info.pages!,
+      title: chapter.title,
+      totalPages: chapter.pages,
       initialPage: progress.pageNum,
       bookScrollId: progress.bookScrollId,
     );

@@ -8,7 +8,6 @@ import 'package:fluvita/models/volume_model.dart';
 import 'package:fluvita/riverpod/api/client.dart';
 import 'package:fluvita/riverpod/repository/database.dart';
 import 'package:fluvita/riverpod/settings.dart';
-import 'package:fluvita/utils/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'volumes_repository.g.dart';
@@ -42,27 +41,16 @@ class VolumesRepository {
   }
 
   Stream<ImageModel> watchVolumeCover(int volumeId) {
-    refreshVolumeCover(volumeId);
     return _db.volumesDao
         .watchVolumeCover(volumeId: volumeId)
         .map((cover) => ImageModel(data: cover.image));
   }
 
-  Future<void> refreshVolume(int volumeId) async {
-    try {
-      final companions = await _client.getVolume(volumeId);
-      await _db.volumesDao.upsertVolume(companions);
-    } catch (e) {
-      log.e(e);
-    }
-  }
-
-  Future<void> refreshVolumeCover(int volumeId) async {
-    try {
-      final volumeCover = await _client.getVolumeCover(volumeId);
+  Future<void> fetchMissingCovers() async {
+    final missing = await _db.volumesDao.getMissingCovers();
+    for (final id in missing) {
+      final volumeCover = await _client.getVolumeCover(id);
       await _db.volumesDao.upsertVolumeCover(volumeCover);
-    } catch (e) {
-      log.e(e);
     }
   }
 }

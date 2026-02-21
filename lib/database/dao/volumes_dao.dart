@@ -54,6 +54,16 @@ class VolumesDao extends DatabaseAccessor<AppDatabase> with _$VolumesDaoMixin {
         .distinct();
   }
 
+  Future<List<int>> getMissingCovers() async {
+    final query = select(volumes).join([
+      leftOuterJoin(volumeCovers, volumeCovers.volumeId.equalsExp(volumes.id)),
+    ]);
+
+    query.where(volumeCovers.volumeId.isNull());
+
+    return await query.map((row) => row.readTable(volumes).id).get();
+  }
+
   Future<void> upsertVolume(VolumeWithChaptersCompanion entry) async {
     await transaction(() async {
       await into(volumes).insertOnConflictUpdate(entry.volume);

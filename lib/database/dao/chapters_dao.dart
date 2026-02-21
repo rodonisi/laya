@@ -39,6 +39,19 @@ class ChaptersDao extends DatabaseAccessor<AppDatabase>
         .distinct();
   }
 
+  Future<List<int>> getMissingCovers() async {
+    final query = select(chapters).join([
+      leftOuterJoin(
+        chapterCovers,
+        chapterCovers.chapterId.equalsExp(chapters.id),
+      ),
+    ]);
+
+    query.where(chapterCovers.chapterId.isNull());
+
+    return await query.map((row) => row.readTable(chapters).id).get();
+  }
+
   Future<void> upsertChapter(ChaptersCompanion chapter) async {
     await into(chapters).insertOnConflictUpdate(chapter);
   }

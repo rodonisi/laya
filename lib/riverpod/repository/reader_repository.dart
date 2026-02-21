@@ -1,12 +1,12 @@
 import 'package:drift/drift.dart';
 import 'package:fluvita/api/openapi.swagger.dart';
 import 'package:fluvita/database/app_database.dart';
+import 'package:fluvita/mapping/tables/reading_progress_data.dart';
 import 'package:fluvita/models/chapter_model.dart';
 import 'package:fluvita/models/progress_model.dart';
 import 'package:fluvita/riverpod/api/client.dart';
 import 'package:fluvita/riverpod/repository/database.dart';
 import 'package:fluvita/utils/logging.dart';
-import 'package:fluvita/utils/try_refresh.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:stream_transform/stream_transform.dart';
 
@@ -24,9 +24,7 @@ class ReaderRepository {
   final AppDatabase _db;
   final ReaderRemoteOperations _client;
 
-  ReaderRepository(this._db, this._client) {
-    refreshContinuePointsAndProgress();
-  }
+  ReaderRepository(this._db, this._client);
 
   Stream<ChapterModel> watchContinuePoint({required int seriesId}) {
     refreshContinuePoint(seriesId);
@@ -49,30 +47,7 @@ class ReaderRepository {
     }
   }
 
-  Future<void> refreshContinuePointsAndProgress() async {
-    await tryRefresh(() async {
-      final series = await _db.seriesDao.allSeries().get();
-      final updates = await Future.wait(
-        series.map((s) async {
-          final continuePoint = await _client.getContinuePoint(s.id);
-          final progress = await _client.getProgress(
-            continuePoint.chapterId.value,
-          );
-
-          return (continuePoint: continuePoint, progress: progress);
-        }),
-      );
-      await _db.readerDao.upsertContinuePointBatch(
-        updates.map((u) => u.continuePoint),
-      );
-      await _db.readerDao.mergeProgressBatch(
-        updates.map((u) => u.progress),
-      );
-    });
-  }
-
   Stream<ProgressModel> watchProgress(int chapterId) {
-    refreshProgress(chapterId);
     return _db.readerDao
         .watchProgress(chapterId)
         .whereNotNull()
@@ -80,12 +55,8 @@ class ReaderRepository {
   }
 
   Future<void> refreshProgress(int chapterId) async {
-    try {
-      final entry = await _client.getProgress(chapterId);
-      await _db.readerDao.mergeProgress(entry);
-    } catch (e) {
-      log.e(e);
-    }
+    final entry = await _client.getProgress(chapterId);
+    await _db.readerDao.mergeProgress(entry);
   }
 
   Stream<int?> watchPrevChapterId({
@@ -131,64 +102,61 @@ class ReaderRepository {
     );
   }
 
+  Future<void> refreshContinuePointsAndProgress() async {
+    final series = await _db.seriesDao.allSeries().get();
+    final updates = await Future.wait(
+      series.map((s) async {
+        final continuePoint = await _client.getContinuePoint(s.id);
+        final progress = await _client.getProgress(
+          continuePoint.chapterId.value,
+        );
+
+        return (continuePoint: continuePoint, progress: progress);
+      }),
+    );
+    await _db.readerDao.upsertContinuePointBatch(
+      updates.map((u) => u.continuePoint),
+    );
+    await _db.readerDao.mergeProgressBatch(
+      updates.map((u) => u.progress),
+    );
+  }
+
+  /// Synchronize all dirty progress entries by sending them to the backend and refetching the updated state.
+  Future<void> mergeProgress() async {
+    final dirty = await _db.readerDao.getDirtyProgress();
+    log.d('processing ${dirty.length} progress entries');
+
+    final updatedProgress = <ReadingProgressCompanion>[];
+    for (final d in dirty) {
+      await _client.sendProgress(d);
+      updatedProgress.add(await _client.getProgress(d.chapterId));
+    }
+    await _db.readerDao.mergeProgressBatch(updatedProgress);
+  }
+
   Future<void> markSeriesRead(int seriesId) async {
     await _db.readerDao.markSeriesRead(seriesId, isRead: true);
-    try {
-      await _client.markSeriesRead(seriesId);
-    } catch (e) {
-      log.e(e);
-      await _db.readerDao.markSeriesRead(seriesId, isRead: false);
-    }
   }
 
   Future<void> markSeriesUnread(int seriesId) async {
     await _db.readerDao.markSeriesRead(seriesId, isRead: false);
-    try {
-      await _client.markSeriesUnread(seriesId);
-    } catch (e) {
-      log.e(e);
-      await _db.readerDao.markSeriesRead(seriesId, isRead: true);
-    }
   }
 
   Future<void> markVolumeRead(int seriesId, int volumeId) async {
     await _db.readerDao.markVolumeRead(seriesId, volumeId, isRead: true);
-    try {
-      await _client.markVolumeRead(seriesId, volumeId);
-    } catch (e) {
-      log.e(e);
-      await _db.readerDao.markVolumeRead(seriesId, volumeId, isRead: false);
-    }
   }
 
   Future<void> markVolumeUnread(int seriesId, int volumeId) async {
     await _db.readerDao.markVolumeRead(seriesId, volumeId, isRead: false);
-    try {
-      await _client.markVolumeUnread(seriesId, volumeId);
-    } catch (e) {
-      log.e(e);
-      await _db.readerDao.markVolumeRead(seriesId, volumeId, isRead: true);
-    }
   }
 
   Future<void> markChapterRead(int seriesId, int chapterId) async {
     await _db.readerDao.markChapterRead(chapterId, isRead: true);
-    try {
-      await _client.markChaptersRead(seriesId, [chapterId]);
-    } catch (e) {
-      log.e(e);
-      await _db.readerDao.markChapterRead(chapterId, isRead: false);
-    }
   }
 
   Future<void> markChapterUnread(int seriesId, int chapterId) async {
     await _db.readerDao.markChapterRead(chapterId, isRead: false);
-    try {
-      await _client.markChaptersUnread(seriesId, [chapterId]);
-    } catch (e) {
-      log.e(e);
-      await _db.readerDao.markChapterRead(chapterId, isRead: true);
-    }
   }
 }
 
@@ -226,6 +194,10 @@ class ReaderRemoteOperations {
       bookScrollId: Value(dto.bookScrollId),
       lastModified: Value.absentIfNull(dto.lastModifiedUtc),
     );
+  }
+
+  Future<void> sendProgress(ReadingProgressData progress) async {
+    await _client.apiReaderProgressPost(body: progress.toProgressDto());
   }
 
   Future<void> markSeriesRead(int seriesId) async {

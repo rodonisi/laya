@@ -1,16 +1,9 @@
 import 'package:fluvita/models/book_chapter_model.dart';
-import 'package:fluvita/models/book_info_model.dart';
 import 'package:fluvita/riverpod/api/client.dart';
 import 'package:fluvita/riverpod/repository/book_repository.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'book.g.dart';
-
-@riverpod
-Stream<BookInfoModel> bookInfo(Ref ref, {required int chapterId}) async* {
-  final repo = ref.watch(bookRepositoryProvider);
-  yield* repo.watchBookInfo(chapterId);
-}
 
 @riverpod
 Stream<List<BookChapterModel>> bookChapters(

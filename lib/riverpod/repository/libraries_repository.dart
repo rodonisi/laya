@@ -38,7 +38,6 @@ class LibrariesRepository {
   }
 
   Stream<List<LibraryModel>> watchLibraries() {
-    refreshLibraries();
     return _db.librariesDao.watchLibraries().map(
       (entries) => entries.map(LibraryModel.fromDatabaseModel).toList(),
     );

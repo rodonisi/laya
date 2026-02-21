@@ -66,6 +66,10 @@ class ReaderDao extends DatabaseAccessor<AppDatabase> with _$ReaderDaoMixin {
     )..where((row) => row.chapterId.equals(chapterId))).watchSingleOrNull();
   }
 
+  Future<List<ReadingProgressData>> getDirtyProgress() async {
+    return await managers.readingProgress.filter((f) => f.dirty(true)).get();
+  }
+
   Future<void> upsertProgress(ReadingProgressCompanion entry) async {
     log.d('upsert progress chapter=${entry.chapterId.value}');
     await into(readingProgress).insertOnConflictUpdate(entry);
@@ -120,6 +124,7 @@ class ReaderDao extends DatabaseAccessor<AppDatabase> with _$ReaderDaoMixin {
         }
       }
 
+      log.d('upserting merged progress batch with ${toWrite.length} entries');
       await batch((b) => b.insertAllOnConflictUpdate(readingProgress, toWrite));
     });
   }

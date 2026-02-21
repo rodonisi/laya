@@ -126,6 +126,16 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
     );
   }
 
+  Future<List<int>> getMissingCovers() async {
+    final query = select(series).join([
+      leftOuterJoin(seriesCovers, seriesCovers.seriesId.equalsExp(series.id)),
+    ]);
+
+    query.where(seriesCovers.seriesId.isNull());
+
+    return await query.map((row) => row.readTable(series).id).get();
+  }
+
   Future<void> upsertSeries(SeriesCompanion entry) async {
     log.d('upserting series ${entry.id.value}');
     await into(series).insertOnConflictUpdate(entry);
@@ -191,7 +201,7 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
     return managers.wantToRead
         .filter((f) => f.seriesId.id(seriesId))
         .watchSingleOrNull()
-        .map((i) => i != null);
+        .map((i) => i != null && i.isWantToRead);
   }
 
   Stream<List<SeriesData>> watchWantToReadList() {
@@ -199,6 +209,10 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
         .join([innerJoin(series, series.id.equalsExp(wantToRead.seriesId))])
         .map((res) => res.readTable(series))
         .watch();
+  }
+
+  Future<List<WantToReadData>> getDirtyWantToRead() async {
+    return await managers.wantToRead.filter((f) => f.dirty(true)).get();
   }
 
   Future<void> upsertWantToRead(WantToReadCompanion entry) async {
@@ -214,9 +228,11 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
   }
 
   Future<void> removeWantToRead({required int seriesId}) async {
-    await (delete(
+    await (update(
       wantToRead,
-    )..where((tbl) => tbl.seriesId.equals(seriesId))).go();
+    )..where((tbl) => tbl.seriesId.equals(seriesId))).write(
+      const WantToReadCompanion(isWantToRead: Value(true), dirty: Value(true)),
+    );
   }
 
   Future<void> upsertSeriesCover(SeriesCoversCompanion cover) async {

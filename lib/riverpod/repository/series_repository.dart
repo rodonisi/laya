@@ -10,8 +10,6 @@ import 'package:fluvita/models/series_model.dart';
 import 'package:fluvita/riverpod/api/client.dart';
 import 'package:fluvita/riverpod/repository/database.dart';
 import 'package:fluvita/riverpod/settings.dart';
-import 'package:fluvita/utils/logging.dart';
-import 'package:fluvita/utils/try_refresh.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'series_repository.g.dart';
@@ -32,75 +30,9 @@ class SeriesRepository {
   final AppDatabase _db;
   final SeriesRemoteOperations _client;
 
-  SeriesRepository(this._db, this._client) {
-    refreshAllSeries();
-  }
-
-  Future<void> refreshAllSeries({int? libraryId}) async {
-    try {
-      final series = await _client.getAllSeries(libraryId: libraryId);
-      await _db.seriesDao.upsertSeriesBatch(series);
-    } catch (e) {
-      log.e(e);
-    }
-  }
-
-  Future<void> refreshedOnDeck() async {
-    try {
-      log.d('refreshing on deck');
-      final series = await _client.getOnDeck();
-      await _db.seriesDao.upsertSeriesBatch(series);
-    } catch (e) {
-      log.e(e);
-    }
-  }
-
-  Future<void> refreshRecentlyAdded() async {
-    await tryRefresh(() async {
-      final series = await _client.getRecentlyAdded();
-      await _db.seriesDao.upsertSeriesBatch(series);
-    });
-  }
-
-  Future<void> refreshRecentlyUpdated() async {
-    try {
-      final series = await _client.getRecentlyUpdated();
-      await _db.seriesDao.upsertRecentlyUpdated(series);
-    } catch (e) {
-      log.e(e);
-    }
-  }
-
-  Future<void> refreshSeries(int seriesId) async {
-    try {
-      final series = await _client.getSeries(seriesId);
-      await _db.seriesDao.upsertSeries(series);
-    } catch (e) {
-      log.e(e);
-    }
-  }
-
-  Future<void> refreshSeriesDetails(int seriesId) async {
-    tryRefresh(() async {
-      final details = await _client.getSeriesDetail(seriesId);
-      await _db.seriesDao.upsertSeriesDetail(
-        seriesId: seriesId,
-        entries: details,
-      );
-    });
-  }
-
-  Future<void> refreshSeriesCover(int seriesId) async {
-    try {
-      final seriesCover = await _client.getSeriesCover(seriesId);
-      await _db.seriesDao.upsertSeriesCover(seriesCover);
-    } catch (e) {
-      log.e(e);
-    }
-  }
+  const SeriesRepository(this._db, this._client);
 
   Stream<List<SeriesModel>> watchAllSeries({int? libraryId}) {
-    refreshAllSeries(libraryId: libraryId);
     return _db.seriesDao
         .allSeries(libraryId: libraryId)
         .watch()
@@ -111,28 +43,24 @@ class SeriesRepository {
   }
 
   Stream<List<SeriesModel>> watchOnDeck() {
-    refreshedOnDeck();
     return _db.seriesDao.watchOnDeck().map(
       (list) => list.map(SeriesModel.fromDatabaseModel).toList(),
     );
   }
 
   Stream<List<SeriesModel>> watchRecentlyAdded() {
-    refreshRecentlyAdded();
     return _db.seriesDao.watchRecentlyAdded().map(
       (list) => list.map(SeriesModel.fromDatabaseModel).toList(),
     );
   }
 
   Stream<List<SeriesModel>> watchRecentlyUpdated() {
-    refreshRecentlyUpdated();
     return _db.seriesDao.watchRecentlyUpdated().map(
       (list) => list.map(SeriesModel.fromDatabaseModel).toList(),
     );
   }
 
   Stream<SeriesModel> watchSeries(int seriesId) {
-    refreshSeries(seriesId);
     return _db.seriesDao
         .watchSeries(seriesId)
         .map(SeriesModel.fromDatabaseModel);
@@ -143,17 +71,59 @@ class SeriesRepository {
   }
 
   Stream<ImageModel> watchSeriesCover(int seriesId) {
-    refreshSeriesCover(seriesId);
     return _db.seriesDao
         .watchSeriesCover(seriesId: seriesId)
         .map((cover) => ImageModel(data: cover.image));
   }
 
   Stream<SeriesDetailModel> watchSeriesDetails(int seriesId) {
-    refreshSeriesDetails(seriesId);
     return _db.seriesDao
         .watchSeriesDetail(seriesId)
         .map(SeriesDetailModel.fromDatabaseModel);
+  }
+
+  Future<void> refreshAllSeries({int? libraryId}) async {
+    final series = await _client.getAllSeries(libraryId: libraryId);
+    await _db.seriesDao.upsertSeriesBatch(series);
+  }
+
+  Future<void> refreshAllSeriesDetails() async {
+    final rows = await _db.seriesDao.allSeries().get();
+    final series = rows.map((s) => s.id).toList();
+    for (final id in series) {
+      await refreshSeriesDetails(id);
+    }
+  }
+
+  Future<void> refreshedOnDeck() async {
+    final series = await _client.getOnDeck();
+    await _db.seriesDao.upsertSeriesBatch(series);
+  }
+
+  Future<void> refreshRecentlyAdded() async {
+    final series = await _client.getRecentlyAdded();
+    await _db.seriesDao.upsertSeriesBatch(series);
+  }
+
+  Future<void> refreshRecentlyUpdated() async {
+    final series = await _client.getRecentlyUpdated();
+    await _db.seriesDao.upsertRecentlyUpdated(series);
+  }
+
+  Future<void> refreshSeriesDetails(int seriesId) async {
+    final details = await _client.getSeriesDetail(seriesId);
+    await _db.seriesDao.upsertSeriesDetail(
+      seriesId: seriesId,
+      entries: details,
+    );
+  }
+
+  Future<void> fetchMissingCovers() async {
+    final missingIds = await _db.seriesDao.getMissingCovers();
+    for (final id in missingIds) {
+      final seriesCover = await _client.getSeriesCover(id);
+      await _db.seriesDao.upsertSeriesCover(seriesCover);
+    }
   }
 }
 

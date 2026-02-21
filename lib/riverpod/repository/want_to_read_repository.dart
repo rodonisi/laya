@@ -5,8 +5,6 @@ import 'package:fluvita/mapping/dto/series_dto_mappings.dart';
 import 'package:fluvita/models/series_model.dart';
 import 'package:fluvita/riverpod/api/client.dart';
 import 'package:fluvita/riverpod/repository/database.dart';
-import 'package:fluvita/utils/logging.dart';
-import 'package:fluvita/utils/try_refresh.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'want_to_read_repository.g.dart';
@@ -26,19 +24,16 @@ class WantToReadRepository {
   WantToReadRepository(this._db, this._client);
 
   Stream<bool> watchWantToRead(int seriesId) {
-    refreshWantToRead(seriesId);
     return _db.seriesDao.watchWantToRead(seriesId);
   }
 
   Stream<List<SeriesModel>> watchWantToReadList() {
-    refreshWantToReadList();
     return _db.seriesDao.watchWantToReadList().map(
       (list) => list.map(SeriesModel.fromDatabaseModel).toList(),
     );
   }
 
   Future<void> add(int seriesId) async {
-    // Optimistic local write first so the UI reacts instantly.
     await _db.seriesDao.upsertWantToRead(
       WantToReadCompanion(seriesId: Value(seriesId), dirty: const Value(true)),
     );
@@ -48,35 +43,30 @@ class WantToReadRepository {
     await _db.seriesDao.removeWantToRead(seriesId: seriesId);
   }
 
-  Future<void> refreshWantToRead(int seriesId) async {
-    await tryRefresh(() async {
-      final isWantToRead = await _client.getWantToRead(seriesId);
-      if (isWantToRead) {
-        await _db.seriesDao.upsertWantToRead(
-          WantToReadCompanion(seriesId: Value(seriesId)),
-        );
-      } else {
-        await _db.seriesDao.removeWantToRead(seriesId: seriesId);
-      }
-    });
-  }
+  Future<void> mergeWantToRead() async {
+    final dirty = await _db.seriesDao.getDirtyWantToRead();
 
-  Future<void> refreshWantToReadList() async {
-    try {
-      final series = await _client.getWantToReadList();
-      final wantToReads = series.map(
-        (s) => WantToReadCompanion(
-          seriesId: s.id,
-        ),
-      );
-      await _db.transaction(() async {
-        await _db.seriesDao.clearWantToRead();
-        await _db.seriesDao.upsertSeriesBatch(series);
-        await _db.seriesDao.upsertWantToReadBatch(wantToReads);
-      });
-    } catch (e) {
-      log.e(e);
-    }
+    final toAdd = dirty
+        .where((data) => data.isWantToRead)
+        .map((data) => data.seriesId)
+        .toList();
+    final toRemove = dirty
+        .where((data) => !data.isWantToRead)
+        .map((data) => data.seriesId)
+        .toList();
+
+    await Future.wait([_client.add(toAdd), _client.remove(toRemove)]);
+
+    final series = await _client.getWantToReadList();
+    final wantToReads = series.map(
+      (s) => WantToReadCompanion(seriesId: s.id),
+    );
+
+    await _db.transaction(() async {
+      await _db.seriesDao.clearWantToRead();
+      await _db.seriesDao.upsertSeriesBatch(series);
+      await _db.seriesDao.upsertWantToReadBatch(wantToReads);
+    });
   }
 }
 

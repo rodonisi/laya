@@ -63,10 +63,10 @@ class DownloadManager extends _$DownloadManager {
       ),
     );
 
-    final bookInfo = await ref.read(
-      bookInfoProvider(chapterId: chapterId).future,
+    final chapter = await ref.read(
+      chapterProvider(chapterId: chapterId).future,
     );
-    final pageCount = bookInfo.pages ?? 0;
+    final pageCount = chapter.pages;
     if (pageCount == 0) {
       throw Exception('Chapter has no pages to download.');
     }
