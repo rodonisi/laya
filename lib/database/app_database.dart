@@ -3,6 +3,7 @@ import 'package:drift/native.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:fluvita/database/dao/book_dao.dart';
 import 'package:fluvita/database/dao/chapters_dao.dart';
+import 'package:fluvita/database/dao/download_dao.dart';
 import 'package:fluvita/database/dao/libraries_dao.dart';
 import 'package:fluvita/database/dao/reader_dao.dart';
 import 'package:fluvita/database/dao/series_dao.dart';
@@ -47,8 +48,7 @@ part 'app_database.g.dart';
     ReadingProgress,
     BookChaptersTable,
     WantToRead,
-    EpubPages,
-    ImagePages,
+    DownloadedPages,
   ],
   daos: [
     StorageDao,
@@ -59,6 +59,7 @@ part 'app_database.g.dart';
     ChaptersDao,
     ReaderDao,
     BookDao,
+    DownloadDao,
   ],
 )
 class AppDatabase extends _$AppDatabase {

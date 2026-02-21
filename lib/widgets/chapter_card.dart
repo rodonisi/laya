@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fluvita/models/chapter_model.dart';
 import 'package:fluvita/riverpod/providers/chapter.dart';
+import 'package:fluvita/riverpod/providers/download.dart';
 import 'package:fluvita/riverpod/providers/reader.dart';
-import 'package:fluvita/riverpod/download/chapter_config.dart';
-import 'package:fluvita/riverpod/download/download_manager.dart';
+import 'package:fluvita/riverpod/repository/download_repository.dart';
 import 'package:fluvita/riverpod/router.dart';
 import 'package:fluvita/utils/layout_constants.dart';
 import 'package:fluvita/widgets/actions_menu.dart';
 import 'package:fluvita/widgets/cover_card.dart';
 import 'package:fluvita/widgets/cover_image.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart'; // Import for icons
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class ChapterCard extends HookConsumerWidget {
   const ChapterCard({
@@ -34,7 +34,8 @@ class ChapterCard extends HookConsumerWidget {
 
     ref.listen(provider, (previous, next) {
       if (next.hasValue) {
-        // keep the title from the argument model as the chapter endpoint may return a different title
+        // Keep the title from the argument model as the chapter endpoint may
+        // return a different title.
         state.value = next.value!.copyWith(title: chapter.title);
       }
     });
@@ -49,26 +50,32 @@ class ChapterCard extends HookConsumerWidget {
       chapterId: state.value.id,
     );
 
-    final downloadManager = ref.watch(
-      downloadManagerProvider(chapterId: chapter.id),
-    );
-    final downloadStatus = downloadManager.value?.status;
-    final downloadProgress = downloadManager.value?.progress;
+    final isDownloaded = ref
+        .watch(chapterDownloadedProvider(chapterId: chapter.id))
+        .value ??
+        false;
+    final downloadedPages = ref
+        .watch(chapterDownloadedPageCountProvider(chapterId: chapter.id))
+        .value ??
+        0;
+
+    final totalPages = state.value.pages;
+    final isDownloading = !isDownloaded && downloadedPages > 0;
+    final downloadProgress =
+        (totalPages > 0 && isDownloading) ? downloadedPages / totalPages : null;
 
     Widget? downloadIcon;
-    if (downloadStatus == DownloadStatus.downloading) {
+    if (isDownloading) {
       downloadIcon = Card(
         child: Padding(
           padding: LayoutConstants.smallEdgeInsets,
           child: SizedBox.square(
             dimension: 16,
-            child: CircularProgressIndicator(
-              value: downloadProgress,
-            ),
+            child: CircularProgressIndicator(value: downloadProgress),
           ),
         ),
       );
-    } else if (downloadStatus == DownloadStatus.completed) {
+    } else if (isDownloaded) {
       downloadIcon = Card(
         child: Padding(
           padding: LayoutConstants.smallEdgeInsets,
@@ -81,31 +88,19 @@ class ChapterCard extends HookConsumerWidget {
       );
     }
 
+    final repo = ref.read(downloadRepositoryProvider);
+
     void Function()? onDownloadChapterAction;
     void Function()? onRemoveDownloadAction;
 
-    if (downloadStatus == DownloadStatus.initial) {
-      onDownloadChapterAction = () {
-        ref
-            .read(
-              chapterConfigProvider(
-                seriesId: seriesId,
-                chapterId: chapter.id,
-              ).notifier,
-            )
-            .setDownload(true);
-      };
-    } else if (downloadStatus != .initial) {
-      onRemoveDownloadAction = () {
-        ref
-            .read(
-              chapterConfigProvider(
-                seriesId: seriesId,
-                chapterId: chapter.id,
-              ).notifier,
-            )
-            .setDownload(false);
-      };
+    if (!isDownloaded && !isDownloading) {
+      onDownloadChapterAction = () => repo.downloadChapter(
+        chapterId: chapter.id,
+      );
+    } else {
+      onRemoveDownloadAction = () => repo.deleteChapter(
+        chapterId: chapter.id,
+      );
     }
 
     return ActionsContextMenu(
@@ -123,7 +118,7 @@ class ChapterCard extends HookConsumerWidget {
         title: state.value.title,
         coverImage: ChapterCoverImage(chapterId: state.value.id),
         progress: progress,
-        downloadStatusIcon: downloadIcon, // Pass the determined icon here
+        downloadStatusIcon: downloadIcon,
         onTap: () {
           ReaderRoute(
             seriesId: seriesId,

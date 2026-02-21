@@ -1,6 +1,6 @@
-import 'package:fluvita/riverpod/download/epub_page.dart';
-import 'package:fluvita/riverpod/epub_page_content.dart';
+import 'package:fluvita/models/page_content.dart';
 import 'package:fluvita/riverpod/epub_reader_settings.dart';
+import 'package:fluvita/riverpod/providers/book.dart';
 import 'package:fluvita/riverpod/reader.dart';
 import 'package:fluvita/riverpod/reader_navigation.dart';
 import 'package:fluvita/utils/extensions/document_fragment.dart';
@@ -92,7 +92,6 @@ class EpubReader extends _$EpubReader {
     final scrollId = readerState.bookScrollId;
     final pageContent = await ref.watch(
       epubPageProvider(
-        seriesId: seriesId,
         chapterId: chapterId,
         page: currentPage,
       ).future,
