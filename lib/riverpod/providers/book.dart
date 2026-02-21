@@ -12,7 +12,7 @@ Stream<List<BookChapterModel>> bookChapters(
   required int chapterId,
 }) async* {
   final repo = ref.watch(bookRepositoryProvider);
-  yield* repo.watchBookChapters(chapterId);
+  yield* repo.watchBookChapters(chapterId).distinct();
 }
 
 @riverpod

@@ -1,10 +1,8 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:drift/drift.dart';
 import 'package:fluvita/database/app_database.dart';
 import 'package:fluvita/database/converters/page_content_converter.dart';
-import 'package:fluvita/models/enums/format.dart';
 import 'package:fluvita/riverpod/providers/client.dart';
 import 'package:fluvita/riverpod/repository/book_repository.dart';
 import 'package:fluvita/riverpod/repository/chapters_repository.dart';
@@ -12,7 +10,6 @@ import 'package:fluvita/riverpod/repository/database.dart';
 import 'package:fluvita/riverpod/settings.dart';
 import 'package:fluvita/utils/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:rxdart/rxdart.dart';
 
 part 'download_repository.g.dart';
 
@@ -167,17 +164,13 @@ class DownloadRepository {
   // Volume batch operations
   // ---------------------------------------------------------------------------
 
-  /// Emits `({downloaded, total})` for the given set of chapter IDs.
-  /// [chapterIds] must be a stable sorted list; list identity is used for
-  /// provider caching.
-  Stream<({int downloaded, int total})> watchVolumeDownloadProgress({
-    required List<int> chapterIds,
+  /// Emits the download progress as a percentage for all chapters belonging to
+  /// [volumeId].
+  Stream<double> watchVolumeDownloadProgress({
+    required int volumeId,
   }) {
-    final downloadedStream = _db.downloadDao.watchDownloadedChapterCountByIds(
-      chapterIds: chapterIds,
-    );
-    return downloadedStream.map(
-      (downloaded) => (downloaded: downloaded, total: chapterIds.length),
+    return _db.downloadDao.watchDownloadedProgressByVolume(
+      volumeId: volumeId,
     );
   }
 
@@ -189,31 +182,19 @@ class DownloadRepository {
   }
 
   /// Cancels and deletes all downloaded pages for the chapters in [chapterIds].
-  Future<void> deleteVolume({required List<int> chapterIds}) async {
-    for (final id in chapterIds) {
-      await deleteChapter(chapterId: id);
-    }
+  Future<void> deleteVolume({required int volumeId}) async {
+    await _db.downloadDao.deleteVolume(volumeId: volumeId);
   }
 
   // ---------------------------------------------------------------------------
   // Series batch operations
   // ---------------------------------------------------------------------------
 
-  /// Emits `({downloaded, total})` for all chapters belonging to [seriesId].
-  Stream<({int downloaded, int total})> watchSeriesDownloadProgress({
+  /// Emits the download progress as a percentage for all chapters belonging to [seriesId].
+  Stream<double> watchSeriesDownloadProgress({
     required int seriesId,
   }) {
-    final downloadedStream = _db.downloadDao
-        .watchDownloadedChapterCountBySeries(seriesId: seriesId);
-    final totalStream = _db.downloadDao.watchTotalChapterCountBySeries(
-      seriesId: seriesId,
-    );
-
-    return Rx.combineLatest2(
-      downloadedStream,
-      totalStream,
-      (downloaded, total) => (downloaded: downloaded, total: total),
-    );
+    return _db.downloadDao.watchDownloadedProgressBySeries(seriesId: seriesId);
   }
 
   /// Downloads every chapter in [seriesId] sequentially, querying chapter IDs
@@ -227,10 +208,7 @@ class DownloadRepository {
 
   /// Cancels and deletes all downloaded pages for every chapter in [seriesId].
   Future<void> deleteSeries({required int seriesId}) async {
-    final chapters = await _db.seriesDao.allChapters(seriesId: seriesId).get();
-    for (final chapter in chapters) {
-      await deleteChapter(chapterId: chapter.id);
-    }
+    await _db.downloadDao.deleteSeries(seriesId: seriesId);
   }
 }
 

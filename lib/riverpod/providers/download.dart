@@ -10,7 +10,7 @@ Stream<bool> chapterDownloaded(
   required int chapterId,
 }) {
   final repo = ref.watch(downloadRepositoryProvider);
-  return repo.watchIsChapterDownloaded(chapterId: chapterId);
+  return repo.watchIsChapterDownloaded(chapterId: chapterId).distinct();
 }
 
 /// Number of pages currently stored for [chapterId].
@@ -21,29 +21,28 @@ Stream<int> chapterDownloadedPageCount(
   required int chapterId,
 }) {
   final repo = ref.watch(downloadRepositoryProvider);
-  return repo.watchDownloadedPageCount(chapterId: chapterId);
+  return repo.watchDownloadedPageCount(chapterId: chapterId).distinct();
 }
 
-/// Emits `({downloaded, total})` for a volume identified by its chapter IDs.
+/// Emits download progress percent for a volume identified by its chapter IDs.
 ///
 /// [chapterIds] must be a stable sorted list (list identity is used for
 /// provider caching).
 @riverpod
-Stream<({int downloaded, int total})> volumeDownloadProgress(
+Stream<double> volumeDownloadProgress(
   Ref ref, {
-  required List<int> chapterIds,
+  required int volumeId,
 }) {
   final repo = ref.watch(downloadRepositoryProvider);
-  return repo.watchVolumeDownloadProgress(chapterIds: chapterIds);
+  return repo.watchVolumeDownloadProgress(volumeId: volumeId).distinct();
 }
 
-/// Emits `({downloaded, total})` for every chapter belonging to [seriesId].
+/// Emits download progress percent for every chapter belonging to [seriesId].
 @riverpod
-Stream<({int downloaded, int total})> seriesDownloadProgress(
+Stream<double> seriesDownloadProgress(
   Ref ref, {
   required int seriesId,
 }) {
   final repo = ref.watch(downloadRepositoryProvider);
-  return repo.watchSeriesDownloadProgress(seriesId: seriesId);
+  return repo.watchSeriesDownloadProgress(seriesId: seriesId).distinct();
 }
-

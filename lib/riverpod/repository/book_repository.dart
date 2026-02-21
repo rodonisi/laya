@@ -46,6 +46,7 @@ class BookRepository {
     if (await _db.downloadDao
         .isChapterDownloaded(chapterId: chapterId)
         .getSingle()) {
+      log.d('using downloaded page for chapter $chapterId, page $page');
       final p = await _db.downloadDao
           .getPage(chapterId: chapterId, page: page)
           .getSingle();
@@ -63,6 +64,7 @@ class BookRepository {
     if (await _db.downloadDao
         .isChapterDownloaded(chapterId: chapterId)
         .getSingle()) {
+      log.d('using downloaded page for chapter $chapterId, page $page');
       final p = await _db.downloadDao
           .getPage(chapterId: chapterId, page: page)
           .getSingle();

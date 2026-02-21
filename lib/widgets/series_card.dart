@@ -53,12 +53,9 @@ class SeriesCard extends HookConsumerWidget {
         .watch(seriesDownloadProgressProvider(seriesId: state.value.id))
         .value;
 
-    final total = downloadProgress?.total ?? 0;
-    final downloaded = downloadProgress?.downloaded ?? 0;
-    final isAllDownloaded = total > 0 && downloaded >= total;
-    final isDownloading = !isAllDownloaded && downloaded > 0;
-    final downloadRatio =
-        (total > 0 && isDownloading) ? downloaded / total : null;
+    final isAllDownloaded = downloadProgress != null && downloadProgress >= 1.0;
+    final isDownloading =
+        !isAllDownloaded && downloadProgress != null && downloadProgress > 0;
 
     final repo = ref.read(downloadRepositoryProvider);
 
@@ -68,8 +65,8 @@ class SeriesCard extends HookConsumerWidget {
     if (!isAllDownloaded && !isDownloading) {
       onDownloadSeries = () => repo.downloadSeries(seriesId: state.value.id);
     } else {
-      onRemoveSeriesDownload =
-          () => repo.deleteSeries(seriesId: state.value.id);
+      onRemoveSeriesDownload = () =>
+          repo.deleteSeries(seriesId: state.value.id);
     }
 
     return ActionsContextMenu(
@@ -108,7 +105,7 @@ class SeriesCard extends HookConsumerWidget {
         downloadStatusIcon: DownloadStatusIcon(
           isDownloaded: isAllDownloaded,
           isDownloading: isDownloading,
-          progress: downloadRatio,
+          progress: downloadProgress,
         ),
         onTap: () {
           SeriesDetailRoute(

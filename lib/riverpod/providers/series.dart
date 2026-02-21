@@ -10,7 +10,7 @@ part 'series.g.dart';
 @riverpod
 Stream<SeriesModel> series(Ref ref, {required int seriesId}) async* {
   final repo = ref.watch(seriesRepositoryProvider);
-  yield* repo.watchSeries(seriesId);
+  yield* repo.watchSeries(seriesId).distinct();
 }
 
 @riverpod
@@ -19,19 +19,19 @@ Stream<double> seriesProgress(Ref ref, {required int seriesId}) async* {
   final series = repo.watchSeries(seriesId);
   final pagesRead = repo.watchPagesRead(seriesId: seriesId);
 
-  yield* Rx.combineLatest2(series, pagesRead, (s, n) => n / s.pages);
+  yield* Rx.combineLatest2(series, pagesRead, (s, n) => n / s.pages).distinct();
 }
 
 @riverpod
 Stream<ImageModel> seriesCover(Ref ref, {required int seriesId}) async* {
   final repo = ref.watch(seriesRepositoryProvider);
-  yield* repo.watchSeriesCover(seriesId);
+  yield* repo.watchSeriesCover(seriesId).distinct();
 }
 
 @riverpod
 Stream<List<SeriesModel>> allSeries(Ref ref, {int? libraryId}) async* {
   final repo = ref.watch(seriesRepositoryProvider);
-  yield* repo.watchAllSeries(libraryId: libraryId);
+  yield* repo.watchAllSeries(libraryId: libraryId).distinct();
 }
 
 @riverpod
@@ -40,7 +40,7 @@ Stream<SeriesDetailModel> seriesDetail(
   required int seriesId,
 }) async* {
   final repo = ref.watch(seriesRepositoryProvider);
-  yield* repo.watchSeriesDetails(seriesId);
+  yield* repo.watchSeriesDetails(seriesId).distinct();
 }
 
 @riverpod
@@ -49,23 +49,23 @@ Stream<SeriesMetadataModel> seriesMetadata(
   required int seriesId,
 }) async* {
   final repo = ref.watch(seriesMetadataRepositoryProvider);
-  yield* repo.watchSeriesMetadata(seriesId);
+  yield* repo.watchSeriesMetadata(seriesId).distinct();
 }
 
 @riverpod
 Stream<List<SeriesModel>> onDeck(Ref ref) async* {
   final repo = ref.watch(seriesRepositoryProvider);
-  yield* repo.watchOnDeck();
+  yield* repo.watchOnDeck().distinct();
 }
 
 @riverpod
 Stream<List<SeriesModel>> recentlyUpdated(Ref ref) async* {
   final repo = ref.watch(seriesRepositoryProvider);
-  yield* repo.watchRecentlyUpdated();
+  yield* repo.watchRecentlyUpdated().distinct();
 }
 
 @riverpod
 Stream<List<SeriesModel>> recentlyAdded(Ref ref) async* {
   final repo = ref.watch(seriesRepositoryProvider);
-  yield* repo.watchRecentlyAdded();
+  yield* repo.watchRecentlyAdded().distinct();
 }

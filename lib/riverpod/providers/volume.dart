@@ -9,7 +9,7 @@ part 'volume.g.dart';
 @riverpod
 Stream<VolumeModel> volume(Ref ref, {required int volumeId}) async* {
   final repo = ref.watch(volumesRepositoryProvider);
-  yield* repo.watchVolume(volumeId);
+  yield* repo.watchVolume(volumeId).distinct();
 }
 
 @riverpod
@@ -18,11 +18,11 @@ Stream<double> volumeProgress(Ref ref, {required int volumeId}) async* {
   final volume = repo.watchVolume(volumeId);
   final pagesRead = repo.watchPagesRead(volumeId: volumeId);
 
-  yield* Rx.combineLatest2(volume, pagesRead, (v, n) => n / v.pages);
+  yield* Rx.combineLatest2(volume, pagesRead, (v, n) => n / v.pages).distinct();
 }
 
 @riverpod
 Stream<ImageModel> volumeCover(Ref ref, {required int volumeId}) async* {
   final repo = ref.watch(volumesRepositoryProvider);
-  yield* repo.watchVolumeCover(volumeId);
+  yield* repo.watchVolumeCover(volumeId).distinct();
 }

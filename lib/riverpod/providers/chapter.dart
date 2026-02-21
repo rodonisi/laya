@@ -12,7 +12,7 @@ Stream<ChapterModel> chapter(
   required int chapterId,
 }) async* {
   final repo = ref.watch(chaptersRepositoryProvider);
-  yield* repo.watchChapter(chapterId: chapterId);
+  yield* repo.watchChapter(chapterId: chapterId).distinct();
 }
 
 @riverpod
@@ -21,11 +21,15 @@ Stream<double> chapterProgress(Ref ref, {required int chapterId}) async* {
   final chapter = repo.watchChapter(chapterId: chapterId);
   final pagesRead = repo.watchPagesRead(chapterId: chapterId);
 
-  yield* Rx.combineLatest2(chapter, pagesRead, (c, n) => n / c.pages);
+  yield* Rx.combineLatest2(
+    chapter,
+    pagesRead,
+    (c, n) => n / c.pages,
+  ).distinct();
 }
 
 @riverpod
 Stream<ImageModel> chapterCover(Ref ref, {required int chapterId}) async* {
   final repo = ref.watch(chaptersRepositoryProvider);
-  yield* repo.watchChapterCover(chapterId);
+  yield* repo.watchChapterCover(chapterId).distinct();
 }

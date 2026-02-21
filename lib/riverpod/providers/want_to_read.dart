@@ -12,7 +12,7 @@ class WantToRead extends _$WantToRead {
   @override
   Stream<bool> build({required int seriesId}) {
     final repo = ref.watch(wantToReadRepositoryProvider);
-    return repo.watchWantToRead(seriesId);
+    return repo.watchWantToRead(seriesId).distinct();
   }
 
   Future<void> add() async {
@@ -29,5 +29,5 @@ class WantToRead extends _$WantToRead {
 @riverpod
 Stream<List<SeriesModel>> wantToReadList(Ref ref) async* {
   final repo = ref.watch(wantToReadRepositoryProvider);
-  yield* repo.watchWantToReadList();
+  yield* repo.watchWantToReadList().distinct();
 }

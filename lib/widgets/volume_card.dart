@@ -57,16 +57,15 @@ class VolumeCard extends HookConsumerWidget {
     );
 
     final downloadProgress = ref
-        .watch(volumeDownloadProgressProvider(chapterIds: chapterIds))
+        .watch(volumeDownloadProgressProvider(volumeId: volume.id))
         .value;
 
-    final total = downloadProgress?.total ?? chapterIds.length;
-    final downloaded = downloadProgress?.downloaded ?? 0;
-    final isAllDownloaded = total > 0 && downloaded >= total;
-    final isDownloading = !isAllDownloaded && downloaded > 0;
-    final downloadRatio =
-        (total > 0 && isDownloading) ? downloaded / total : null;
-
+    final isAllDownloaded = downloadProgress == 1.0;
+    final isDownloading =
+        downloadProgress != null &&
+        downloadProgress > 0.0 &&
+        downloadProgress < 1.0;
+    final downloadRatio = isDownloading ? downloadProgress : null;
     final repo = ref.read(downloadRepositoryProvider);
 
     void Function()? onDownloadVolume;
@@ -75,8 +74,7 @@ class VolumeCard extends HookConsumerWidget {
     if (!isAllDownloaded && !isDownloading) {
       onDownloadVolume = () => repo.downloadVolume(chapterIds: chapterIds);
     } else {
-      onRemoveVolumeDownload = () =>
-          repo.deleteVolume(chapterIds: chapterIds);
+      onRemoveVolumeDownload = () => repo.deleteVolume(volumeId: volume.id);
     }
 
     return ActionsContextMenu(

@@ -83,9 +83,7 @@ class SyncManager extends _$SyncManager {
   }
 
   Future<void> _syncAllSeries() async {
-    state = const SyncState.syncing(phase: .allSeries);
-
-    await _runPhase(() async {
+    await _runPhase(.allSeries, () async {
       final seriesRepo = ref.read(seriesRepositoryProvider);
       final readerRepo = ref.read(readerRepositoryProvider);
 
@@ -95,9 +93,7 @@ class SyncManager extends _$SyncManager {
   }
 
   Future<void> _syncAllSeriesDetails() async {
-    state = const SyncState.syncing(phase: .seriesDetails);
-
-    await _runPhase(() async {
+    await _runPhase(.seriesDetails, () async {
       final seriesRepo = ref.read(seriesRepositoryProvider);
 
       await seriesRepo.refreshAllSeriesDetails();
@@ -105,9 +101,7 @@ class SyncManager extends _$SyncManager {
   }
 
   Future<void> _syncLibraries() async {
-    state = const SyncState.syncing(phase: .libraries);
-
-    await _runPhase(() async {
+    await _runPhase(.libraries, () async {
       final librariesRepo = ref.read(librariesRepositoryProvider);
       final wantToReadRepo = ref.read(wantToReadRepositoryProvider);
 
@@ -117,9 +111,8 @@ class SyncManager extends _$SyncManager {
   }
 
   Future<void> _syncOnDeck() async {
-    state = const SyncState.syncing(phase: .onDeck);
-
-    await _runPhase(() async {
+    await _runPhase(.onDeck, () async {
+      state = const SyncState.syncing(phase: .onDeck);
       final seriesRepo = ref.read(seriesRepositoryProvider);
 
       await seriesRepo.refreshedOnDeck();
@@ -127,9 +120,8 @@ class SyncManager extends _$SyncManager {
   }
 
   Future<void> _syncRecentlyUpdated() async {
-    state = const SyncState.syncing(phase: .recentlyUpdated);
-
-    await _runPhase(() async {
+    await _runPhase(.recentlyUpdated, () async {
+      state = const SyncState.syncing(phase: .recentlyUpdated);
       final seriesRepo = ref.read(seriesRepositoryProvider);
 
       await seriesRepo.refreshRecentlyUpdated();
@@ -137,9 +129,7 @@ class SyncManager extends _$SyncManager {
   }
 
   Future<void> _syncRecentlyAdded() async {
-    state = const SyncState.syncing(phase: .recentlyAdded);
-
-    await _runPhase(() async {
+    await _runPhase(.recentlyAdded, () async {
       final seriesRepo = ref.read(seriesRepositoryProvider);
 
       await seriesRepo.refreshRecentlyAdded();
@@ -147,9 +137,7 @@ class SyncManager extends _$SyncManager {
   }
 
   Future<void> _syncProgress() async {
-    state = const SyncState.syncing(phase: .progress);
-
-    await _runPhase(() async {
+    await _runPhase(.progress, () async {
       final readerRepo = ref.read(readerRepositoryProvider);
 
       await readerRepo.mergeProgress();
@@ -157,9 +145,7 @@ class SyncManager extends _$SyncManager {
   }
 
   Future<void> _syncCovers() async {
-    state = const SyncState.syncing(phase: .covers);
-
-    await _runPhase(() async {
+    await _runPhase(.covers, () async {
       final seriesRepo = ref.read(seriesRepositoryProvider);
       final volumesRepo = ref.read(volumesRepositoryProvider);
       final chapterRepo = ref.read(chaptersRepositoryProvider);
@@ -172,8 +158,13 @@ class SyncManager extends _$SyncManager {
     });
   }
 
-  Future<void> _runPhase(FutureOr<void> Function() callback) async {
+  Future<void> _runPhase(
+    SyncPhase phase,
+    FutureOr<void> Function() callback,
+  ) async {
     if (!_hasCredentials || !_hasConnection) return;
+
+    state = SyncState.syncing(phase: phase);
 
     try {
       await callback();

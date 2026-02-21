@@ -5,16 +5,24 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'auth.g.dart';
 
-Duration? _retry(int retryCount, Object error) {
-  if (retryCount >= 3) return null;
+class NoCredentialsException implements Exception {}
 
-  return Duration(milliseconds: 200 * (1 << retryCount)); // Exponential backoff
+Duration? _retry(int retryCount, Object error) {
+  if (error is NoCredentialsException || retryCount >= 3) {
+    return null;
+  }
+
+  return Duration(milliseconds: 200 * (1 << retryCount));
 }
 
 @Riverpod(retry: _retry)
 Future<UserModel> currentUser(Ref ref) async {
   final client = ref.watch(restClientProvider);
   final apiKey = ref.watch(apiKeyProvider);
+
+  if (apiKey == null || apiKey.isEmpty) {
+    throw NoCredentialsException();
+  }
 
   final res = await client.apiPluginAuthenticatePost(
     apiKey: apiKey,

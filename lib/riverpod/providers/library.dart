@@ -7,11 +7,11 @@ part 'library.g.dart';
 @riverpod
 Stream<LibraryModel> library(Ref ref, {required int libraryId}) async* {
   final repo = ref.watch(librariesRepositoryProvider);
-  yield* repo.watchLibrary(libraryId);
+  yield* repo.watchLibrary(libraryId).distinct();
 }
 
 @riverpod
 Stream<List<LibraryModel>> libraries(Ref ref) async* {
   final repo = ref.watch(librariesRepositoryProvider);
-  yield* repo.watchLibraries();
+  yield* repo.watchLibraries().distinct();
 }

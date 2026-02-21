@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:fluvita/database/app_database.dart';
 import 'package:fluvita/database/tables/chapters.dart';
 import 'package:fluvita/database/tables/download.dart';
+import 'package:rxdart/rxdart.dart';
 
 part 'download_dao.g.dart';
 
@@ -65,86 +66,97 @@ class DownloadDao extends DatabaseAccessor<AppDatabase>
   }
 
   /// Deletes all downloaded pages for a chapter.
-  Future<void> deleteChapter({required int chapterId}) {
-    return managers.downloadedPages
-        .filter((f) => f.chapterId.id(chapterId))
-        .delete();
+  Future<void> deleteChapter({required int chapterId}) async {
+    await transaction(() async {
+      managers.downloadedPages
+          .filter((f) => f.chapterId.id(chapterId))
+          .delete();
+    });
+  }
+
+  Future<void> deleteVolume({required int volumeId}) async {
+    await transaction(() async {
+      final chapterIdsQuery = selectOnly(chapters)
+        ..addColumns([chapters.id])
+        ..where(chapters.volumeId.equals(volumeId));
+
+      await (delete(
+        downloadedPages,
+      )..where((tbl) => tbl.chapterId.isInQuery(chapterIdsQuery))).go();
+    });
+  }
+
+  Future<void> deleteSeries({required int seriesId}) async {
+    await transaction(() async {
+      final chapterIdsQuery = selectOnly(chapters)
+        ..addColumns([chapters.id])
+        ..where(chapters.seriesId.equals(seriesId));
+
+      await (delete(
+        downloadedPages,
+      )..where((tbl) => tbl.chapterId.isInQuery(chapterIdsQuery))).go();
+    });
   }
 
   // ---------------------------------------------------------------------------
   // Volume / series batch progress queries
   // ---------------------------------------------------------------------------
 
-  /// Reactively emits the number of fully-downloaded chapters whose IDs are in
-  /// [chapterIds]. "Fully downloaded" means `COUNT(downloaded_pages) >= chapters.pages`.
-  ///
-  /// Returns 0 when [chapterIds] is empty.
-  Stream<int> watchDownloadedChapterCountByIds({
-    required List<int> chapterIds,
-  }) {
-    if (chapterIds.isEmpty) return Stream.value(0);
+  /// Reactively emits the percentage of downloaded pages for [volumeId]
+  Stream<double> watchDownloadedProgressByVolume({required int volumeId}) {
+    final totalPagesQuery = selectOnly(chapters)
+      ..addColumns([chapters.pages.sum()])
+      ..where(chapters.volumeId.equals(volumeId));
 
-    final downloadedCount = downloadedPages.chapterId.count();
-    final query = selectOnly(chapters)
-      ..addColumns([chapters.id, chapters.pages, downloadedCount])
-      ..where(chapters.id.isIn(chapterIds));
+    final downloadedCountQuery = selectOnly(downloadedPages)
+      ..addColumns([downloadedPages.chapterId.count()])
+      ..join([
+        innerJoin(chapters, chapters.id.equalsExp(downloadedPages.chapterId)),
+      ])
+      ..where(chapters.volumeId.equals(volumeId));
 
-    query.join([
-      leftOuterJoin(
-        downloadedPages,
-        downloadedPages.chapterId.equalsExp(chapters.id),
-        useColumns: false,
+    return Rx.combineLatest2<int?, int?, double>(
+      totalPagesQuery.watchSingle().map(
+        (row) => row.read(chapters.pages.sum()),
       ),
-    ]);
-
-    query.groupBy([chapters.id, chapters.pages]);
-
-    return query.watch().map((rows) {
-      var fullyDownloaded = 0;
-      for (final row in rows) {
-        final total = row.read(chapters.pages) ?? 0;
-        final downloaded = row.read(downloadedCount) ?? 0;
-        if (total > 0 && downloaded >= total) fullyDownloaded++;
-      }
-      return fullyDownloaded;
-    });
+      downloadedCountQuery.watchSingle().map(
+        (row) => row.read(downloadedPages.chapterId.count()),
+      ),
+      (total, downloaded) {
+        final totalVal = total ?? 0;
+        final downloadedVal = downloaded ?? 0;
+        if (totalVal == 0) return 0.0;
+        return (downloadedVal / totalVal).clamp(0.0, 1.0);
+      },
+    );
   }
 
-  /// Reactively emits the number of fully-downloaded chapters for [seriesId].
-  Stream<int> watchDownloadedChapterCountBySeries({required int seriesId}) {
-    final downloadedCount = downloadedPages.chapterId.count();
-    final query = selectOnly(chapters)
-      ..addColumns([chapters.id, chapters.pages, downloadedCount])
+  /// Reactively emits the percentage of downloaded pages for [seriesId]
+  Stream<double> watchDownloadedProgressBySeries({required int seriesId}) {
+    final totalPagesQuery = selectOnly(chapters)
+      ..addColumns([chapters.pages.sum()])
       ..where(chapters.seriesId.equals(seriesId));
 
-    query.join([
-      leftOuterJoin(
-        downloadedPages,
-        downloadedPages.chapterId.equalsExp(chapters.id),
-        useColumns: false,
+    final downloadedCountQuery = selectOnly(downloadedPages)
+      ..addColumns([downloadedPages.chapterId.count()])
+      ..join([
+        innerJoin(chapters, chapters.id.equalsExp(downloadedPages.chapterId)),
+      ])
+      ..where(chapters.seriesId.equals(seriesId));
+
+    return Rx.combineLatest2<int?, int?, double>(
+      totalPagesQuery.watchSingle().map(
+        (row) => row.read(chapters.pages.sum()),
       ),
-    ]);
-
-    query.groupBy([chapters.id, chapters.pages]);
-
-    return query.watch().map((rows) {
-      var fullyDownloaded = 0;
-      for (final row in rows) {
-        final total = row.read(chapters.pages) ?? 0;
-        final downloaded = row.read(downloadedCount) ?? 0;
-        if (total > 0 && downloaded >= total) fullyDownloaded++;
-      }
-      return fullyDownloaded;
-    });
-  }
-
-  /// Reactively emits the total number of chapters for [seriesId].
-  Stream<int> watchTotalChapterCountBySeries({required int seriesId}) {
-    final countCol = chapters.id.count();
-    final query = selectOnly(chapters)
-      ..addColumns([countCol])
-      ..where(chapters.seriesId.equals(seriesId));
-
-    return query.watchSingle().map((row) => row.read(countCol) ?? 0);
+      downloadedCountQuery.watchSingle().map(
+        (row) => row.read(downloadedPages.chapterId.count()),
+      ),
+      (total, downloaded) {
+        final totalVal = total ?? 0;
+        final downloadedVal = downloaded ?? 0;
+        if (totalVal == 0) return 0.0;
+        return (downloadedVal / totalVal).clamp(0.0, 1.0);
+      },
+    );
   }
 }
