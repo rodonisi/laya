@@ -125,19 +125,28 @@ class SeriesRepository {
   /// Refresh series on deck
   Future<void> refreshOnDeck() async {
     final series = await _client.getOnDeck();
-    await _db.seriesDao.upsertSeriesBatch(series);
+    await _db.transaction(() async {
+      await _db.seriesDao.clearOnDeck();
+      await _db.seriesDao.upsertSeriesBatch(series);
+    });
   }
 
   /// Refresh recently added series
   Future<void> refreshRecentlyAdded() async {
     final series = await _client.getRecentlyAdded();
-    await _db.seriesDao.upsertSeriesBatch(series);
+    await _db.transaction(() async {
+      await _db.seriesDao.clearIsRecentlyAdded();
+      await _db.seriesDao.upsertSeriesBatch(series);
+    });
   }
 
   /// Refresh recently updated series
   Future<void> refreshRecentlyUpdated() async {
     final series = await _client.getRecentlyUpdated();
-    await _db.seriesDao.upsertRecentlyUpdated(series);
+    await _db.transaction(() async {
+      await _db.seriesDao.clearIsRecentlyUpdated();
+      await _db.seriesDao.upsertRecentlyUpdated(series);
+    });
   }
 
   /// Refresh series details for series [seriesId]

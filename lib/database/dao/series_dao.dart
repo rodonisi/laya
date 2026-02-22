@@ -57,7 +57,6 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
   }
 
   Stream<List<SeriesData>> watchOnDeck() {
-    // 1. Start a standard select on the primary table
     final query = select(series)
       ..where((t) => t.isOnDeck.equals(true))
       ..orderBy([

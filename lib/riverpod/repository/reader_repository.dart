@@ -103,8 +103,7 @@ class ReaderRepository {
     );
 
     try {
-      final saved = await _db.readerDao.getProgress(progress.chapterId);
-      await _client.sendProgress(saved!);
+      await mergeProgress();
     } catch (e) {
       log.e('could not send progress', error: e);
     }
@@ -147,33 +146,69 @@ class ReaderRepository {
   /// belonging to this series
   Future<void> markSeriesRead(int seriesId) async {
     await _db.readerDao.markSeriesRead(seriesId, isRead: true);
+
+    try {
+      await mergeProgress();
+    } catch (e) {
+      log.e('could not send progress', error: e);
+    }
   }
 
   /// Mark [seriesId] as unread. This will set the progress for all chapters
   /// belonging to this series
   Future<void> markSeriesUnread(int seriesId) async {
     await _db.readerDao.markSeriesRead(seriesId, isRead: false);
+
+    try {
+      await mergeProgress();
+    } catch (e) {
+      log.e('could not send progress', error: e);
+    }
   }
 
   /// Mark [volumeId] as read. This will set the progress for all chapters
   /// belonging to this volume
   Future<void> markVolumeRead(int seriesId, int volumeId) async {
     await _db.readerDao.markVolumeRead(seriesId, volumeId, isRead: true);
+
+    try {
+      await mergeProgress();
+    } catch (e) {
+      log.e('could not send progress', error: e);
+    }
   }
 
   /// Mark [volumeId] as unread. This will set the progress for all chapters
   /// belonging to this volume
   Future<void> markVolumeUnread(int seriesId, int volumeId) async {
     await _db.readerDao.markVolumeRead(seriesId, volumeId, isRead: false);
+
+    try {
+      await mergeProgress();
+    } catch (e) {
+      log.e('could not send progress', error: e);
+    }
   }
 
   /// Mark [chapterId] as read.
   Future<void> markChapterRead(int seriesId, int chapterId) async {
     await _db.readerDao.markChapterRead(chapterId, isRead: true);
+
+    try {
+      await mergeProgress();
+    } catch (e) {
+      log.e('could not send progress', error: e);
+    }
   }
 
   /// Mark [chapterId] as unread.
   Future<void> markChapterUnread(int seriesId, int chapterId) async {
     await _db.readerDao.markChapterRead(chapterId, isRead: false);
+
+    try {
+      await mergeProgress();
+    } catch (e) {
+      log.e('could not send progress', error: e);
+    }
   }
 }

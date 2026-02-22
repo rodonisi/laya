@@ -109,15 +109,7 @@ class Reader extends _$Reader {
     final current = await future;
     await ref
         .read(readerRepositoryProvider)
-        .saveProgress(
-          ProgressModel(
-            libraryId: current.libraryId,
-            seriesId: current.series.id,
-            volumeId: current.volumeId,
-            chapterId: current.chapter.id,
-            pageNum: current.totalPages,
-          ),
-        );
+        .markChapterRead(current.series.id, current.chapter.id);
   }
 }
 
