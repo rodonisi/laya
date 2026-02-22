@@ -87,16 +87,23 @@ class SeriesMetadataDao extends DatabaseAccessor<AppDatabase>
   Future<void> upsertMetadataBatch(
     Iterable<SeriesMetadataCompanions> metadata,
   ) async {
-    final meta = metadata.map((m) => m.metadata);
-    final ws = metadata.map((m) => m.writers).expand((e) => e);
-    final gs = metadata.map((m) => m.genres).expand((e) => e);
-    final ts = metadata.map((m) => m.tags).expand((e) => e);
+    final items = metadata.toList();
+    final meta = items.map((m) => m.metadata);
+    final ws = items.map((m) => m.writers).expand((e) => e);
+    final gs = items.map((m) => m.genres).expand((e) => e);
+    final ts = items.map((m) => m.tags).expand((e) => e);
+    final prs = items.map((m) => m.peopleRoles).expand((e) => e);
+    final sgs = items.map((m) => m.seriesGenres).expand((e) => e);
+    final sts = items.map((m) => m.seriesTags).expand((e) => e);
 
     await batch((batch) {
       batch.insertAllOnConflictUpdate(seriesMetadata, meta);
       batch.insertAllOnConflictUpdate(people, ws);
       batch.insertAllOnConflictUpdate(genres, gs);
       batch.insertAllOnConflictUpdate(tags, ts);
+      batch.insertAllOnConflictUpdate(seriesPeopleRoles, prs);
+      batch.insertAllOnConflictUpdate(seriesGenres, sgs);
+      batch.insertAllOnConflictUpdate(seriesTags, sts);
     });
   }
 }
@@ -120,11 +127,17 @@ class SeriesMetadataCompanions {
   final Iterable<PeopleCompanion> writers;
   final Iterable<GenresCompanion> genres;
   final Iterable<TagsCompanion> tags;
+  final Iterable<SeriesPeopleRolesCompanion> peopleRoles;
+  final Iterable<SeriesGenresCompanion> seriesGenres;
+  final Iterable<SeriesTagsCompanion> seriesTags;
 
   SeriesMetadataCompanions({
     required this.metadata,
     required this.writers,
     required this.genres,
     required this.tags,
+    required this.peopleRoles,
+    required this.seriesGenres,
+    required this.seriesTags,
   });
 }

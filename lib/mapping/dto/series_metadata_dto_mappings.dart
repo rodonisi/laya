@@ -2,12 +2,18 @@ import 'package:drift/drift.dart';
 import 'package:fluvita/api/openapi.swagger.dart';
 import 'package:fluvita/database/app_database.dart';
 import 'package:fluvita/database/dao/series_metadata_dao.dart';
+import 'package:fluvita/database/tables/series_metadata.dart';
 
 extension SeriesMetadataDtoMappings on SeriesMetadataDto {
   SeriesMetadataCompanions toSeriesMetadataCompanions() {
+    final metadataId = id!;
+    final writersList = writers?.toList() ?? [];
+    final genresList = genres?.toList() ?? [];
+    final tagsList = tags?.toList() ?? [];
+
     return SeriesMetadataCompanions(
       metadata: SeriesMetadataCompanion(
-        id: Value(id!),
+        id: Value(metadataId),
         seriesId: Value(seriesId!),
         summary: Value(summary),
         ageRating: Value(ageRating ?? -1),
@@ -15,33 +21,60 @@ extension SeriesMetadataDtoMappings on SeriesMetadataDto {
         language: Value(language ?? ''),
       ),
       writers:
-          writers
-              ?.map(
+          writersList
+              .map(
                 (writer) => PeopleCompanion(
                   id: Value(writer.id!),
                   name: Value(writer.name!),
                 ),
               )
-              .toList() ??
-          [],
+              .toList(),
       genres:
-          genres
-              ?.map(
+          genresList
+              .map(
                 (genre) => GenresCompanion(
                   id: Value(genre.id!),
                   label: Value(genre.title!),
                 ),
               )
-              .toList() ??
-          [],
+              .toList(),
       tags:
-          tags?.map(
-            (tag) => TagsCompanion(
-              id: Value(tag.id!),
-              label: Value(tag.title!),
-            ),
-          ) ??
-          [],
+          tagsList
+              .map(
+                (tag) => TagsCompanion(
+                  id: Value(tag.id!),
+                  label: Value(tag.title!),
+                ),
+              )
+              .toList(),
+      peopleRoles:
+          writersList
+              .map(
+                (writer) => SeriesPeopleRolesCompanion(
+                  seriesMetadataId: Value(metadataId),
+                  personId: Value(writer.id!),
+                  role: const Value(PeopleRole.writer),
+                ),
+              )
+              .toList(),
+      seriesGenres:
+          genresList
+              .map(
+                (genre) => SeriesGenresCompanion(
+                  seriesMetadataId: Value(metadataId),
+                  genreId: Value(genre.id!),
+                ),
+              )
+              .toList(),
+      seriesTags:
+          tagsList
+              .map(
+                (tag) => SeriesTagsCompanion(
+                  seriesMetadataId: Value(metadataId),
+                  tagId: Value(tag.id!),
+                ),
+              )
+              .toList(),
     );
   }
 }
