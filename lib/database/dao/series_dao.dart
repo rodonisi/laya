@@ -213,14 +213,15 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
 
   Stream<bool> watchWantToRead(int seriesId) {
     return managers.wantToRead
-        .filter((f) => f.seriesId.id(seriesId))
+        .filter((f) => f.seriesId.id(seriesId) & f.isWantToRead(true))
         .watchSingleOrNull()
         .map((i) => i != null && i.isWantToRead);
   }
 
   Stream<List<SeriesData>> watchWantToReadList() {
-    return select(wantToRead)
-        .join([innerJoin(series, series.id.equalsExp(wantToRead.seriesId))])
+    return (select(wantToRead).join([
+          innerJoin(series, series.id.equalsExp(wantToRead.seriesId)),
+        ])..where(wantToRead.isWantToRead.equals(true)))
         .map((res) => res.readTable(series))
         .watch();
   }
@@ -245,7 +246,7 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
     await (update(
       wantToRead,
     )..where((tbl) => tbl.seriesId.equals(seriesId))).write(
-      const WantToReadCompanion(isWantToRead: Value(true), dirty: Value(true)),
+      const WantToReadCompanion(isWantToRead: Value(false), dirty: Value(true)),
     );
   }
 

@@ -95,7 +95,7 @@ class SeriesRepository {
     }
   }
 
-  Future<void> refreshedOnDeck() async {
+  Future<void> refreshOnDeck() async {
     final series = await _client.getOnDeck();
     await _db.seriesDao.upsertSeriesBatch(series);
   }

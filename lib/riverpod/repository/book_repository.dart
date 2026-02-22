@@ -36,7 +36,7 @@ class BookRepository {
   BookRepository(this._db, this._client);
 
   Stream<List<BookChapterModel>> watchBookChapters(int chapterId) {
-    return _db.bookDao.watchBookChapters(chapterId).map(_buildTree);
+    return _db.bookDao.watchToc(chapterId).map(_buildTree);
   }
 
   Future<PageContent> getEpubPage({
@@ -77,9 +77,12 @@ class BookRepository {
     );
   }
 
-  Future<void> refreshBookChapters(int chapterId) async {
-    final entries = await _client.getBookChapters(chapterId);
-    await _db.bookDao.upsertBookChapters(chapterId, entries);
+  Future<void> refreshMissingChaptersTocs() async {
+    final chapters = await _db.bookDao.getMissingChapterIds();
+    for (final id in chapters) {
+      final entries = await _client.getBookChapters(id);
+      await _db.bookDao.upsertToc(id, entries);
+    }
   }
 
   static List<BookChapterModel> _buildTree(
@@ -87,7 +90,9 @@ class BookRepository {
   ) {
     List<BookChapterModel> build(int? parentPage) {
       return rows
-          .where((r) => r.parentPage == parentPage)
+          .where(
+            (r) => r.parentPage == parentPage && r.page != parentPage,
+          )
           .map(
             (r) => BookChapterModel(
               title: r.title,

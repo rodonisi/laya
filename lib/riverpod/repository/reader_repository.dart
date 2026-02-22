@@ -86,7 +86,8 @@ class ReaderRepository {
         .map((chapter) => chapter?.id);
   }
 
-  /// Save reading progress
+  /// Save local progress reading progress, setting the entry as dirty.
+  /// Also tries to push the change to the server.
   Future<void> saveProgress(ProgressModel progress) async {
     await _db.readerDao.upsertProgress(
       ReadingProgressCompanion(
@@ -100,6 +101,13 @@ class ReaderRepository {
         dirty: const Value(true),
       ),
     );
+
+    try {
+      final saved = await _db.readerDao.getProgress(progress.chapterId);
+      await _client.sendProgress(saved!);
+    } catch (e) {
+      log.e('could not send progress', error: e);
+    }
   }
 
   /// Refresh complete progress for continue points. Does not update dirty

@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:fluvita/riverpod/providers/auth.dart';
 import 'package:fluvita/riverpod/providers/connectivity.dart';
 import 'package:fluvita/riverpod/providers/series.dart';
+import 'package:fluvita/riverpod/repository/book_repository.dart';
 import 'package:fluvita/riverpod/repository/chapters_repository.dart';
 import 'package:fluvita/riverpod/repository/libraries_repository.dart';
 import 'package:fluvita/riverpod/repository/reader_repository.dart';
@@ -96,8 +97,10 @@ class SyncManager extends _$SyncManager {
   Future<void> _syncAllSeriesDetails() async {
     await _runPhase(.seriesDetails, () async {
       final seriesRepo = ref.read(seriesRepositoryProvider);
+      final bookRepo = ref.read(bookRepositoryProvider);
 
       await seriesRepo.refreshAllSeriesDetails();
+      await bookRepo.refreshMissingChaptersTocs();
     });
   }
 
@@ -116,7 +119,7 @@ class SyncManager extends _$SyncManager {
       state = const SyncState.syncing(phase: .onDeck);
       final seriesRepo = ref.read(seriesRepositoryProvider);
 
-      await seriesRepo.refreshedOnDeck();
+      await seriesRepo.refreshOnDeck();
     });
   }
 

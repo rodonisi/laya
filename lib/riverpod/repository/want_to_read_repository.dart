@@ -35,7 +35,11 @@ class WantToReadRepository {
 
   Future<void> add(int seriesId) async {
     await _db.seriesDao.upsertWantToRead(
-      WantToReadCompanion(seriesId: Value(seriesId), dirty: const Value(true)),
+      WantToReadCompanion(
+        seriesId: Value(seriesId),
+        isWantToRead: const Value(true),
+        dirty: const Value(true),
+      ),
     );
   }
 
