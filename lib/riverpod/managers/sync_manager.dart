@@ -100,6 +100,7 @@ class SyncManager extends _$SyncManager {
       final bookRepo = ref.read(bookRepositoryProvider);
 
       await seriesRepo.refreshAllSeriesDetails();
+      await seriesRepo.refreshAllSeriesMetadata();
       await bookRepo.refreshMissingChaptersTocs();
     });
   }
