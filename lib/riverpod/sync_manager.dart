@@ -1,4 +1,3 @@
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/widgets.dart';
 import 'package:fluvita/riverpod/providers/auth.dart';
 import 'package:fluvita/riverpod/providers/connectivity.dart';
