@@ -4,10 +4,10 @@ import 'package:drift/drift.dart';
 import 'package:fluvita/database/app_database.dart';
 import 'package:fluvita/database/converters/page_content_converter.dart';
 import 'package:fluvita/riverpod/providers/client.dart';
-import 'package:fluvita/riverpod/repository/book_repository.dart';
-import 'package:fluvita/riverpod/repository/chapters_repository.dart';
-import 'package:fluvita/riverpod/repository/database.dart';
 import 'package:fluvita/riverpod/providers/settings/settings.dart';
+import 'package:fluvita/riverpod/repository/database.dart';
+import 'package:fluvita/sync/book_sync_operations.dart';
+import 'package:fluvita/sync/chapter_sync_operations.dart';
 import 'package:fluvita/utils/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -21,30 +21,26 @@ DownloadRepository downloadRepository(Ref ref) {
 
   return DownloadRepository(
     db: db,
-    bookClient: BookRemoteOperations(client: client, apiKey: apiKey!),
-    chapterClient: ChapterRemoteOperations(client: client, apiKey: apiKey),
+    bookClient: BookSyncOperations(client: client, apiKey: apiKey!),
+    chapterClient: ChapterSyncOperations(client: client, apiKey: apiKey),
   );
 }
 
 class DownloadRepository {
   final AppDatabase _db;
-  final BookRemoteOperations _bookClient;
-  final ChapterRemoteOperations _chapterClient;
+  final BookSyncOperations _bookClient;
+  final ChapterSyncOperations _chapterClient;
 
   /// Tracks active download tasks so duplicate calls are ignored.
   final Map<int, _DownloadTask> _active = {};
 
   DownloadRepository({
     required AppDatabase db,
-    required BookRemoteOperations bookClient,
-    required ChapterRemoteOperations chapterClient,
+    required BookSyncOperations bookClient,
+    required ChapterSyncOperations chapterClient,
   }) : _db = db,
        _bookClient = bookClient,
        _chapterClient = chapterClient;
-
-  // ---------------------------------------------------------------------------
-  // Queries / streams
-  // ---------------------------------------------------------------------------
 
   /// Whether every page of [chapterId] is persisted locally.
   Future<bool> isChapterDownloaded({required int chapterId}) {
@@ -53,7 +49,7 @@ class DownloadRepository {
         .getSingle();
   }
 
-  /// Reactive stream of the full-download flag. Suitable for driving UI.
+  /// Reactive stream of the full-download flag.
   Stream<bool> watchIsChapterDownloaded({required int chapterId}) {
     return _db.downloadDao
         .isChapterDownloaded(chapterId: chapterId)
@@ -61,16 +57,11 @@ class DownloadRepository {
   }
 
   /// Emits the number of pages currently stored for [chapterId].
-  /// Pair with the total page count from the chapter model for a progress ratio.
   Stream<int> watchDownloadedPageCount({required int chapterId}) {
     return _db.downloadDao
         .totalDownloadedPages(chapterId: chapterId)
         .watchSingle();
   }
-
-  // ---------------------------------------------------------------------------
-  // Mutations
-  // ---------------------------------------------------------------------------
 
   /// Downloads every page of [chapterId] and persists the blobs to the DB.
   ///
@@ -160,10 +151,6 @@ class DownloadRepository {
     log.d('deleted local pages for chapter $chapterId');
   }
 
-  // ---------------------------------------------------------------------------
-  // Volume batch operations
-  // ---------------------------------------------------------------------------
-
   /// Emits the download progress as a percentage for all chapters belonging to
   /// [volumeId].
   Stream<double> watchVolumeDownloadProgress({
@@ -185,10 +172,6 @@ class DownloadRepository {
   Future<void> deleteVolume({required int volumeId}) async {
     await _db.downloadDao.deleteVolume(volumeId: volumeId);
   }
-
-  // ---------------------------------------------------------------------------
-  // Series batch operations
-  // ---------------------------------------------------------------------------
 
   /// Emits the download progress as a percentage for all chapters belonging to [seriesId].
   Stream<double> watchSeriesDownloadProgress({

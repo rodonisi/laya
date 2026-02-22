@@ -160,27 +160,24 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
     });
   }
 
-  Future<void> upsertSeriesDetail({
-    required int seriesId,
-    required SeriesDetailCompanions entries,
-  }) async {
+  Future<void> upsertSeriesDetail(SeriesDetailCompanions entry) async {
     await transaction(() async {
-      await db.chaptersDao.clearSeriesChapters(seriesId: seriesId);
-      await db.volumesDao.clearSeriesVolumes(seriesId: seriesId);
+      await db.chaptersDao.clearSeriesChapters(seriesId: entry.seriesId);
+      await db.volumesDao.clearSeriesVolumes(seriesId: entry.seriesId);
       await db.chaptersDao.upsertChapterBatch({
-        ...entries.chapters,
-        ...entries.specials,
-        ...entries.storyline,
+        ...entry.chapters,
+        ...entry.specials,
+        ...entry.storyline,
       });
-      await db.volumesDao.upsertVolumeBatch(entries.volumes);
+      await db.volumesDao.upsertVolumeBatch(entry.volumes);
 
       final s = await (select(
         series,
-      )..where((tbl) => tbl.id.equals(seriesId))).getSingle();
+      )..where((tbl) => tbl.id.equals(entry.seriesId))).getSingle();
 
-      final progress = entries.progress.map(
+      final progress = entry.progress.map(
         (c) => c.copyWith(
-          seriesId: Value(seriesId),
+          seriesId: Value(entry.seriesId),
           libraryId: Value(s.libraryId),
           dirty: const Value(false),
         ),
@@ -234,12 +231,21 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
     await into(wantToRead).insertOnConflictUpdate(entry);
   }
 
-  Future<void> upsertWantToReadBatch(
-    Iterable<WantToReadCompanion> entries,
+  Future<void> upsertWantToReadFromSeriesBatch(
+    Iterable<SeriesCompanion> entries,
   ) async {
-    await batch(
-      (batch) => batch.insertAllOnConflictUpdate(wantToRead, entries),
+    final wantToReads = entries.map(
+      (s) => WantToReadCompanion(seriesId: s.id),
     );
+    await transaction(() async {
+      await clearWantToRead();
+      await batch(
+        (batch) {
+          batch.insertAllOnConflictUpdate(series, entries);
+          batch.insertAllOnConflictUpdate(wantToRead, wantToReads);
+        },
+      );
+    });
   }
 
   Future<void> removeWantToRead({required int seriesId}) async {
@@ -292,6 +298,7 @@ class SeriesDetailWithRelations {
 }
 
 class SeriesDetailCompanions {
+  final int seriesId;
   final Iterable<ChaptersCompanion> storyline;
   final Iterable<ChaptersCompanion> specials;
   final Iterable<ChaptersCompanion> chapters;
@@ -299,6 +306,7 @@ class SeriesDetailCompanions {
   final Iterable<ReadingProgressCompanion> progress;
 
   const SeriesDetailCompanions({
+    required this.seriesId,
     required this.storyline,
     required this.specials,
     required this.chapters,

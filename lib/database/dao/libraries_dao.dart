@@ -10,19 +10,20 @@ class LibrariesDao extends DatabaseAccessor<AppDatabase>
     with _$LibrariesDaoMixin {
   LibrariesDao(super.attachedDatabase);
 
+  /// Watch library [id]
   Stream<Library> watchLibrary(int id) {
-    return (select(
-          libraries,
-        )..where((row) => row.id.equals(id)))
+    return managers.libraries
+        .filter((f) => f.id(id))
         .watchSingleOrNull()
-        .whereNotNull()
-        .distinct();
+        .whereNotNull();
   }
 
+  /// Watch all libraries stored in the db
   Stream<List<Library>> watchLibraries() {
-    return (select(libraries)).watch().distinct();
+    return managers.libraries.watch();
   }
 
+  /// Upsert a batch of [LibrariesCompanion]
   Future<void> upsertLibraries(Iterable<LibrariesCompanion> entries) async {
     await batch((batch) => batch.insertAllOnConflictUpdate(libraries, entries));
   }

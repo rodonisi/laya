@@ -179,6 +179,8 @@ class SyncManager extends _$SyncManager {
         phase: state.whenOrNull(syncing: (phase) => phase) ?? .none,
         error: e,
       );
+
+      return;
     }
 
     state = const SyncState.idle();

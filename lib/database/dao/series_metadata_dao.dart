@@ -20,6 +20,7 @@ class SeriesMetadataDao extends DatabaseAccessor<AppDatabase>
     with _$SeriesMetadataDaoMixin {
   SeriesMetadataDao(super.attachedDatabase);
 
+  /// Get series metadata for series [seriesId]
   Stream<SeriesMetadataWithRelations> watchSeriesMetadata(int seriesId) {
     final query = select(seriesMetadata)
       ..where((row) => row.seriesId.equals(seriesId));
@@ -82,67 +83,20 @@ class SeriesMetadataDao extends DatabaseAccessor<AppDatabase>
     });
   }
 
-  Future<void> upsertMetadata(
-    SeriesMetadataCompanion metadata, {
-    Iterable<PeopleCompanion> writers = const [],
-    Iterable<GenresCompanion> genres = const [],
-    Iterable<TagsCompanion> tags = const [],
-  }) async {
-    await transaction(() async {
-      await into(seriesMetadata).insertOnConflictUpdate(metadata);
-      await (delete(
-        seriesPeopleRoles,
-      )..where((row) => row.seriesMetadataId.equals(metadata.id.value))).go();
-      await (delete(
-        seriesGenres,
-      )..where((row) => row.seriesMetadataId.equals(metadata.id.value))).go();
-      await (delete(
-        seriesTags,
-      )..where((row) => row.seriesMetadataId.equals(metadata.id.value))).go();
+  /// Upsert batch of [SeriesMetadataCompanions]
+  Future<void> upsertMetadataBatch(
+    Iterable<SeriesMetadataCompanions> metadata,
+  ) async {
+    final meta = metadata.map((m) => m.metadata);
+    final ws = metadata.map((m) => m.writers).expand((e) => e);
+    final gs = metadata.map((m) => m.genres).expand((e) => e);
+    final ts = metadata.map((m) => m.tags).expand((e) => e);
 
-      await batch(
-        (batch) {
-          batch.insertAllOnConflictUpdate(people, writers);
-          batch.insertAllOnConflictUpdate(
-            seriesPeopleRoles,
-            writers.map(
-              (entry) => SeriesPeopleRolesCompanion(
-                seriesMetadataId: metadata.id,
-                personId: entry.id,
-                role: const Value(.writer),
-              ),
-            ),
-          );
-        },
-      );
-      await batch(
-        (batch) {
-          batch.insertAllOnConflictUpdate(this.genres, genres);
-          batch.insertAllOnConflictUpdate(
-            seriesGenres,
-            genres.map(
-              (entry) => SeriesGenresCompanion(
-                seriesMetadataId: metadata.id,
-                genreId: entry.id,
-              ),
-            ),
-          );
-        },
-      );
-      await batch(
-        (batch) {
-          batch.insertAllOnConflictUpdate(this.tags, tags);
-          batch.insertAllOnConflictUpdate(
-            seriesTags,
-            tags.map(
-              (entry) => SeriesTagsCompanion(
-                seriesMetadataId: metadata.id,
-                tagId: entry.id,
-              ),
-            ),
-          );
-        },
-      );
+    await batch((batch) {
+      batch.insertAllOnConflictUpdate(seriesMetadata, meta);
+      batch.insertAllOnConflictUpdate(people, ws);
+      batch.insertAllOnConflictUpdate(genres, gs);
+      batch.insertAllOnConflictUpdate(tags, ts);
     });
   }
 }
@@ -154,6 +108,20 @@ class SeriesMetadataWithRelations {
   final List<Tag> tags;
 
   SeriesMetadataWithRelations({
+    required this.metadata,
+    required this.writers,
+    required this.genres,
+    required this.tags,
+  });
+}
+
+class SeriesMetadataCompanions {
+  final SeriesMetadataCompanion metadata;
+  final Iterable<PeopleCompanion> writers;
+  final Iterable<GenresCompanion> genres;
+  final Iterable<TagsCompanion> tags;
+
+  SeriesMetadataCompanions({
     required this.metadata,
     required this.writers,
     required this.genres,

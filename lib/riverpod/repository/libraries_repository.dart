@@ -1,11 +1,8 @@
-import 'package:drift/drift.dart';
-import 'package:fluvita/api/openapi.swagger.dart';
 import 'package:fluvita/database/app_database.dart';
-import 'package:fluvita/models/enums/library_type.dart';
 import 'package:fluvita/models/library_model.dart';
 import 'package:fluvita/riverpod/providers/client.dart';
 import 'package:fluvita/riverpod/repository/database.dart';
-import 'package:fluvita/utils/logging.dart';
+import 'package:fluvita/sync/libraries_sync_operations.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'libraries_repository.g.dart';
@@ -17,61 +14,37 @@ LibrariesRepository librariesRepository(Ref ref) {
 
   return LibrariesRepository(
     db: db,
-    client: LibrariesRemoteOperations(restClient),
+    client: LibrariesSyncOperations(restClient),
   );
 }
 
 class LibrariesRepository {
   final AppDatabase _db;
-  final LibrariesRemoteOperations _client;
+  final LibrariesSyncOperations _client;
 
   const LibrariesRepository({
     required AppDatabase db,
-    required LibrariesRemoteOperations client,
+    required LibrariesSyncOperations client,
   }) : _db = db,
        _client = client;
 
+  /// Watch library [id]
   Stream<LibraryModel> watchLibrary(int id) {
     return _db.librariesDao
         .watchLibrary(id)
         .map(LibraryModel.fromDatabaseModel);
   }
 
+  /// Watch the list of all libraries
   Stream<List<LibraryModel>> watchLibraries() {
     return _db.librariesDao.watchLibraries().map(
       (entries) => entries.map(LibraryModel.fromDatabaseModel).toList(),
     );
   }
 
+  /// Refresh all libraries
   Future<void> refreshLibraries() async {
-    try {
-      final libraries = await _client.getLibraries();
-      _db.librariesDao.upsertLibraries(libraries);
-    } catch (e) {
-      log.e('Failed fetching libraries', error: e);
-    }
-  }
-}
-
-class LibrariesRemoteOperations {
-  final Openapi _client;
-  const LibrariesRemoteOperations(this._client);
-
-  Future<Iterable<LibrariesCompanion>> getLibraries() async {
-    final res = await _client.apiLibraryLibrariesGet();
-
-    if (!res.isSuccessful || res.body == null) {
-      throw Exception('Failed to load libraries: ${res.error}');
-    }
-
-    return res.body!.map(mapLibrariesCompanion);
-  }
-
-  static LibrariesCompanion mapLibrariesCompanion(LibraryDto dto) {
-    return LibrariesCompanion(
-      id: Value(dto.id!),
-      name: Value(dto.name!),
-      type: Value(LibraryType.fromDtoType(dto.type!)),
-    );
+    final libraries = await _client.getLibraries();
+    _db.librariesDao.upsertLibraries(libraries);
   }
 }
