@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:fluvita/riverpod/settings.dart';
+import 'package:fluvita/riverpod/providers/settings/settings.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:fluvita/riverpod/router.dart';
+import 'package:fluvita/riverpod/providers/router.dart';
 import 'package:fluvita/riverpod/providers/auth.dart';
 import 'package:fluvita/utils/layout_constants.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';

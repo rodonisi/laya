@@ -5,7 +5,7 @@ import 'package:fluvita/riverpod/providers/chapter.dart';
 import 'package:fluvita/riverpod/providers/download.dart';
 import 'package:fluvita/riverpod/providers/reader.dart';
 import 'package:fluvita/riverpod/repository/download_repository.dart';
-import 'package:fluvita/riverpod/router.dart';
+import 'package:fluvita/riverpod/providers/router.dart';
 import 'package:fluvita/widgets/actions_menu.dart';
 import 'package:fluvita/widgets/cover_card.dart';
 import 'package:fluvita/widgets/cover_image.dart';
@@ -49,19 +49,20 @@ class ChapterCard extends HookConsumerWidget {
       chapterId: state.value.id,
     );
 
-    final isDownloaded = ref
-        .watch(chapterDownloadedProvider(chapterId: chapter.id))
-        .value ??
+    final isDownloaded =
+        ref.watch(chapterDownloadedProvider(chapterId: chapter.id)).value ??
         false;
-    final downloadedPages = ref
-        .watch(chapterDownloadedPageCountProvider(chapterId: chapter.id))
-        .value ??
+    final downloadedPages =
+        ref
+            .watch(chapterDownloadedPageCountProvider(chapterId: chapter.id))
+            .value ??
         0;
 
     final totalPages = state.value.pages;
     final isDownloading = !isDownloaded && downloadedPages > 0;
-    final downloadProgress =
-        (totalPages > 0 && isDownloading) ? downloadedPages / totalPages : null;
+    final downloadProgress = (totalPages > 0 && isDownloading)
+        ? downloadedPages / totalPages
+        : null;
 
     final repo = ref.read(downloadRepositoryProvider);
 

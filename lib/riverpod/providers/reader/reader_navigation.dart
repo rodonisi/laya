@@ -1,4 +1,4 @@
-import 'package:fluvita/riverpod/reader.dart';
+import 'package:fluvita/riverpod/providers/reader/reader.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 

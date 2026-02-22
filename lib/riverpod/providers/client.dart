@@ -1,6 +1,6 @@
 import 'package:chopper/chopper.dart';
 import 'package:fluvita/api/openapi.swagger.dart';
-import 'package:fluvita/riverpod/settings.dart';
+import 'package:fluvita/riverpod/providers/settings/settings.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'client.g.dart';

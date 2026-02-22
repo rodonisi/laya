@@ -1,5 +1,5 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:fluvita/riverpod/providers/auth.dart';
+import 'package:fluvita/riverpod/providers/client.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'connectivity.g.dart';
@@ -7,13 +7,18 @@ part 'connectivity.g.dart';
 @riverpod
 /// Returns wheter a connection to the server can be established.
 Stream<bool> hasConnection(Ref ref) {
-  final user = ref.watch(currentUserProvider);
+  final ping = ref.watch(pingProvider);
 
   return Connectivity().onConnectivityChanged.asyncMap((results) async {
-    if (results.contains(ConnectivityResult.none) || user.hasError) {
-      return false;
-    }
-
-    return true;
+    return !results.contains(ConnectivityResult.none) &&
+        ping.hasValue &&
+        ping.value!;
   });
+}
+
+@riverpod
+Future<bool> ping(Ref ref) async {
+  final client = ref.watch(restClientProvider);
+  final res = await client.apiAccountRefreshAccountGet();
+  return res.isSuccessful;
 }

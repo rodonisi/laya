@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:fluvita/riverpod/reader.dart';
-import 'package:fluvita/riverpod/reader_navigation.dart';
+import 'package:fluvita/riverpod/providers/reader//reader.dart';
+import 'package:fluvita/riverpod/providers/reader/reader_navigation.dart';
 import 'package:fluvita/utils/layout_constants.dart';
 
 class PageSlider extends HookConsumerWidget {

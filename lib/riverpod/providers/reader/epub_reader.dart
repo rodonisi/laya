@@ -1,8 +1,8 @@
 import 'package:fluvita/models/page_content.dart';
-import 'package:fluvita/riverpod/epub_reader_settings.dart';
+import 'package:fluvita/riverpod/providers/settings/epub_reader_settings.dart';
 import 'package:fluvita/riverpod/providers/book.dart';
-import 'package:fluvita/riverpod/reader.dart';
-import 'package:fluvita/riverpod/reader_navigation.dart';
+import 'package:fluvita/riverpod/providers/reader//reader.dart';
+import 'package:fluvita/riverpod/providers/reader/reader_navigation.dart';
 import 'package:fluvita/utils/extensions/document_fragment.dart';
 import 'package:fluvita/utils/html_constants.dart';
 import 'package:fluvita/utils/logging.dart';

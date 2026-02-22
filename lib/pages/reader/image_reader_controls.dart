@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:fluvita/riverpod/image_reader_settings.dart'
+import 'package:fluvita/riverpod/providers/settings/image_reader_settings.dart'
     show
         ImageReaderSettingsLimits,
         ImageScaleType,

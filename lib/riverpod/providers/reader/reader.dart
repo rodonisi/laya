@@ -9,7 +9,7 @@ import 'package:fluvita/models/series_model.dart';
 import 'package:fluvita/riverpod/providers/chapter.dart';
 import 'package:fluvita/riverpod/providers/reader.dart';
 import 'package:fluvita/riverpod/providers/series.dart';
-import 'package:fluvita/riverpod/image_reader_settings.dart';
+import 'package:fluvita/riverpod/providers/settings/image_reader_settings.dart';
 import 'package:fluvita/riverpod/repository/reader_repository.dart';
 import 'package:fluvita/utils/logging.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';

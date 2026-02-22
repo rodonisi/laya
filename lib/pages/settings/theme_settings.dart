@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:fluvita/riverpod/theme.dart' hide Theme;
+import 'package:fluvita/riverpod/provideres/theme.dart' hide Theme;
 import 'package:fluvita/utils/layout_constants.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 

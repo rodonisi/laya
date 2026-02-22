@@ -7,7 +7,7 @@ import 'package:fluvita/riverpod/providers/client.dart';
 import 'package:fluvita/riverpod/repository/book_repository.dart';
 import 'package:fluvita/riverpod/repository/chapters_repository.dart';
 import 'package:fluvita/riverpod/repository/database.dart';
-import 'package:fluvita/riverpod/settings.dart';
+import 'package:fluvita/riverpod/providers/settings/settings.dart';
 import 'package:fluvita/utils/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 

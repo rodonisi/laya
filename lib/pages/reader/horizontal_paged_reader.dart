@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:fluvita/riverpod/image_reader_settings.dart';
+import 'package:fluvita/riverpod/providers/settings/image_reader_settings.dart';
 import 'package:fluvita/riverpod/providers/book.dart';
-import 'package:fluvita/riverpod/reader.dart';
-import 'package:fluvita/riverpod/reader_navigation.dart';
+import 'package:fluvita/riverpod/providers/reader//reader.dart';
+import 'package:fluvita/riverpod/providers/reader/reader_navigation.dart';
 import 'package:fluvita/widgets/async_value.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 

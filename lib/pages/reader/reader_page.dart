@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:fluvita/pages/reader/epub_reader.dart';
 import 'package:fluvita/pages/reader/image_reader.dart';
-import 'package:fluvita/riverpod/reader.dart';
-import 'package:fluvita/riverpod/sync_manager.dart';
+import 'package:fluvita/riverpod/providers/reader//reader.dart';
+import 'package:fluvita/riverpod/managers/sync_manager.dart';
 import 'package:fluvita/widgets/async_value.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 

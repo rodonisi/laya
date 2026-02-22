@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:fluvita/riverpod/sync_manager.dart';
+import 'package:fluvita/riverpod/managers/sync_manager.dart';
 import 'package:fluvita/widgets/login_guard.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:fluvita/pages/home/collapsible_section.dart';

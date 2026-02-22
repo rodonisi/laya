@@ -6,7 +6,7 @@ import 'package:fluvita/models/chapter_model.dart';
 import 'package:fluvita/models/image_model.dart';
 import 'package:fluvita/riverpod/providers/client.dart';
 import 'package:fluvita/riverpod/repository/database.dart';
-import 'package:fluvita/riverpod/settings.dart';
+import 'package:fluvita/riverpod/providers/settings/settings.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'chapters_repository.g.dart';

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:fluvita/riverpod/image_reader_settings.dart';
+import 'package:fluvita/riverpod/providers/settings/image_reader_settings.dart';
 import 'package:fluvita/riverpod/providers/book.dart';
-import 'package:fluvita/riverpod/reader_navigation.dart';
+import 'package:fluvita/riverpod/providers/reader/reader_navigation.dart';
 import 'package:fluvita/utils/logging.dart';
 import 'package:fluvita/widgets/async_value.dart';
 import 'package:fluvita/widgets/measured_widget.dart';

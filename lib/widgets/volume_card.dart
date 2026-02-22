@@ -5,7 +5,7 @@ import 'package:fluvita/riverpod/providers/download.dart';
 import 'package:fluvita/riverpod/providers/reader.dart';
 import 'package:fluvita/riverpod/providers/volume.dart';
 import 'package:fluvita/riverpod/repository/download_repository.dart';
-import 'package:fluvita/riverpod/router.dart';
+import 'package:fluvita/riverpod/providers/router.dart';
 import 'package:fluvita/widgets/actions_menu.dart';
 import 'package:fluvita/widgets/cover_card.dart';
 import 'package:fluvita/widgets/cover_image.dart';

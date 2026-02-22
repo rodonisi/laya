@@ -5,7 +5,7 @@ import 'package:fluvita/pages/library/libraries_page/sliver_section.dart';
 import 'package:fluvita/utils/layout_constants.dart';
 import 'package:fluvita/widgets/login_guard.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:fluvita/riverpod/router.dart';
+import 'package:fluvita/riverpod/providers/router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class LibraryPage extends ConsumerWidget {
