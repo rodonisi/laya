@@ -8,7 +8,6 @@ import 'package:fluvita/riverpod/providers/client.dart';
 import 'package:fluvita/riverpod/repository/database.dart';
 import 'package:fluvita/utils/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:stream_transform/stream_transform.dart';
 
 part 'reader_repository.g.dart';
 
@@ -26,32 +25,23 @@ class ReaderRepository {
 
   ReaderRepository(this._db, this._client);
 
-  Stream<ChapterModel> watchContinuePoint({required int seriesId}) {
-    refreshContinuePoint(seriesId);
-    return _db.readerDao
-        .watchContinuePoint(seriesId: seriesId)
-        .map(ChapterModel.fromDatabaseModel);
+  Future<ChapterModel> getContinuePoint({required int seriesId}) async {
+    final chapter = await _db.readerDao.getContinuePoint(seriesId: seriesId);
+    return ChapterModel.fromDatabaseModel(chapter);
   }
 
   Stream<double> watchContinuePointProgress({required int seriesId}) {
-    refreshContinuePoint(seriesId);
     return _db.readerDao.watchContinuePointProgress(seriesId: seriesId);
   }
 
-  Future<void> refreshContinuePoint(int seriesId) async {
-    try {
-      final continuePoint = await _client.getContinuePoint(seriesId);
-      await _db.readerDao.upsertContinuePoint(continuePoint);
-    } catch (e) {
-      log.e(e);
-    }
-  }
+  Future<ProgressModel?> getProgress(int chapterId) async {
+    final progress = await _db.readerDao.getProgress(chapterId);
 
-  Stream<ProgressModel> watchProgress(int chapterId) {
-    return _db.readerDao
-        .watchProgress(chapterId)
-        .whereNotNull()
-        .map(ProgressModel.fromDatabaseModel);
+    if (progress == null) {
+      return null;
+    }
+
+    return ProgressModel.fromDatabaseModel(progress);
   }
 
   Future<void> refreshProgress(int chapterId) async {
@@ -108,15 +98,15 @@ class ReaderRepository {
       series.map((s) async {
         final continuePoint = await _client.getContinuePoint(s.id);
         final progress = await _client.getProgress(
-          continuePoint.chapterId.value,
+          continuePoint,
         );
 
         return (continuePoint: continuePoint, progress: progress);
       }),
     );
-    await _db.readerDao.upsertContinuePointBatch(
-      updates.map((u) => u.continuePoint),
-    );
+    // await _db.readerDao.upsertContinuePointBatch(
+    //   updates.map((u) => u.continuePoint),
+    // );
     await _db.readerDao.mergeProgressBatch(
       updates.map((u) => u.progress),
     );
@@ -165,7 +155,7 @@ class ReaderRemoteOperations {
 
   const ReaderRemoteOperations({required Openapi client}) : _client = client;
 
-  Future<ContinuePointsCompanion> getContinuePoint(int seriesId) async {
+  Future<int> getContinuePoint(int seriesId) async {
     final res = await _client.apiReaderContinuePointGet(seriesId: seriesId);
 
     if (!res.isSuccessful || res.body == null) {
@@ -173,10 +163,7 @@ class ReaderRemoteOperations {
     }
 
     final chapterDto = res.body!;
-    return ContinuePointsCompanion(
-      seriesId: Value(seriesId),
-      chapterId: Value(chapterDto.id!),
-    );
+    return chapterDto.id!;
   }
 
   Future<ReadingProgressCompanion> getProgress(int chapterId) async {

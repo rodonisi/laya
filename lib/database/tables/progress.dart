@@ -4,13 +4,13 @@ import 'package:fluvita/database/tables/libraries.dart';
 import 'package:fluvita/database/tables/series.dart';
 import 'package:fluvita/database/tables/volumes.dart';
 
-class ContinuePoints extends Table {
-  IntColumn get seriesId => integer().references(Series, #id)();
-  IntColumn get chapterId => integer().references(Chapters, #id)();
-
-  @override
-  Set<Column<Object>>? get primaryKey => {seriesId};
-}
+// class ContinuePoints extends Table {
+//   IntColumn get seriesId => integer().references(Series, #id)();
+//   IntColumn get chapterId => integer().references(Chapters, #id)();
+//
+//   @override
+//   Set<Column<Object>>? get primaryKey => {seriesId};
+// }
 
 @DataClassName('ReadingProgressData')
 class ReadingProgress extends Table {

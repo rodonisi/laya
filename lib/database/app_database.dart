@@ -44,7 +44,6 @@ part 'app_database.g.dart';
     VolumeCovers,
     Chapters,
     ChapterCovers,
-    ContinuePoints,
     ReadingProgress,
     BookChaptersTable,
     WantToRead,

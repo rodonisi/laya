@@ -6,9 +6,9 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'reader.g.dart';
 
 @riverpod
-Stream<ChapterModel> continuePoint(Ref ref, {required int seriesId}) async* {
+Future<ChapterModel> continuePoint(Ref ref, {required int seriesId}) async {
   final repo = ref.watch(readerRepositoryProvider);
-  yield* repo.watchContinuePoint(seriesId: seriesId).distinct();
+  return await repo.getContinuePoint(seriesId: seriesId);
 }
 
 @riverpod
@@ -18,9 +18,9 @@ Stream<double> continuePointProgress(Ref ref, {required int seriesId}) async* {
 }
 
 @riverpod
-Stream<ProgressModel> bookProgress(Ref ref, {required int chapterId}) async* {
+Future<ProgressModel?> bookProgress(Ref ref, {required int chapterId}) async {
   final repo = ref.watch(readerRepositoryProvider);
-  yield* repo.watchProgress(chapterId).distinct();
+  return await repo.getProgress(chapterId);
 }
 
 @riverpod

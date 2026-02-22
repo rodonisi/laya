@@ -44,15 +44,21 @@ class Reader extends _$Reader {
 
   @override
   Future<ReaderState> build({required int seriesId, int? chapterId}) async {
-    final chapter = chapterId != null
-        ? await ref.watch(
-            chapterProvider(chapterId: chapterId).future,
-          )
-        : await ref.watch(continuePointProvider(seriesId: seriesId).future);
-    final progress = await ref.watch(
+    var chapter = await ref.read(
+      continuePointProvider(seriesId: seriesId).future,
+    );
+
+    if (chapterId != null) {
+      chapter = await ref.watch(
+        chapterProvider(chapterId: chapterId).future,
+      );
+    }
+
+    final progress = await ref.read(
       bookProgressProvider(chapterId: chapter.id).future,
     );
-    final series = await ref.watch(
+
+    final series = await ref.read(
       seriesProvider(seriesId: seriesId).future,
     );
 
@@ -63,8 +69,8 @@ class Reader extends _$Reader {
       chapter: chapter,
       title: chapter.title,
       totalPages: chapter.pages,
-      initialPage: progress.pageNum,
-      bookScrollId: progress.bookScrollId,
+      initialPage: progress?.pageNum ?? 0,
+      bookScrollId: progress?.bookScrollId,
     );
   }
 

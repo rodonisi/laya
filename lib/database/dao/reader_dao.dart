@@ -4,66 +4,60 @@ import 'package:fluvita/database/tables/chapters.dart';
 import 'package:fluvita/database/tables/progress.dart';
 import 'package:fluvita/database/tables/series.dart';
 import 'package:fluvita/utils/logging.dart';
-import 'package:stream_transform/stream_transform.dart';
 
 part 'reader_dao.g.dart';
 
-@DriftAccessor(tables: [Series, Chapters, ContinuePoints, ReadingProgress])
+@DriftAccessor(tables: [Series, Chapters, ReadingProgress])
 class ReaderDao extends DatabaseAccessor<AppDatabase> with _$ReaderDaoMixin {
   ReaderDao(super.attachedDatabase);
 
-  Stream<Chapter> watchContinuePoint({required int seriesId}) {
-    final query = select(continuePoints).join([
-      innerJoin(
-        chapters,
-        chapters.id.equalsExp(continuePoints.chapterId),
-      ),
-    ])..where(continuePoints.seriesId.equals(seriesId));
+  JoinedSelectStatement<HasResultSet, dynamic> continuePointQuery({
+    required int seriesId,
+  }) {
+    return select(chapters).join([
+        leftOuterJoin(
+          readingProgress,
+          readingProgress.chapterId.equalsExp(chapters.id),
+        ),
+      ])
+      ..where(chapters.seriesId.equals(seriesId))
+      ..orderBy([
+        OrderingTerm.desc(
+          readingProgress.chapterId.isNotNull() &
+              readingProgress.pagesRead.isBiggerThan(const Constant(0)) &
+              readingProgress.pagesRead.isSmallerThan(chapters.pages),
+        ),
+        OrderingTerm.desc(
+          readingProgress.chapterId.isNull() |
+              readingProgress.pagesRead.equals(0),
+        ),
+        OrderingTerm.asc(chapters.sortOrder),
+      ])
+      ..limit(1);
+  }
 
-    return query
-        .map((res) => res.readTable(chapters))
-        .watchSingleOrNull()
-        .whereNotNull();
+  Future<Chapter> getContinuePoint({required int seriesId}) {
+    return continuePointQuery(
+      seriesId: seriesId,
+    ).map((row) => row.readTable(chapters)).getSingle();
   }
 
   Stream<double> watchContinuePointProgress({required int seriesId}) {
-    final query = select(continuePoints).join([
-      innerJoin(
-        chapters,
-        chapters.id.equalsExp(continuePoints.chapterId),
-      ),
-      innerJoin(
-        readingProgress,
-        readingProgress.chapterId.equalsExp(continuePoints.chapterId),
-      ),
-    ])..where(continuePoints.seriesId.equals(seriesId));
-
-    return query.watchSingleOrNull().whereNotNull().map((row) {
-      final progress = row.readTable(readingProgress);
+    return continuePointQuery(seriesId: seriesId).watchSingleOrNull().map((
+      row,
+    ) {
+      if (row == null) return 0.0;
       final chapter = row.readTable(chapters);
-
-      if (chapter.pages == 0) return 0.0;
+      final progress = row.readTableOrNull(readingProgress);
+      if (progress == null || chapter.pages == 0) return 0.0;
       return progress.pagesRead / chapter.pages;
     });
   }
 
-  Future<void> upsertContinuePoint(ContinuePointsCompanion entry) async {
-    log.d('upsert continue point $entry');
-    await into(continuePoints).insertOnConflictUpdate(entry);
-  }
-
-  Future<void> upsertContinuePointBatch(
-    Iterable<ContinuePointsCompanion> incoming,
-  ) async {
-    await batch(
-      (batch) => batch.insertAllOnConflictUpdate(continuePoints, incoming),
-    );
-  }
-
-  Stream<ReadingProgressData?> watchProgress(int chapterId) {
+  Future<ReadingProgressData?> getProgress(int chapterId) {
     return (select(
       readingProgress,
-    )..where((row) => row.chapterId.equals(chapterId))).watchSingleOrNull();
+    )..where((row) => row.chapterId.equals(chapterId))).getSingleOrNull();
   }
 
   Future<List<ReadingProgressData>> getDirtyProgress() async {
