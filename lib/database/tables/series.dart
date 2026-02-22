@@ -10,7 +10,6 @@ class Series extends Table {
   TextColumn get localizedName => text().nullable()();
   TextColumn get sortName => text().nullable()();
   IntColumn get libraryId => integer().references(Libraries, #id)();
-
   TextColumn get format => textEnum<Format>()();
   IntColumn get pages => integer().withDefault(const Constant(0))();
   IntColumn get wordCount => integer().withDefault(const Constant(0))();
@@ -26,7 +25,6 @@ class Series extends Table {
 
   DateTimeColumn get created => dateTime()();
   DateTimeColumn get lastChapterAdded => dateTime().nullable()();
-  DateTimeColumn get lastRead => dateTime().nullable()();
   DateTimeColumn get lastSynced => dateTime().withDefault(currentDateAndTime)();
 
   @override

@@ -26,8 +26,17 @@ class ReaderRepository {
   ReaderRepository(this._db, this._client);
 
   Future<ChapterModel> getContinuePoint({required int seriesId}) async {
-    final chapter = await _db.readerDao.getContinuePoint(seriesId: seriesId);
+    final chapter = await _db.readerDao
+        .continuePoint(seriesId: seriesId)
+        .getSingle();
     return ChapterModel.fromDatabaseModel(chapter);
+  }
+
+  Stream<ChapterModel> watchContinuePoint({required int seriesId}) {
+    return _db.readerDao
+        .continuePoint(seriesId: seriesId)
+        .watchSingle()
+        .map(ChapterModel.fromDatabaseModel);
   }
 
   Stream<double> watchContinuePointProgress({required int seriesId}) {
@@ -77,6 +86,7 @@ class ReaderRepository {
         .map((chapter) => chapter?.id);
   }
 
+  /// Save reading progress
   Future<void> saveProgress(ProgressModel progress) async {
     await _db.readerDao.upsertProgress(
       ReadingProgressCompanion(
@@ -92,6 +102,8 @@ class ReaderRepository {
     );
   }
 
+  /// Refresh complete progress for continue points. Does not update dirty
+  /// entries.
   Future<void> refreshContinuePointsAndProgress() async {
     final series = await _db.seriesDao.allSeries().get();
     final updates = await Future.wait(

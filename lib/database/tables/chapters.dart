@@ -26,7 +26,6 @@ class Chapters extends Table {
 
   DateTimeColumn get created => dateTime()();
   DateTimeColumn get lastModified => dateTime()();
-  DateTimeColumn get lastReadingProgress => dateTime()();
 
   @override
   Set<Column<Object>>? get primaryKey => {id};

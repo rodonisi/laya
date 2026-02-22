@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fluvita/riverpod/sync_manager.dart';
 import 'package:fluvita/widgets/login_guard.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:fluvita/pages/home/collapsible_section.dart';
@@ -22,13 +23,11 @@ class HomePageContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    _invalidateProviders(ref);
-
     return SafeArea(
       bottom: false,
       child: RefreshIndicator(
         onRefresh: () async {
-          await _invalidateProviders(ref);
+          await ref.read(syncManagerProvider.notifier).syncHome();
         },
         child: const CustomScrollView(
           slivers: [
@@ -40,12 +39,6 @@ class HomePageContent extends ConsumerWidget {
         ),
       ),
     );
-  }
-
-  Future<void> _invalidateProviders(WidgetRef ref) async {
-    final _ = await ref.refresh(onDeckProvider.future);
-    final _ = await ref.refresh(recentlyUpdatedProvider.future);
-    final _ = await ref.refresh(recentlyAddedProvider.future);
   }
 }
 

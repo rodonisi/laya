@@ -174,7 +174,9 @@ class _Cover extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final continuePoint = ref.watch(continuePointProvider(seriesId: seriesId));
+    final continuePoint = ref.watch(
+      continuePointStreamProvider(seriesId: seriesId),
+    );
     final progress =
         ref
             .watch(

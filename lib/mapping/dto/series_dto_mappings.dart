@@ -20,7 +20,6 @@ extension SeriesDtoMappings on SeriesDto {
       secondaryColor: Value(secondaryColor),
       created: Value.absentIfNull(created),
       lastChapterAdded: Value.absentIfNull(lastChapterAddedUtc),
-      lastRead: Value.absentIfNull(latestReadDate),
       lastSynced: Value(DateTime.timestamp()),
     );
   }

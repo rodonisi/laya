@@ -36,10 +36,10 @@ class ReaderDao extends DatabaseAccessor<AppDatabase> with _$ReaderDaoMixin {
       ..limit(1);
   }
 
-  Future<Chapter> getContinuePoint({required int seriesId}) {
+  SingleSelectable<Chapter> continuePoint({required int seriesId}) {
     return continuePointQuery(
       seriesId: seriesId,
-    ).map((row) => row.readTable(chapters)).getSingle();
+    ).map((row) => row.readTable(chapters));
   }
 
   Stream<double> watchContinuePointProgress({required int seriesId}) {

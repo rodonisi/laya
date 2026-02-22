@@ -57,10 +57,22 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
   }
 
   Stream<List<SeriesData>> watchOnDeck() {
-    return managers.series
-        .filter((f) => f.isOnDeck(true))
-        .orderBy((o) => o.lastRead.desc())
-        .watch();
+    // 1. Start a standard select on the primary table
+    final query = select(series)
+      ..where((t) => t.isOnDeck.equals(true))
+      ..orderBy([
+        (t) {
+          final latestProgress = selectOnly(readingProgress)
+            ..addColumns([readingProgress.lastModified.max()])
+            ..where(readingProgress.seriesId.equalsExp(series.id));
+
+          return OrderingTerm.desc(
+            subqueryExpression<DateTime>(latestProgress),
+          );
+        },
+      ]);
+
+    return query.watch();
   }
 
   Stream<List<SeriesData>> watchRecentlyUpdated() {

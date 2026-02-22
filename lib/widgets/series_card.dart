@@ -44,6 +44,9 @@ class SeriesCard extends HookConsumerWidget {
       return null;
     }, [series]);
 
+    final canRead =
+        ref.watch(canReadSeriesProvider(state.value.id)).value ?? false;
+
     final wantToRead = wantToReadProvider(seriesId: state.value.id);
     final isWantToRead = ref.watch(wantToRead).value ?? false;
 
@@ -113,11 +116,13 @@ class SeriesCard extends HookConsumerWidget {
             seriesId: state.value.id,
           ).push(context);
         },
-        onRead: () {
-          ReaderRoute(
-            seriesId: state.value.id,
-          ).push(context);
-        },
+        onRead: canRead
+            ? () {
+                ReaderRoute(
+                  seriesId: state.value.id,
+                ).push(context);
+              }
+            : null,
       ),
     );
   }

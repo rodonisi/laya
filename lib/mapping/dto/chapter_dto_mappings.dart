@@ -38,7 +38,6 @@ extension ChapterDtoMappings on ChapterDto {
       releaseDate: Value.absentIfNull(releaseDate),
       created: Value.absentIfNull(createdUtc),
       lastModified: Value.absentIfNull(lastModifiedUtc),
-      lastReadingProgress: Value.absentIfNull(lastReadingProgressUtc),
     );
   }
 }

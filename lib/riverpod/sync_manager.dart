@@ -1,5 +1,7 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/widgets.dart';
+import 'package:fluvita/riverpod/providers/auth.dart';
+import 'package:fluvita/riverpod/providers/connectivity.dart';
 import 'package:fluvita/riverpod/providers/series.dart';
 import 'package:fluvita/riverpod/repository/chapters_repository.dart';
 import 'package:fluvita/riverpod/repository/libraries_repository.dart';
@@ -7,7 +9,6 @@ import 'package:fluvita/riverpod/repository/reader_repository.dart';
 import 'package:fluvita/riverpod/repository/series_repository.dart';
 import 'package:fluvita/riverpod/repository/volumes_repository.dart';
 import 'package:fluvita/riverpod/repository/want_to_read_repository.dart';
-import 'package:fluvita/riverpod/settings.dart';
 import 'package:fluvita/utils/logging.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -41,18 +42,20 @@ sealed class SyncState with _$SyncState {
 
 @riverpod
 class SyncManager extends _$SyncManager {
-  bool _hasCredentials = false;
+  bool _hasUser = false;
   bool _hasConnection = false;
 
   @override
   SyncState build() {
-    _listenCredentials();
+    _listenUser();
     _listenConnectivity();
     _listenAppLifecycle();
     return const SyncState.idle();
   }
 
   Future<void> fullSync() async {
+    if (state is SyncingState) return;
+
     await _syncAllSeries();
     await _syncAllSeriesDetails();
     await Future.wait([
@@ -71,6 +74,7 @@ class SyncManager extends _$SyncManager {
       _syncOnDeck(),
       _syncRecentlyUpdated(),
       _syncRecentlyAdded(),
+      _syncProgress(),
     ]);
   }
 
@@ -85,10 +89,8 @@ class SyncManager extends _$SyncManager {
   Future<void> _syncAllSeries() async {
     await _runPhase(.allSeries, () async {
       final seriesRepo = ref.read(seriesRepositoryProvider);
-      final readerRepo = ref.read(readerRepositoryProvider);
 
       await seriesRepo.refreshAllSeries();
-      await readerRepo.refreshContinuePointsAndProgress();
     });
   }
 
@@ -140,6 +142,7 @@ class SyncManager extends _$SyncManager {
     await _runPhase(.progress, () async {
       final readerRepo = ref.read(readerRepositoryProvider);
 
+      await readerRepo.refreshContinuePointsAndProgress();
       await readerRepo.mergeProgress();
     });
   }
@@ -162,7 +165,7 @@ class SyncManager extends _$SyncManager {
     SyncPhase phase,
     FutureOr<void> Function() callback,
   ) async {
-    if (!_hasCredentials || !_hasConnection) return;
+    if (!_hasUser || !_hasConnection) return;
 
     state = SyncState.syncing(phase: phase);
 
@@ -179,34 +182,25 @@ class SyncManager extends _$SyncManager {
     state = const SyncState.idle();
   }
 
-  void _listenCredentials() {
-    ref.listen(settingsProvider, (prev, next) {
-      final creds = next.value;
-      if ((creds?.url?.isEmpty ?? true) || (creds?.apiKey?.isEmpty ?? true)) {
-        return;
-      }
+  void _listenUser() {
+    ref.listen(currentUserProvider, (prev, next) {
+      _hasUser = next.hasValue;
 
-      final prevCreds = prev?.value;
-      final firstLoad =
-          (prevCreds?.url?.isEmpty ?? true) ||
-          (prevCreds?.apiKey?.isEmpty ?? true);
-      final changed =
-          creds?.url != prevCreds?.url || creds?.apiKey != prevCreds?.apiKey;
+      if (next.hasError) return;
 
-      if (firstLoad || changed) fullSync();
-      _hasCredentials =
-          (creds?.url?.isNotEmpty ?? false) &&
-          (creds?.apiKey?.isNotEmpty ?? false);
+      if (prev == null || prev.value != next.value) fullSync();
     });
   }
 
   void _listenConnectivity() {
-    final sub = Connectivity().onConnectivityChanged.listen((results) {
-      final isOnline = results.any((r) => r != ConnectivityResult.none);
-      if (isOnline && !_hasConnection) fullSync();
-      _hasConnection = isOnline;
+    ref.listen(hasConnectionProvider, (prev, next) {
+      next.whenData((good) {
+        _hasConnection = good;
+        if (good && good != prev?.value) {
+          fullSync();
+        }
+      });
     });
-    ref.onDispose(sub.cancel);
   }
 
   void _listenAppLifecycle() {
