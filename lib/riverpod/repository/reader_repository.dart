@@ -104,10 +104,8 @@ class ReaderRepository {
         return (continuePoint: continuePoint, progress: progress);
       }),
     );
-    // await _db.readerDao.upsertContinuePointBatch(
-    //   updates.map((u) => u.continuePoint),
-    // );
-    await _db.readerDao.mergeProgressBatch(
+
+    await _db.readerDao.upsertCleanProgressBatch(
       updates.map((u) => u.progress),
     );
   }
@@ -122,7 +120,7 @@ class ReaderRepository {
       await _client.sendProgress(d);
       updatedProgress.add(await _client.getProgress(d.chapterId));
     }
-    await _db.readerDao.mergeProgressBatch(updatedProgress);
+    await _db.readerDao.upsertProgressBatch(updatedProgress);
   }
 
   Future<void> markSeriesRead(int seriesId) async {

@@ -88,7 +88,17 @@ class ReaderDao extends DatabaseAccessor<AppDatabase> with _$ReaderDaoMixin {
     });
   }
 
-  Future<void> mergeProgressBatch(
+  Future<void> upsertProgressBatch(
+    Iterable<ReadingProgressCompanion> incoming,
+  ) async {
+    await batch(
+      (batch) => batch.insertAllOnConflictUpdate(readingProgress, incoming),
+    );
+  }
+
+  /// Upsert chapter progress batch only where the existing progress is not
+  /// dirty
+  Future<void> upsertCleanProgressBatch(
     Iterable<ReadingProgressCompanion> incoming,
   ) async {
     await transaction(() async {
@@ -107,18 +117,14 @@ class ReaderDao extends DatabaseAccessor<AppDatabase> with _$ReaderDaoMixin {
       for (final entry in incoming) {
         final local = existing[entry.chapterId.value];
 
-        final localWins =
-            local != null &&
-            local.dirty &&
-            (!entry.lastModified.present ||
-                local.lastModified.isAfter(entry.lastModified.value));
+        final localWins = local != null && local.dirty;
 
         if (!localWins) {
           toWrite.add(entry);
         }
       }
 
-      log.d('upserting merged progress batch with ${toWrite.length} entries');
+      log.d('upserting progress batch with ${toWrite.length} entries');
       await batch((b) => b.insertAllOnConflictUpdate(readingProgress, toWrite));
     });
   }

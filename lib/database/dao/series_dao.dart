@@ -155,9 +155,11 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
     await transaction(() async {
       await db.chaptersDao.clearSeriesChapters(seriesId: seriesId);
       await db.volumesDao.clearSeriesVolumes(seriesId: seriesId);
-      await db.chaptersDao.upsertChapterBatch(entries.chapters);
-      await db.chaptersDao.upsertChapterBatch(entries.specials);
-      await db.chaptersDao.upsertChapterBatch(entries.storyline);
+      await db.chaptersDao.upsertChapterBatch({
+        ...entries.chapters,
+        ...entries.specials,
+        ...entries.storyline,
+      });
       await db.volumesDao.upsertVolumeBatch(entries.volumes);
 
       final s = await (select(
@@ -172,7 +174,7 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
         ),
       );
 
-      await db.readerDao.mergeProgressBatch(progress);
+      await db.readerDao.upsertCleanProgressBatch(progress);
     });
   }
 
