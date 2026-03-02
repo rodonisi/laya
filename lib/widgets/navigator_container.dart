@@ -9,6 +9,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 String _phaseLabel(SyncPhase phase) => switch (phase) {
   .allSeries => 'Syncing series...',
   .seriesDetails => 'Syncing series details...',
+  .metadata => 'Syncing metadata...',
   .libraries => 'Syncing libraries...',
   .recentlyAdded => 'Syncing recently added...',
   .recentlyUpdated => 'Syncing recently updated...',
