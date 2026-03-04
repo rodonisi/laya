@@ -68,7 +68,7 @@ class ChapterCard extends HookConsumerWidget {
           downloadStatusIcon: DownloadStatusIcon(
             progress: downloadProgress,
           ),
-          onTap: () {
+          onRead: () {
             ReaderRoute(
               seriesId: seriesId,
               chapterId: chapterId,
