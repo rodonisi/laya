@@ -15,6 +15,8 @@ extension VolumeDtoMappings on VolumeDto {
         name: Value.absentIfNull(name),
         wordCount: Value(wordCount!),
         pages: Value(pages!),
+        minHoursToRead: Value.absentIfNull(minHoursToRead),
+        maxHoursToRead: Value.absentIfNull(maxHoursToRead),
         avgHoursToRead: Value.absentIfNull(avgHoursToRead),
         primaryColor: Value.absentIfNull(primaryColor),
         secondaryColor: Value.absentIfNull(secondaryColor),

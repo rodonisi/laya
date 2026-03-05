@@ -14,7 +14,6 @@ sealed class ChapterModel with _$ChapterModel {
     required int volumeId,
     required String title,
     required int pages,
-    required int totalReads,
     Format? format,
   }) = _ChapterModel;
 
@@ -27,7 +26,6 @@ sealed class ChapterModel with _$ChapterModel {
       volumeId: table.volumeId,
       title: table.title ?? 'Untitled',
       pages: table.pages,
-      totalReads: table.totalReads,
       format: table.format,
     );
   }

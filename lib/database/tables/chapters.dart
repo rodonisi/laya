@@ -12,6 +12,7 @@ class Chapters extends Table {
     onDelete: KeyAction.cascade,
   )();
   TextColumn get title => text().nullable()();
+  TextColumn get titleName => text().nullable()();
   TextColumn get description => text().nullable()();
   TextColumn get summary => text().nullable()();
   TextColumn get isbn => text().nullable()();
@@ -22,10 +23,12 @@ class Chapters extends Table {
   RealColumn get sortOrder => real()();
   IntColumn get pages => integer()();
   IntColumn get wordCount => integer()();
-  RealColumn get avgHoursToRead => real()();
+  IntColumn get minHoursToRead => integer().nullable()();
+  IntColumn get maxHoursToRead => integer().nullable()();
+  RealColumn get avgHoursToRead => real().nullable()();
+  IntColumn get ageRating => integer().nullable()();
   TextColumn get primaryColor => text().nullable()();
   TextColumn get secondaryColor => text().nullable()();
-  IntColumn get totalReads => integer()();
   BoolColumn get isSpecial => boolean().withDefault(const Constant(false))();
   BoolColumn get isStoryline => boolean().withDefault(const Constant(false))();
   DateTimeColumn get releaseDate => dateTime()();
