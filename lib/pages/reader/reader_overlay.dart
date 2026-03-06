@@ -4,10 +4,10 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fluvita/pages/reader/reader_controls.dart';
 import 'package:fluvita/pages/reader/reader_header.dart';
 import 'package:fluvita/pages/reader/toc_drawer.dart';
-import 'package:fluvita/riverpod/api/reader.dart';
-import 'package:fluvita/riverpod/reader.dart';
-import 'package:fluvita/riverpod/reader_navigation.dart';
-import 'package:fluvita/riverpod/router.dart';
+import 'package:fluvita/riverpod/providers/reader.dart';
+import 'package:fluvita/riverpod/providers/reader//reader.dart';
+import 'package:fluvita/riverpod/providers/reader/reader_navigation.dart';
+import 'package:fluvita/riverpod/providers/router.dart';
 import 'package:fluvita/utils/layout_constants.dart';
 import 'package:fluvita/utils/logging.dart';
 import 'package:fluvita/widgets/async_value.dart';
@@ -71,10 +71,10 @@ class ReaderOverlay extends HookConsumerWidget {
               chapterId: chapterId,
             ).select((state) => state.currentPage),
             (previous, next) {
-              if (next <= 0 && prevChapter.asData?.value != null) {
+              if (next <= 0 && prevChapter.value != null) {
                 showSnackbar.value = .previous;
               } else if (next >= state.totalPages - 1 &&
-                  nextChapter.asData?.value != null) {
+                  nextChapter.value != null) {
                 showSnackbar.value = .next;
               } else {
                 showSnackbar.value = .none;
@@ -145,14 +145,14 @@ class ReaderOverlay extends HookConsumerWidget {
                   alignment: .bottomCenter,
                   child:
                       ChapterSnackbar(
-                            title: 'Move to previous chapter',
+                            title: 'Previous: ${prevChapter.value?.title}',
                             onNavigate: () {
                               log.d(
                                 'Navigating to prev chapter ${prevChapter.value}',
                               );
                               ReaderRoute(
                                 seriesId: seriesId,
-                                chapterId: prevChapter.value!,
+                                chapterId: prevChapter.value!.id,
                               ).replace(context);
                             },
                           )
@@ -168,14 +168,14 @@ class ReaderOverlay extends HookConsumerWidget {
                   alignment: .bottomCenter,
                   child:
                       ChapterSnackbar(
-                            title: 'Move to next chapter',
+                            title: 'Next: ${nextChapter.value?.title}',
                             onNavigate: () {
                               log.d(
                                 'Navigating to next chapter ${nextChapter.value}',
                               );
                               ReaderRoute(
                                 seriesId: seriesId,
-                                chapterId: nextChapter.value!,
+                                chapterId: nextChapter.value!.id,
                               ).replace(context);
                             },
                           )
@@ -246,7 +246,12 @@ class ChapterSnackbar extends StatelessWidget {
         child: Row(
           mainAxisAlignment: .spaceBetween,
           children: [
-            Text(title),
+            Expanded(
+              child: Text(
+                title,
+                overflow: .ellipsis,
+              ),
+            ),
             FilledButton(
               onPressed: onNavigate,
               child: const Text('Go'),

@@ -1,18 +1,23 @@
 import 'dart:math' as math;
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluvita/utils/layout_constants.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-class CoverCard extends StatelessWidget {
+class CoverCard extends ConsumerWidget {
   final String? title;
   final Icon? icon;
   final String actionLabel;
   final Icon actionIcon;
+  final Icon? actionDisabledIcon;
+  final bool actionDisabled;
   final double progress;
   final Widget coverImage;
+  final Widget? downloadStatusIcon;
   final void Function()? onTap;
-  final void Function()? onRead;
+  final void Function()? onActionTap;
 
   const CoverCard({
     super.key,
@@ -20,14 +25,17 @@ class CoverCard extends StatelessWidget {
     this.icon,
     this.actionLabel = 'Read',
     this.actionIcon = const Icon(LucideIcons.bookOpen),
-    required this.progress,
+    this.actionDisabledIcon,
+    this.actionDisabled = true,
     required this.coverImage,
+    this.downloadStatusIcon,
     this.onTap,
-    this.onRead,
-  });
+    this.onActionTap,
+    double? progress,
+  }) : progress = progress ?? 0.0;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Card.filled(
       clipBehavior: .antiAlias,
       child: InkWell(
@@ -55,16 +63,36 @@ class CoverCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                  if (onRead != null)
+                  if (onActionTap != null)
                     Align(
                       alignment: .bottomCenter,
                       child: Padding(
                         padding: LayoutConstants.smallEdgeInsets,
-                        child: FilledButton.icon(
-                          icon: actionIcon,
-                          label: FittedBox(child: Text(actionLabel)),
-                          onPressed: onRead,
-                        ),
+                        child: actionDisabled
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(50),
+                                child: BackdropFilter(
+                                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                  child: FilledButton.icon(
+                                    icon: actionDisabledIcon ?? const Icon(LucideIcons.wifiOff),
+                                    label: FittedBox(child: Text(actionLabel)),
+                                    onPressed: null,
+                                  ),
+                                ),
+                              )
+                            : FilledButton.icon(
+                                icon: actionIcon,
+                                label: FittedBox(child: Text(actionLabel)),
+                                onPressed: onActionTap,
+                              ),
+                      ),
+                    ),
+                  if (downloadStatusIcon != null)
+                    Align(
+                      alignment: .topLeft,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: downloadStatusIcon,
                       ),
                     ),
                 ],

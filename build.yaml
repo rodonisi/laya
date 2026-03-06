@@ -2,6 +2,9 @@ global_options:
   freezed:
     runs_before:
       - json_serializable
+  drift_dev:
+    runs_before:
+      - riverpod_generator
 
 targets:
   $default:

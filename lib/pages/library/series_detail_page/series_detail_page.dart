@@ -5,7 +5,7 @@ import 'package:fluvita/widgets/volume_card.dart';
 import 'package:fluvita/widgets/adaptive_sliver_grid.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:fluvita/models/volume_model.dart';
-import 'package:fluvita/riverpod/api/series.dart';
+import 'package:fluvita/riverpod/providers/series.dart';
 import 'package:fluvita/widgets/async_value.dart';
 import 'package:fluvita/widgets/sliver_bottom_padding.dart';
 
@@ -25,22 +25,27 @@ class SeriesDetailPage extends HookConsumerWidget {
           final tabs = <Widget>[];
           final views = <Widget>[];
 
-          final unread = detailsData.chapters.where(
-            (c) => c.totalReads <= 0 || c.progress < 1,
-          );
-          if (unread.isNotEmpty) {
-            tabs.add(Tab(text: 'Unread Chapters (${unread.length})'));
+          if (detailsData.unreadChapters.isNotEmpty) {
+            tabs.add(
+              Tab(
+                text: 'Unread Chapters (${detailsData.unreadChapters.length})',
+              ),
+            );
             views.add(
-              ChapterGrid(seriesId: seriesId, chapters: unread.toList()),
+              ChapterGrid(
+                seriesId: seriesId,
+                chapters: detailsData.unreadChapters,
+              ),
             );
           }
 
-          final unreadVolumes = detailsData.volumes.where(
-            (v) => v.progress < 1.0,
-          );
-          if (unreadVolumes.isNotEmpty) {
-            tabs.add(Tab(text: 'Unread Volumes (${unreadVolumes.length})'));
-            views.add(_VolumeGrid(volumes: unreadVolumes.toList()));
+          if (detailsData.unreadVolumes.isNotEmpty) {
+            tabs.add(
+              Tab(
+                text: 'Unread Volumes (${detailsData.unreadVolumes.length})',
+              ),
+            );
+            views.add(_VolumeGrid(volumes: detailsData.unreadVolumes));
           }
 
           if (detailsData.storyline.isNotEmpty) {
@@ -154,7 +159,7 @@ class _VolumeGrid extends StatelessWidget {
       itemCount: volumes.length,
       builder: (context, index) {
         final volume = volumes[index];
-        return VolumeCard(volume: volume);
+        return VolumeCard(volumeId: volume.id);
       },
     );
   }

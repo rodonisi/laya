@@ -1,9 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
 
-final log = Logger();
-
-class LoggerMixin {
-  final _logger = Logger();
-
-  Logger get log => _logger;
-}
+final log = Logger(level: kDebugMode ? .all : .warning);

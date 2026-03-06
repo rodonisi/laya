@@ -1,91 +1,104 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:fluvita/models/series_model.dart';
-import 'package:fluvita/riverpod/api/reader.dart';
-import 'package:fluvita/riverpod/api/series.dart';
-import 'package:fluvita/riverpod/api/want_to_read.dart';
-import 'package:fluvita/riverpod/router.dart';
+import 'package:fluvita/riverpod/managers/download_manager.dart';
+import 'package:fluvita/riverpod/providers/download.dart';
+import 'package:fluvita/riverpod/providers/reader.dart';
+import 'package:fluvita/riverpod/providers/router.dart';
+import 'package:fluvita/riverpod/providers/series.dart';
+import 'package:fluvita/riverpod/providers/want_to_read.dart';
 import 'package:fluvita/utils/layout_constants.dart';
 import 'package:fluvita/widgets/actions_menu.dart';
+import 'package:fluvita/widgets/async_value.dart';
 import 'package:fluvita/widgets/cover_card.dart';
 import 'package:fluvita/widgets/cover_image.dart';
+import 'package:fluvita/widgets/download_status_icon.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class SeriesCard extends HookConsumerWidget {
   const SeriesCard({
     super.key,
-    required this.series,
+    required this.seriesId,
   });
 
-  final SeriesModel series;
+  final int seriesId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final provider = seriesProvider(seriesId: series.id);
+    final series = ref.watch(seriesProvider(seriesId: seriesId));
+    final progress = ref
+        .watch(seriesProgressProvider(seriesId: seriesId))
+        .value;
 
-    final state = useState(series);
+    final canRead = ref.watch(canReadSeriesProvider(seriesId)).value ?? false;
 
-    ref.listen(provider, (previous, next) {
-      if (next.hasValue) {
-        // keep the name from the argument model as the series endpoint may return a different name
-        state.value = next.value!.copyWith(name: series.name);
-      }
-    });
-
-    useEffect(() {
-      state.value = series;
-      return null;
-    }, [series]);
-
-    final wantToRead = wantToReadProvider(seriesId: state.value.id);
+    final wantToRead = wantToReadProvider(seriesId: seriesId);
     final isWantToRead = ref.watch(wantToRead).value ?? false;
 
-    final markReadProvider = markSeriesReadProvider(seriesId: state.value.id);
+    final markReadProvider = markSeriesReadProvider(seriesId: seriesId);
 
-    return ActionsContextMenu(
-      onMarkRead: () async {
-        await ref.read(markReadProvider.notifier).markRead();
-        ref.invalidate(provider);
-      },
-      onMarkUnread: () async {
-        await ref.read(markReadProvider.notifier).markUnread();
-        ref.invalidate(provider);
-      },
+    final downloadProgress =
+        ref.watch(seriesDownloadProgressProvider(seriesId: seriesId)).value ??
+        0.0;
 
-      onAddWantToRead: isWantToRead
-          ? null
-          : () async {
-              await ref.read(wantToRead.notifier).add();
+    return Async(
+      asyncValue: series,
+      data: (series) => ActionsContextMenu(
+        onMarkRead: () async {
+          await ref.read(markReadProvider.notifier).markRead();
+        },
+        onMarkUnread: () async {
+          await ref.read(markReadProvider.notifier).markUnread();
+        },
+        onAddWantToRead: isWantToRead
+            ? null
+            : () async {
+                await ref.read(wantToRead.notifier).add();
+              },
+        onRemoveWantToRead: isWantToRead
+            ? () async {
+                await ref.read(wantToRead.notifier).remove();
+              }
+            : null,
+        onDownload: downloadProgress < 1.0
+            ? () async {
+                await ref
+                    .read(downloadManagerProvider.notifier)
+                    .enqueueSeries(seriesId);
+              }
+            : null,
+        onRemoveDownload: downloadProgress > 0.0
+            ? () async {
+                await ref
+                    .read(downloadManagerProvider.notifier)
+                    .deleteSeries(seriesId);
+              }
+            : null,
+        child: CoverCard(
+          title: series.name,
+          icon: Icon(
+            switch (series.format) {
+              .epub => LucideIcons.bookText,
+              .archive => LucideIcons.fileArchive,
+              .unknown => LucideIcons.fileQuestionMark,
             },
-      onRemoveWantToRead: isWantToRead
-          ? () async {
-              await ref.read(wantToRead.notifier).remove();
-            }
-          : null,
-      child: CoverCard(
-        title: state.value.name,
-        icon: Icon(
-          switch (state.value.format) {
-            .epub => LucideIcons.bookText,
-            .cbz => LucideIcons.fileArchive,
-            .unknown => LucideIcons.fileQuestionMark,
+            size: LayoutConstants.smallIcon,
+          ),
+          progress: progress,
+          coverImage: SeriesCoverImage(seriesId: seriesId),
+          downloadStatusIcon: DownloadStatusIcon(
+            progress: downloadProgress,
+          ),
+          onTap: () {
+            SeriesDetailRoute(
+              libraryId: series.libraryId,
+              seriesId: seriesId,
+            ).push(context);
           },
-          size: LayoutConstants.smallIcon,
+          onActionTap: () {
+            ReaderRoute(seriesId: seriesId).push(context);
+          },
+          actionDisabled: !canRead,
         ),
-        progress: state.value.progress,
-        coverImage: SeriesCoverImage(seriesId: state.value.id),
-        onTap: () {
-          SeriesDetailRoute(
-            libraryId: state.value.libraryId,
-            seriesId: state.value.id,
-          ).push(context);
-        },
-        onRead: () {
-          ReaderRoute(
-            seriesId: state.value.id,
-          ).push(context);
-        },
       ),
     );
   }

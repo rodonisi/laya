@@ -20,7 +20,7 @@ class SeriesSliverGrid extends StatelessWidget {
       rowCount: rowCount,
       builder: (context, index) {
         final series = this.series[index];
-        return SeriesCard(series: series);
+        return SeriesCard(seriesId: series.id);
       },
     );
   }

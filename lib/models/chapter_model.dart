@@ -1,5 +1,7 @@
+import 'package:fluvita/database/app_database.dart';
+import 'package:fluvita/models/enums/format.dart';
+import 'package:fluvita/utils/data_constants.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:fluvita/api/openapi.swagger.dart';
 
 part 'chapter_model.freezed.dart';
 part 'chapter_model.g.dart';
@@ -13,26 +15,31 @@ sealed class ChapterModel with _$ChapterModel {
     required int volumeId,
     required String title,
     required int pages,
-    required int pagesRead,
-    required int totalReads,
+    Format? format,
   }) = _ChapterModel;
 
   factory ChapterModel.fromJson(Map<String, Object?> json) =>
       _$ChapterModelFromJson(json);
 
-  factory ChapterModel.fromChapterDto(ChapterDto dto) {
+  factory ChapterModel.fromDatabaseModel(Chapter table) {
     return ChapterModel(
-      id: dto.id!,
-      volumeId: dto.volumeId!,
-      title: dto.titleName ?? 'Untitled',
-      pages: dto.pages!,
-      pagesRead: dto.pagesRead!,
-      totalReads: dto.totalReads ?? 0,
+      id: table.id,
+      volumeId: table.volumeId,
+      title: _cleanedTitle(table.title ?? table.titleName) ?? 'Untitled',
+      pages: table.pages,
+      format: table.format,
     );
   }
 
-  double get progress {
-    if (pages == 0) return 0.0;
-    return pagesRead / pages;
+  static String? _cleanedTitle(String? title) {
+    if (title != null && title.isEmpty) return null;
+    if (title != null &&
+        RegExp(
+          '^(Chapter|Book) ${DataConstants.singleVolumeChapterMinNumber.toInt()}',
+        ).hasMatch(title)) {
+      return 'Single Volume';
+    }
+
+    return title;
   }
 }

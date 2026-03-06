@@ -1,12 +1,14 @@
 import 'package:fluvita/api/openapi.swagger.dart';
-import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:fluvita/database/app_database.dart';
+import 'package:fluvita/database/dao/series_dao.dart';
+import 'package:fluvita/database/dao/series_metadata_dao.dart';
 import 'package:fluvita/models/chapter_model.dart';
+import 'package:fluvita/models/enums/format.dart';
 import 'package:fluvita/models/volume_model.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'series_model.freezed.dart';
 part 'series_model.g.dart';
-
-enum Format { epub, cbz, unknown }
 
 @freezed
 sealed class SeriesModel with _$SeriesModel {
@@ -18,7 +20,6 @@ sealed class SeriesModel with _$SeriesModel {
     required String name,
     required Format format,
     required int pages,
-    required int pagesRead,
     required double avgHoursToRead,
     required int? wordCount,
     required String? primaryColor,
@@ -28,55 +29,49 @@ sealed class SeriesModel with _$SeriesModel {
   factory SeriesModel.fromJson(Map<String, Object?> json) =>
       _$SeriesModelFromJson(json);
 
-  factory SeriesModel.fromSeriesDto(SeriesDto dto) {
+  factory SeriesModel.fromDatabaseModel(SeriesData table) {
     return SeriesModel(
-      id: dto.id!,
-      libraryId: dto.libraryId!,
-      name: dto.name ?? 'Untitled',
-      format: switch (dto.format) {
-        3 => Format.epub,
-        1 => Format.cbz,
-        _ => Format.unknown,
-      },
-      pages: dto.pages!,
-      pagesRead: dto.pagesRead!,
-      avgHoursToRead: dto.avgHoursToRead!,
-      wordCount: dto.wordCount,
-      primaryColor: dto.primaryColor,
-      secondaryColor: dto.secondaryColor,
+      id: table.id,
+      libraryId: table.libraryId,
+      name: table.name,
+      format: table.format,
+      pages: table.pages,
+      avgHoursToRead: table.avgHoursToRead ?? 0,
+      wordCount: table.wordCount,
+      primaryColor: table.primaryColor,
+      secondaryColor: table.secondaryColor,
     );
-  }
-
-  double get progress {
-    if (pages == 0) return 0.0;
-    return pagesRead / pages;
   }
 }
 
 @freezed
 sealed class SeriesDetailModel with _$SeriesDetailModel {
   const factory SeriesDetailModel({
-    required int totalChapters,
-    required int unreadCount,
     required List<ChapterModel> storyline,
     required List<VolumeModel> volumes,
     required List<ChapterModel> chapters,
     required List<ChapterModel> specials,
+    required List<ChapterModel> unreadChapters,
+    required List<VolumeModel> unreadVolumes,
   }) = _SeriesDetailModel;
 
   factory SeriesDetailModel.fromJson(Map<String, Object?> json) =>
       _$SeriesDetailModelFromJson(json);
 
-  factory SeriesDetailModel.fromSeriesDetailDto(SeriesDetailDto dto) {
+  factory SeriesDetailModel.fromDatabaseModel(SeriesDetailWithRelations model) {
     return SeriesDetailModel(
-      totalChapters: dto.totalCount!,
-      unreadCount: dto.unreadCount!,
-      storyline:
-          dto.storylineChapters?.map(ChapterModel.fromChapterDto).toList() ??
-          [],
-      volumes: dto.volumes?.map(VolumeModel.fromVolumeDto).toList() ?? [],
-      chapters: dto.chapters?.map(ChapterModel.fromChapterDto).toList() ?? [],
-      specials: dto.specials?.map(ChapterModel.fromChapterDto).toList() ?? [],
+      storyline: model.storylineChapters
+          .map(ChapterModel.fromDatabaseModel)
+          .toList(),
+      volumes: model.volumes.map(VolumeModel.fromDatabaseModel).toList(),
+      chapters: model.chapters.map(ChapterModel.fromDatabaseModel).toList(),
+      specials: model.specials.map(ChapterModel.fromDatabaseModel).toList(),
+      unreadChapters: model.unreadChapters
+          .map(ChapterModel.fromDatabaseModel)
+          .toList(),
+      unreadVolumes: model.unreadVolumes
+          .map(VolumeModel.fromDatabaseModel)
+          .toList(),
     );
   }
 }
@@ -139,6 +134,33 @@ sealed class SeriesMetadataModel with _$SeriesMetadataModel {
       summary: dto.summary,
       writers: dto.writers?.map(PersonModel.fromPersonDto).toList() ?? [],
       genres: dto.genres?.map(GenreModel.fromGenreTagDto).toList() ?? [],
+    );
+  }
+
+  factory SeriesMetadataModel.fromDatabaseModel(
+    SeriesMetadataWithRelations data,
+  ) {
+    return SeriesMetadataModel(
+      seriesId: data.metadata?.seriesId ?? 0,
+      totalChapters: 0,
+      releaseYear: data.metadata?.releaseYear,
+      summary: data.metadata?.summary,
+      writers: data.writers
+          .map(
+            (writer) => PersonModel(
+              id: writer.id,
+              name: writer.name,
+            ),
+          )
+          .toList(),
+      genres: data.genres
+          .map(
+            (genre) => GenreModel(
+              id: genre.id,
+              name: genre.label,
+            ),
+          )
+          .toList(),
     );
   }
 }

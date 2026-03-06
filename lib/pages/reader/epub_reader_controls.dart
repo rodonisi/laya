@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:fluvita/models/read_direction.dart';
-import 'package:fluvita/riverpod/epub_reader_settings.dart';
+import 'package:fluvita/riverpod/providers/settings/epub_reader_settings.dart';
 import 'package:fluvita/utils/layout_constants.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class EpubReaderControls extends ConsumerWidget {
-  const EpubReaderControls({super.key});
+  final int seriesId;
+  const EpubReaderControls({super.key, required this.seriesId});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return IconButton(
@@ -17,7 +18,9 @@ class EpubReaderControls extends ConsumerWidget {
           context: context,
           showDragHandle: true,
           isScrollControlled: true,
-          builder: (context) => const _ReaderSettingsBottomSheet(),
+          builder: (context) => _ReaderSettingsBottomSheet(
+            seriesId: seriesId,
+          ),
         );
       },
     );
@@ -25,12 +28,15 @@ class EpubReaderControls extends ConsumerWidget {
 }
 
 class _ReaderSettingsBottomSheet extends ConsumerWidget {
-  const _ReaderSettingsBottomSheet();
+  final int seriesId;
+  const _ReaderSettingsBottomSheet({required this.seriesId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(epubReaderSettingsProvider);
-    final notifier = ref.read(epubReaderSettingsProvider.notifier);
+    final settings = ref.watch(epubReaderSettingsProvider(seriesId: seriesId));
+    final notifier = ref.read(
+      epubReaderSettingsProvider(seriesId: seriesId).notifier,
+    );
 
     return SingleChildScrollView(
       child: Padding(
@@ -109,13 +115,24 @@ class _ReaderSettingsBottomSheet extends ConsumerWidget {
                   ? notifier.increaseLineHeight
                   : null,
             ),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.tonalIcon(
-                onPressed: notifier.reset,
-                icon: const Icon(LucideIcons.rotateCcw),
-                label: const Text('Reset to Defaults'),
-              ),
+            Row(
+              spacing: LayoutConstants.mediumPadding,
+              children: [
+                Expanded(
+                  child: FilledButton.tonalIcon(
+                    onPressed: notifier.setDefault,
+                    icon: const Icon(LucideIcons.save),
+                    label: const Text('Use as Defaults'),
+                  ),
+                ),
+                Expanded(
+                  child: FilledButton.tonalIcon(
+                    onPressed: notifier.reset,
+                    icon: const Icon(LucideIcons.rotateCcw),
+                    label: const Text('Reset to Defaults'),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

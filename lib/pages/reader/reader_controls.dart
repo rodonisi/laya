@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:fluvita/riverpod/reader_navigation.dart';
+import 'package:fluvita/riverpod/providers/reader/reader_navigation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:fluvita/pages/reader/epub_reader_controls.dart';
 import 'package:fluvita/pages/reader/image_reader_controls.dart';
 import 'package:fluvita/pages/reader/page_slider.dart';
-import 'package:fluvita/riverpod/reader.dart';
+import 'package:fluvita/riverpod/providers/reader//reader.dart';
 import 'package:fluvita/utils/layout_constants.dart';
 
 class ReaderControls extends HookConsumerWidget {
@@ -49,8 +49,8 @@ class ReaderControls extends HookConsumerWidget {
                         .jumpToPage(page),
                   ),
                 ),
-                if (format == .epub) const EpubReaderControls(),
-                if (format == .cbz) const ImageReaderControls(),
+                if (format == .epub) EpubReaderControls(seriesId: seriesId),
+                if (format == .archive) ImageReaderControls(seriesId: seriesId),
               ],
             ),
           ],

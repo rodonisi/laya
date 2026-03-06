@@ -96,4 +96,3 @@ class NodeCursor {
     return false;
   }
 }
-

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:fluvita/riverpod/image_reader_settings.dart'
+import 'package:fluvita/riverpod/providers/settings/image_reader_settings.dart'
     show
         ImageReaderSettingsLimits,
         ImageScaleType,
@@ -11,7 +11,8 @@ import 'package:fluvita/utils/layout_constants.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class ImageReaderControls extends ConsumerWidget {
-  const ImageReaderControls({super.key});
+  final int seriesId;
+  const ImageReaderControls({super.key, required this.seriesId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -23,7 +24,8 @@ class ImageReaderControls extends ConsumerWidget {
           context: context,
           showDragHandle: true,
           isScrollControlled: true,
-          builder: (context) => const _ImageReaderSettingsBottomSheet(),
+          builder: (context) =>
+              _ImageReaderSettingsBottomSheet(seriesId: seriesId),
         );
       },
     );
@@ -31,12 +33,16 @@ class ImageReaderControls extends ConsumerWidget {
 }
 
 class _ImageReaderSettingsBottomSheet extends ConsumerWidget {
-  const _ImageReaderSettingsBottomSheet();
+  final int seriesId;
+
+  const _ImageReaderSettingsBottomSheet({required this.seriesId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(imageReaderSettingsProvider);
-    final notifier = ref.read(imageReaderSettingsProvider.notifier);
+    final settings = ref.watch(imageReaderSettingsProvider(seriesId: seriesId));
+    final notifier = ref.read(
+      imageReaderSettingsProvider(seriesId: seriesId).notifier,
+    );
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.only(
@@ -162,14 +168,24 @@ class _ImageReaderSettingsBottomSheet extends ConsumerWidget {
                   ),
                 ],
               ),
-
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.tonalIcon(
-                onPressed: notifier.reset,
-                icon: const Icon(LucideIcons.rotateCcw),
-                label: const Text('Reset to Defaults'),
-              ),
+            Row(
+              spacing: LayoutConstants.mediumPadding,
+              children: [
+                Expanded(
+                  child: FilledButton.tonalIcon(
+                    onPressed: notifier.setDefault,
+                    icon: const Icon(LucideIcons.save),
+                    label: const Text('Use as Defaults'),
+                  ),
+                ),
+                Expanded(
+                  child: FilledButton.tonalIcon(
+                    onPressed: notifier.reset,
+                    icon: const Icon(LucideIcons.rotateCcw),
+                    label: const Text('Reset to Defaults'),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

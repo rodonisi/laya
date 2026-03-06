@@ -1,6 +1,6 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:fluvita/api/openapi.swagger.dart';
+import 'package:fluvita/database/dao/volumes_dao.dart';
 import 'package:fluvita/models/chapter_model.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'volume_model.freezed.dart';
 part 'volume_model.g.dart';
@@ -15,7 +15,6 @@ sealed class VolumeModel with _$VolumeModel {
     required int seriesId,
     required List<ChapterModel> chapters,
     required int pages,
-    required int pagesRead,
     double? avgHoursToRead,
     int? wordCount,
     String? primaryColor,
@@ -25,23 +24,17 @@ sealed class VolumeModel with _$VolumeModel {
   factory VolumeModel.fromJson(Map<String, dynamic> json) =>
       _$VolumeModelFromJson(json);
 
-  factory VolumeModel.fromVolumeDto(VolumeDto dto) {
+  factory VolumeModel.fromDatabaseModel(VolumeWithRelations data) {
     return VolumeModel(
-      id: dto.id!,
-      seriesId: dto.seriesId!,
-      name: dto.name!,
-      chapters: dto.chapters?.map(ChapterModel.fromChapterDto).toList() ?? [],
-      pages: dto.pages!,
-      pagesRead: dto.pagesRead!,
-      avgHoursToRead: dto.avgHoursToRead,
-      wordCount: dto.wordCount,
-      primaryColor: dto.primaryColor,
-      secondaryColor: dto.secondaryColor,
+      id: data.volume.id,
+      seriesId: data.volume.seriesId,
+      name: data.volume.name ?? '',
+      chapters: data.chapters.map(ChapterModel.fromDatabaseModel).toList(),
+      pages: data.volume.pages,
+      avgHoursToRead: data.volume.avgHoursToRead,
+      wordCount: data.volume.wordCount,
+      primaryColor: data.volume.primaryColor,
+      secondaryColor: data.volume.secondaryColor,
     );
-  }
-
-  double get progress {
-    if (pages == 0) return 0.0;
-    return pagesRead / pages;
   }
 }

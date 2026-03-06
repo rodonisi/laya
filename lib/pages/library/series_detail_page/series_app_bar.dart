@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:fluvita/models/series_model.dart';
 import 'package:fluvita/pages/library/series_detail_page/series_info_background.dart';
-import 'package:fluvita/riverpod/api/reader.dart';
-import 'package:fluvita/riverpod/router.dart';
+import 'package:fluvita/riverpod/managers/download_manager.dart';
+import 'package:fluvita/riverpod/providers/download.dart';
+import 'package:fluvita/riverpod/providers/reader.dart';
+import 'package:fluvita/riverpod/providers/router.dart';
+import 'package:fluvita/riverpod/providers/series.dart';
 import 'package:fluvita/utils/layout_constants.dart';
 import 'package:fluvita/widgets/actions_menu.dart';
 import 'package:fluvita/widgets/adaptive_sliver_app_bar.dart';
-import 'package:fluvita/riverpod/api/series.dart';
 import 'package:fluvita/widgets/async_value.dart';
 import 'package:fluvita/widgets/cover_card.dart';
 import 'package:fluvita/widgets/cover_image.dart';
@@ -26,6 +29,9 @@ class SeriesAppBar extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final series = ref.watch(seriesProvider(seriesId: seriesId));
+    final downloadProgress =
+        ref.watch(seriesDownloadProgressProvider(seriesId: seriesId)).value ??
+        0.0;
 
     return AsyncSliver(
       asyncValue: series,
@@ -36,7 +42,6 @@ class SeriesAppBar extends HookConsumerWidget {
           actions: [
             WantToReadToggle(seriesId: data.id),
             ActionsMenuButton(
-              child: const Icon(LucideIcons.ellipsisVertical),
               onMarkRead: () async {
                 await ref
                     .read(
@@ -61,13 +66,27 @@ class SeriesAppBar extends HookConsumerWidget {
                   seriesDetailProvider(seriesId: seriesId),
                 );
               },
+              onDownload: downloadProgress < 1.0
+                  ? () async {
+                      await ref
+                          .read(downloadManagerProvider.notifier)
+                          .enqueueSeries(seriesId);
+                    }
+                  : null,
+              onRemoveDownload: downloadProgress > 0.0
+                  ? () async {
+                      await ref
+                          .read(downloadManagerProvider.notifier)
+                          .deleteSeries(seriesId);
+                    }
+                  : null,
+              child: const Icon(LucideIcons.ellipsisVertical),
             ),
           ],
           background: SeriesInfoBackground(
             primaryColor: data.primaryColor,
             secondaryColor: data.secondaryColor,
           ),
-
           child: _SeriesInfo(seriesId: seriesId),
         );
       },
@@ -84,82 +103,92 @@ class _SeriesInfo extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final series = ref.watch(seriesProvider(seriesId: seriesId));
-    final metadata = ref.watch(seriesMetadataProvider(seriesId: seriesId));
+    return Async(
+      asyncValue: series,
+      data: (series) => Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: LayoutConstants.largePadding,
+        ),
+        child: Column(
+          spacing: LayoutConstants.largePadding,
+          crossAxisAlignment: .start,
+          mainAxisAlignment: .start,
+          mainAxisSize: .min,
+          children: [
+            const SizedBox.square(dimension: kToolbarHeight),
+            Text(
+              series.name,
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
+            Row(
+              spacing: LayoutConstants.largePadding,
+              children: [
+                SizedBox(
+                  height: 250,
+                  child: _Cover(seriesId: series.id),
+                ),
+                Expanded(
+                  child: _Metadata(
+                    series: series,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Metadata extends ConsumerWidget {
+  final SeriesModel series;
+  const _Metadata({
+    required this.series,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final metadata = ref.watch(seriesMetadataProvider(seriesId: series.id));
     return Async(
       asyncValue: metadata,
-      data: (metadata) => Async(
-        asyncValue: series,
-        data: (series) => Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: LayoutConstants.largePadding,
-          ),
-          child: Column(
-            spacing: LayoutConstants.largePadding,
-            crossAxisAlignment: .start,
-            mainAxisAlignment: .start,
-            mainAxisSize: .min,
+      data: (metadata) => Column(
+        crossAxisAlignment: .start,
+        spacing: LayoutConstants.largePadding,
+        children: [
+          Wrap(
+            spacing: LayoutConstants.mediumPadding,
+            runSpacing: LayoutConstants.mediumPadding,
+            alignment: .spaceBetween,
             children: [
-              const SizedBox.square(dimension: kToolbarHeight),
-              Text(
-                series.name,
-                style: Theme.of(context).textTheme.headlineMedium,
+              if ((series.wordCount ?? 0) > 0)
+                WordCount(wordCount: series.wordCount!),
+              Pages(pages: series.pages),
+              RemainingHours(
+                hours: series.avgHoursToRead,
               ),
-              Row(
-                spacing: LayoutConstants.largePadding,
-                children: [
-                  SizedBox(
-                    height: 250,
-                    child: _Cover(seriesId: series.id),
-                  ),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: .start,
-                      spacing: LayoutConstants.largePadding,
-                      children: [
-                        Wrap(
-                          spacing: LayoutConstants.mediumPadding,
-                          runSpacing: LayoutConstants.mediumPadding,
-                          alignment: .spaceBetween,
-                          children: [
-                            if ((series.wordCount ?? 0) > 0)
-                              WordCount(wordCount: series.wordCount!),
-                            Pages(pages: series.pages),
-                            RemainingHours(
-                              hours: series.avgHoursToRead,
-                            ),
-                            if (metadata.releaseYear != null)
-                              ReleaseYear(
-                                releaseYear: metadata.releaseYear!,
-                              ),
-                          ],
-                        ),
-                        Wrap(
-                          spacing: LayoutConstants.mediumPadding,
-                          runSpacing: LayoutConstants.mediumPadding,
-                          alignment: .spaceBetween,
-                          children: [
-                            LimitedList(
-                              title: 'Writers',
-                              items: metadata.writers
-                                  .map((w) => w.name)
-                                  .toList(),
-                            ),
-                            LimitedList(
-                              title: 'Genres',
-                              items: metadata.genres
-                                  .map((a) => a.name)
-                                  .toList(),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+              if (metadata.releaseYear != null)
+                ReleaseYear(
+                  releaseYear: metadata.releaseYear!,
+                ),
+            ],
+          ),
+          Wrap(
+            spacing: LayoutConstants.mediumPadding,
+            runSpacing: LayoutConstants.mediumPadding,
+            alignment: .spaceBetween,
+            children: [
+              LimitedList(
+                title: 'Writers',
+                items: metadata.writers.map((w) => w.name).toList(),
+              ),
+              LimitedList(
+                title: 'Genres',
+                items: metadata.genres.map((a) => a.name).toList(),
               ),
             ],
           ),
-        ),
+        ],
       ),
     );
   }
@@ -174,7 +203,18 @@ class _Cover extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final continuePoint = ref.watch(continuePointProvider(seriesId: seriesId));
+    final continuePoint = ref.watch(
+      continuePointStreamProvider(seriesId: seriesId),
+    );
+    final canRead = ref.watch(canReadSeriesProvider(seriesId)).value ?? false;
+    final progress =
+        ref
+            .watch(
+              continuePointProgressProvider(seriesId: seriesId),
+            )
+            .value ??
+        0.0;
+
     return AspectRatio(
       aspectRatio: LayoutConstants.chapterCardAspectRatio,
       child: Async(
@@ -182,12 +222,13 @@ class _Cover extends ConsumerWidget {
         data: (data) => CoverCard(
           title: data.title,
           actionLabel: 'Continue',
-          progress: data.progress,
+          actionDisabled: !canRead,
+          progress: progress,
           coverImage: SeriesCoverImage(
             seriesId: seriesId,
             fit: BoxFit.cover,
           ),
-          onRead: () {
+          onActionTap: () {
             continuePoint.whenData((chapter) {
               ReaderRoute(
                 seriesId: seriesId,

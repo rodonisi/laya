@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fluvita/models/volume_model.dart';
 import 'package:fluvita/pages/library/series_detail_page/series_app_bar.dart';
 import 'package:fluvita/pages/library/volume_detail_page/volume_app_bar.dart';
-import 'package:fluvita/riverpod/api/volume.dart';
+import 'package:fluvita/riverpod/providers/volume.dart';
 import 'package:fluvita/widgets/chapter_grid.dart';
 import 'package:fluvita/widgets/sliver_bottom_padding.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -26,16 +26,6 @@ class VolumeDetailPage extends HookConsumerWidget {
 
     final tabs = <Widget>[];
     final views = <Widget>[];
-
-    final unread = volume.chapters.where(
-      (c) => c.totalReads <= 0 || c.progress < 1,
-    );
-    if (unread.isNotEmpty) {
-      tabs.add(Tab(text: 'Unread Chapters (${unread.length})'));
-      views.add(
-        ChapterGrid(seriesId: volume.seriesId, chapters: unread.toList()),
-      );
-    }
 
     if (volume.chapters.isNotEmpty) {
       tabs.add(Tab(text: 'Chapters (${volume.chapters.length})'));

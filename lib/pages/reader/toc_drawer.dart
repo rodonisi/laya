@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fluvita/models/book_chapter_model.dart';
-import 'package:fluvita/riverpod/api/book.dart';
-import 'package:fluvita/riverpod/reader_navigation.dart';
+import 'package:fluvita/riverpod/providers/book.dart';
+import 'package:fluvita/riverpod/providers/reader/reader_navigation.dart';
 import 'package:fluvita/utils/layout_constants.dart';
 import 'package:fluvita/widgets/async_value.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';

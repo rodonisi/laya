@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:fluvita/riverpod/image_reader_settings.dart';
-import 'package:fluvita/riverpod/reader_navigation.dart';
+import 'package:fluvita/riverpod/providers/settings/image_reader_settings.dart';
+import 'package:fluvita/riverpod/providers/book.dart';
+import 'package:fluvita/riverpod/providers/reader/reader_navigation.dart';
 import 'package:fluvita/utils/logging.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:fluvita/riverpod/api/reader.dart';
 import 'package:fluvita/widgets/async_value.dart';
 import 'package:fluvita/widgets/measured_widget.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:scrollview_observer/scrollview_observer.dart';
 
 class VerticalContinuousReader extends ConsumerStatefulWidget {
@@ -116,7 +116,7 @@ class _VerticalContinuousReaderState
       child: Consumer(
         builder: (context, ref, _) {
           final image = ref.watch(
-            readerImageProvider(
+            imagePageProvider(
               chapterId: widget.chapterId,
               page: index,
             ),
@@ -128,7 +128,7 @@ class _VerticalContinuousReaderState
               child: Async(
                 asyncValue: image,
                 data: (data) => Image.memory(
-                  data,
+                  data.data,
                   fit: BoxFit.fitWidth,
                 ),
               ),
@@ -145,7 +145,7 @@ class _VerticalContinuousReaderState
                 }
               },
               child: Image.memory(
-                data,
+                data.data,
                 fit: BoxFit.fitWidth,
               ),
             ),
@@ -166,7 +166,9 @@ class _VerticalContinuousReaderState
 
   @override
   Widget build(BuildContext context) {
-    final settings = ref.watch(imageReaderSettingsProvider);
+    final settings = ref.watch(
+      imageReaderSettingsProvider(seriesId: widget.seriesId),
+    );
 
     ref.listen(
       readerNavigationProvider(
@@ -209,7 +211,7 @@ class _VerticalContinuousReaderState
     );
 
     ref.listen(
-      imageReaderSettingsProvider.select(
+      imageReaderSettingsProvider(seriesId:widget.seriesId).select(
         (settings) => settings.verticalReaderPadding,
       ),
       (previous, next) {

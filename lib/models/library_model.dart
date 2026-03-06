@@ -1,17 +1,9 @@
+import 'package:fluvita/database/app_database.dart';
+import 'package:fluvita/models/enums/library_type.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:fluvita/api/openapi.swagger.dart';
 
 part 'library_model.freezed.dart';
 part 'library_model.g.dart';
-
-enum LibraryType {
-  unknown,
-  book,
-  comic,
-  image,
-  lightNovel,
-  manga,
-}
 
 @freezed
 sealed class LibraryModel with _$LibraryModel {
@@ -26,16 +18,11 @@ sealed class LibraryModel with _$LibraryModel {
   factory LibraryModel.fromJson(Map<String, dynamic> json) =>
       _$LibraryModelFromJson(json);
 
-  factory LibraryModel.fromLibraryDto(LibraryDto dto) {
+  factory LibraryModel.fromDatabaseModel(Library entity) {
     return LibraryModel(
-      id: dto.id!,
-      name: dto.name!,
-      type: switch (dto.type!) {
-        2 => .book,
-        0 => .manga,
-        5 => .comic,
-        _ => .unknown,
-      },
+      id: entity.id,
+      name: entity.name,
+      type: entity.type,
     );
   }
 }

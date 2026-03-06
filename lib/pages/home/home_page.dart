@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:fluvita/riverpod/managers/sync_manager.dart';
+import 'package:fluvita/widgets/async_value.dart';
 import 'package:fluvita/widgets/login_guard.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:fluvita/pages/home/collapsible_section.dart';
-import 'package:fluvita/riverpod/api/series.dart';
+import 'package:fluvita/riverpod/providers/series.dart';
 import 'package:fluvita/widgets/sliver_bottom_padding.dart';
 
 class HomePage extends ConsumerWidget {
@@ -22,13 +24,11 @@ class HomePageContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    _invalidateProviders(ref);
-
     return SafeArea(
       bottom: false,
       child: RefreshIndicator(
         onRefresh: () async {
-          await _invalidateProviders(ref);
+          await ref.read(syncManagerProvider.notifier).partialSync();
         },
         child: const CustomScrollView(
           slivers: [
@@ -41,12 +41,6 @@ class HomePageContent extends ConsumerWidget {
       ),
     );
   }
-
-  Future<void> _invalidateProviders(WidgetRef ref) async {
-    final _ = await ref.refresh(onDeckProvider.future);
-    final _ = await ref.refresh(recentlyUpdatedProvider.future);
-    final _ = await ref.refresh(recentlyAddedProvider.future);
-  }
 }
 
 class OnDeck extends ConsumerWidget {
@@ -56,7 +50,10 @@ class OnDeck extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final onDeck = ref.watch(onDeckProvider);
 
-    return CollapsibleSection(title: 'On Deck', series: onDeck);
+    return AsyncSliver(
+      asyncValue: onDeck,
+      data: (data) => CollapsibleSection(title: 'On Deck', series: data),
+    );
   }
 }
 
@@ -67,7 +64,11 @@ class RecentlyUpdated extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final series = ref.watch(recentlyUpdatedProvider);
 
-    return CollapsibleSection(title: 'Recently Updated', series: series);
+    return AsyncSliver(
+      asyncValue: series,
+      data: (data) =>
+          CollapsibleSection(title: 'Recently Updated', series: data),
+    );
   }
 }
 
@@ -78,6 +79,9 @@ class RecentlyAdded extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final series = ref.watch(recentlyAddedProvider);
 
-    return CollapsibleSection(title: 'Recently Added', series: series);
+    return AsyncSliver(
+      asyncValue: series,
+      data: (data) => CollapsibleSection(title: 'Recently Added', series: data),
+    );
   }
 }

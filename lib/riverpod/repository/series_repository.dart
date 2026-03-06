@@ -1,0 +1,169 @@
+import 'package:fluvita/database/app_database.dart';
+import 'package:fluvita/database/dao/series_metadata_dao.dart';
+import 'package:fluvita/models/image_model.dart';
+import 'package:fluvita/models/series_model.dart';
+import 'package:fluvita/riverpod/providers/client.dart';
+import 'package:fluvita/riverpod/providers/settings/settings.dart';
+import 'package:fluvita/riverpod/repository/database.dart';
+import 'package:fluvita/sync/series_sync_operations.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'series_repository.g.dart';
+
+@riverpod
+SeriesRepository seriesRepository(Ref ref) {
+  final db = ref.watch(databaseProvider);
+  final restClient = ref.watch(restClientProvider);
+  final apiKey = ref.watch(apiKeyProvider);
+  final client = SeriesSyncOperations(
+    client: restClient,
+    apiKey: apiKey ?? '',
+  );
+  return SeriesRepository(db, client);
+}
+
+class SeriesRepository {
+  final AppDatabase _db;
+  final SeriesSyncOperations _client;
+
+  const SeriesRepository(this._db, this._client);
+
+  /// Watch series [seriesId]
+  Stream<SeriesModel> watchSeries(int seriesId) {
+    return _db.seriesDao
+        .watchSeries(seriesId)
+        .map(SeriesModel.fromDatabaseModel);
+  }
+
+  Future<List<int>> allChapterIds({required int seriesId}) async {
+    final chapters = await _db.seriesDao.allChapters(seriesId: seriesId).get();
+
+    return chapters.map((c) => c.id).toList();
+  }
+
+  Stream<SeriesModel> watchSeriesForChapter(int chapterId) {
+    return _db.seriesDao
+        .watchSeriesForChapter(chapterId)
+        .map(SeriesModel.fromDatabaseModel);
+  }
+
+  /// Watch [SeriesMetadataModel] for series [seriesId]
+  Stream<SeriesMetadataModel> watchSeriesMetadata(int seriesId) {
+    return _db.seriesMetadataDao
+        .watchSeriesMetadata(seriesId)
+        .map(SeriesMetadataModel.fromDatabaseModel);
+  }
+
+  /// Watch total number of pages read for series [seriesId]
+  Stream<int> watchPagesRead({required int seriesId}) {
+    return _db.seriesDao.watchPagesRead(seriesId: seriesId).map((n) => n ?? 0);
+  }
+
+  /// Watch series cover for series [seriesId]
+  Stream<ImageModel?> watchSeriesCover(int seriesId) {
+    return _db.seriesDao
+        .watchSeriesCover(seriesId: seriesId)
+        .map((cover) => cover != null ? ImageModel(data: cover.image) : null);
+  }
+
+  /// Watch [SeriesDetailModel] for series [seriesId]
+  Stream<SeriesDetailModel> watchSeriesDetails(int seriesId) {
+    return _db.seriesDao
+        .watchSeriesDetail(seriesId)
+        .map(SeriesDetailModel.fromDatabaseModel);
+  }
+
+  /// Watch the list of all series, optionally filterying by [libraryId]
+  Stream<List<SeriesModel>> watchAllSeries({int? libraryId}) {
+    return _db.seriesDao
+        .allSeries(libraryId: libraryId)
+        .watch()
+        .distinct()
+        .map(
+          (list) => list.map(SeriesModel.fromDatabaseModel).toList(),
+        );
+  }
+
+  /// Watch series marked as on deck
+  Stream<List<SeriesModel>> watchOnDeck() {
+    return _db.seriesDao.watchOnDeck().map(
+      (list) => list.map(SeriesModel.fromDatabaseModel).toList(),
+    );
+  }
+
+  /// Watch series marked as recently added
+  Stream<List<SeriesModel>> watchRecentlyAdded() {
+    return _db.seriesDao.watchRecentlyAdded().map(
+      (list) => list.map(SeriesModel.fromDatabaseModel).toList(),
+    );
+  }
+
+  /// Watch series marked as recently updated
+  Stream<List<SeriesModel>> watchRecentlyUpdated() {
+    return _db.seriesDao.watchRecentlyUpdated().map(
+      (list) => list.map(SeriesModel.fromDatabaseModel).toList(),
+    );
+  }
+
+  /// Refresh all series and align the local library to the remote.
+  /// Note: this deletes all series not present on the server anymore.
+  Future<void> refreshAllSeries() async {
+    final series = await _client.getAllSeries();
+    await _db.seriesDao.alignSeries(series);
+  }
+
+  /// Fetch missing metadata for all series
+  Future<void> fetchMissingMetadata() async {
+    final series = await _db.seriesMetadataDao.getMissingSeriesIds();
+
+    final metadata = <SeriesMetadataCompanions>[];
+    for (final id in series) {
+      metadata.add(await _client.getSeriesMetadata(id));
+    }
+
+    await _db.seriesMetadataDao.upsertMetadataBatch(metadata);
+  }
+
+  /// Refresh series details (chapters, volumes, etc) for all series
+  Future<void> refreshAllSeriesDetails() async {
+    final rows = await _db.seriesDao.allSeries().get();
+    final series = rows.map((s) => s.id).toList();
+
+    await refreshSeriesDetails(series);
+  }
+
+  /// Refresh recently added series. This also refreshes the respective series
+  /// details
+  Future<void> refreshRecentlyAdded() async {
+    final series = await _client.getRecentlyAdded();
+    await _db.seriesDao.upsertRecentlyAdded(series);
+    await refreshSeriesDetails(series.map((s) => s.id.value));
+  }
+
+  /// Refresh recently updated series. This also refreshes the respective series
+  /// details
+  Future<void> refreshRecentlyUpdated() async {
+    final series = await _client.getRecentlyUpdated();
+    await _db.seriesDao.upsertRecentlyUpdated(series);
+    await refreshSeriesDetails(series.map((s) => s.id.value));
+  }
+
+  /// Refresh series details for a list of series
+  Future<void> refreshSeriesDetails(Iterable<int> seriesIds) async {
+    for (final id in seriesIds) {
+      final details = await _client.getSeriesDetail(id);
+      await _db.seriesDao.upsertSeriesDetail(
+        details,
+      );
+    }
+  }
+
+  /// Fetch all missing series covers
+  Future<void> fetchMissingCovers() async {
+    final missingIds = await _db.seriesDao.getMissingCovers();
+    for (final id in missingIds) {
+      final seriesCover = await _client.getSeriesCover(id);
+      await _db.seriesDao.upsertSeriesCover(seriesCover);
+    }
+  }
+}
