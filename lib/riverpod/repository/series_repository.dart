@@ -109,7 +109,7 @@ class SeriesRepository {
   /// Note: this deletes all series not present on the server anymore.
   Future<void> refreshAllSeries() async {
     final series = await _client.getAllSeries();
-    await _db.seriesDao.alignSeries(series);
+    await _db.seriesDao.mergeSeries(series);
   }
 
   /// Fetch missing metadata for all series

@@ -23,8 +23,12 @@ class LibrariesDao extends DatabaseAccessor<AppDatabase>
     return managers.libraries.watch();
   }
 
-  /// Upsert a batch of [LibrariesCompanion]
-  Future<void> upsertLibraries(Iterable<LibrariesCompanion> entries) async {
-    await batch((batch) => batch.insertAllOnConflictUpdate(libraries, entries));
+  /// Upsert [entries] and remove all libraries not present in [entries]
+  Future<void> mergeLibraries(Iterable<LibrariesCompanion> entries) async {
+    final ids = entries.map((e) => e.id.value).toList();
+    await batch((batch) {
+      batch.deleteWhere(libraries, (t) => t.id.isNotIn(ids));
+      batch.insertAllOnConflictUpdate(libraries, entries);
+    });
   }
 }

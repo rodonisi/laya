@@ -299,7 +299,7 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
 
   /// Upsert series present or absent from the db and remove series not present
   /// in [entries]
-  Future<void> alignSeries(Iterable<SeriesCompanion> entries) async {
+  Future<void> mergeSeries(Iterable<SeriesCompanion> entries) async {
     final ids = entries.map((e) => e.id.value).toList();
 
     await batch((batch) {
