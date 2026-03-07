@@ -1,5 +1,5 @@
-import 'package:fluvita/api/openapi.swagger.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:kover/api/openapi.swagger.dart';
 
 part 'user_model.freezed.dart';
 part 'user_model.g.dart';

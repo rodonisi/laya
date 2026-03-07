@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:fluvita/utils/layout_constants.dart';
+import 'package:kover/utils/layout_constants.dart';
 
 class AdaptiveSliverGrid extends StatelessWidget {
   final int itemCount;

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:fluvita/pages/reader/horizontal_paged_reader.dart';
-import 'package:fluvita/pages/reader/vertical_continuous_reader.dart';
-import 'package:fluvita/pages/reader/reader_overlay.dart';
-import 'package:fluvita/riverpod/providers/reader/reader_navigation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:fluvita/riverpod/providers/settings/image_reader_settings.dart';
+import 'package:kover/pages/reader/horizontal_paged_reader.dart';
+import 'package:kover/pages/reader/reader_overlay.dart';
+import 'package:kover/pages/reader/vertical_continuous_reader.dart';
+import 'package:kover/riverpod/providers/reader/reader_navigation.dart';
+import 'package:kover/riverpod/providers/settings/image_reader_settings.dart';
 
 class ImageReader extends ConsumerWidget {
   final int seriesId;

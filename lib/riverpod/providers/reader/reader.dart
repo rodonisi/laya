@@ -1,20 +1,20 @@
 import 'dart:async';
 
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:fluvita/models/chapter_model.dart';
-import 'package:fluvita/models/enums/format.dart';
-import 'package:fluvita/models/progress_model.dart';
-import 'package:fluvita/models/read_direction.dart';
-import 'package:fluvita/models/series_model.dart';
-import 'package:fluvita/riverpod/providers/chapter.dart';
-import 'package:fluvita/riverpod/providers/reader.dart';
-import 'package:fluvita/riverpod/providers/series.dart';
-import 'package:fluvita/riverpod/providers/settings/epub_reader_settings.dart';
-import 'package:fluvita/riverpod/providers/settings/image_reader_settings.dart';
-import 'package:fluvita/riverpod/repository/reader_repository.dart';
-import 'package:fluvita/utils/logging.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:kover/models/chapter_model.dart';
+import 'package:kover/models/enums/format.dart';
+import 'package:kover/models/progress_model.dart';
+import 'package:kover/models/read_direction.dart';
+import 'package:kover/models/series_model.dart';
+import 'package:kover/riverpod/providers/chapter.dart';
+import 'package:kover/riverpod/providers/reader.dart';
+import 'package:kover/riverpod/providers/series.dart';
+import 'package:kover/riverpod/providers/settings/epub_reader_settings.dart';
+import 'package:kover/riverpod/providers/settings/image_reader_settings.dart';
+import 'package:kover/riverpod/repository/reader_repository.dart';
+import 'package:kover/utils/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'reader.freezed.dart';

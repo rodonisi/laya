@@ -160,7 +160,7 @@ jobs:
         run: |
           flutter build web \
             --release \
-            --base-href /fluvita/ \
+            --base-href /kover/ \
             --build-name ${{ needs.version.outputs.version }} \
             --build-number ${{ needs.version.outputs.build_number }} \
             --wasm

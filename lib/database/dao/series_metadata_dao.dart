@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart';
-import 'package:fluvita/database/app_database.dart';
-import 'package:fluvita/database/tables/series_metadata.dart';
+import 'package:kover/database/app_database.dart';
+import 'package:kover/database/tables/series_metadata.dart';
 import 'package:stream_transform/stream_transform.dart';
 
 part 'series_metadata_dao.g.dart';

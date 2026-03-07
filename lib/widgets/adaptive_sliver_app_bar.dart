@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:fluvita/widgets/measured_widget.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:kover/widgets/measured_widget.dart';
 
 class AdaptiveSliverAppBar extends HookConsumerWidget {
   final PreferredSizeWidget? bottom;

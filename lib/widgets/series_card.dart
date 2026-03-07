@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:fluvita/riverpod/managers/download_manager.dart';
-import 'package:fluvita/riverpod/providers/download.dart';
-import 'package:fluvita/riverpod/providers/reader.dart';
-import 'package:fluvita/riverpod/providers/router.dart';
-import 'package:fluvita/riverpod/providers/series.dart';
-import 'package:fluvita/riverpod/providers/want_to_read.dart';
-import 'package:fluvita/utils/layout_constants.dart';
-import 'package:fluvita/widgets/actions_menu.dart';
-import 'package:fluvita/widgets/async_value.dart';
-import 'package:fluvita/widgets/cover_card.dart';
-import 'package:fluvita/widgets/cover_image.dart';
-import 'package:fluvita/widgets/download_status_icon.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:kover/riverpod/managers/download_manager.dart';
+import 'package:kover/riverpod/providers/download.dart';
+import 'package:kover/riverpod/providers/reader.dart';
+import 'package:kover/riverpod/providers/router.dart';
+import 'package:kover/riverpod/providers/series.dart';
+import 'package:kover/riverpod/providers/want_to_read.dart';
+import 'package:kover/utils/layout_constants.dart';
+import 'package:kover/widgets/actions_menu.dart';
+import 'package:kover/widgets/async_value.dart';
+import 'package:kover/widgets/cover_card.dart';
+import 'package:kover/widgets/cover_image.dart';
+import 'package:kover/widgets/download_status_icon.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class SeriesCard extends HookConsumerWidget {

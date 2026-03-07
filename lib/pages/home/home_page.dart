@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:fluvita/riverpod/managers/sync_manager.dart';
-import 'package:fluvita/widgets/async_value.dart';
-import 'package:fluvita/widgets/login_guard.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:fluvita/pages/home/collapsible_section.dart';
-import 'package:fluvita/riverpod/providers/series.dart';
-import 'package:fluvita/widgets/sliver_bottom_padding.dart';
+import 'package:kover/pages/home/collapsible_section.dart';
+import 'package:kover/riverpod/managers/sync_manager.dart';
+import 'package:kover/riverpod/providers/series.dart';
+import 'package:kover/widgets/async_value.dart';
+import 'package:kover/widgets/login_guard.dart';
+import 'package:kover/widgets/sliver_bottom_padding.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});

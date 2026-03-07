@@ -1,6 +1,6 @@
-import 'package:fluvita/api/openapi.swagger.dart';
-import 'package:fluvita/database/app_database.dart';
-import 'package:fluvita/mapping/dto/library_dto_mappings.dart';
+import 'package:kover/api/openapi.swagger.dart';
+import 'package:kover/database/app_database.dart';
+import 'package:kover/mapping/dto/library_dto_mappings.dart';
 
 class LibrariesSyncOperations {
   final Openapi _client;

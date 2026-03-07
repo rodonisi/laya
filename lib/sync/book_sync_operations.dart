@@ -1,13 +1,14 @@
 import 'dart:convert';
+
 import 'package:drift/drift.dart';
-import 'package:fluvita/api/openapi.swagger.dart';
-import 'package:fluvita/database/app_database.dart';
-import 'package:fluvita/models/page_content.dart';
-import 'package:fluvita/utils/extensions/element.dart';
-import 'package:fluvita/utils/html_constants.dart';
-import 'package:fluvita/utils/logging.dart';
 import 'package:html/dom.dart';
 import 'package:html/parser.dart';
+import 'package:kover/api/openapi.swagger.dart';
+import 'package:kover/database/app_database.dart';
+import 'package:kover/models/page_content.dart';
+import 'package:kover/utils/extensions/element.dart';
+import 'package:kover/utils/html_constants.dart';
+import 'package:kover/utils/logging.dart';
 
 class BookSyncOperations {
   final Openapi _client;

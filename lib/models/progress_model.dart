@@ -1,5 +1,5 @@
-import 'package:fluvita/database/app_database.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:kover/database/app_database.dart';
 
 part 'progress_model.freezed.dart';
 part 'progress_model.g.dart';

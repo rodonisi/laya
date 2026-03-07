@@ -1,6 +1,6 @@
-import 'package:fluvita/database/dao/volumes_dao.dart';
-import 'package:fluvita/models/chapter_model.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:kover/database/dao/volumes_dao.dart';
+import 'package:kover/models/chapter_model.dart';
 
 part 'volume_model.freezed.dart';
 part 'volume_model.g.dart';

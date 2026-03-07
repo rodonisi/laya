@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:fluvita/utils/layout_constants.dart';
+import 'package:kover/utils/layout_constants.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// A small icon overlay that conveys the download state of a chapter, volume,

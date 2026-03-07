@@ -1,7 +1,7 @@
-import 'package:fluvita/api/openapi.swagger.dart';
-import 'package:fluvita/database/app_database.dart';
-import 'package:fluvita/mapping/dto/progress_dto_mappings.dart';
-import 'package:fluvita/mapping/tables/reading_progress_data.dart';
+import 'package:kover/api/openapi.swagger.dart';
+import 'package:kover/database/app_database.dart';
+import 'package:kover/mapping/dto/progress_dto_mappings.dart';
+import 'package:kover/mapping/tables/reading_progress_data.dart';
 
 class ReaderSyncOperations {
   final Openapi _client;

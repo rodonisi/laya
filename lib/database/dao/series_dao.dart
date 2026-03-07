@@ -1,13 +1,13 @@
 import 'package:drift/drift.dart';
-import 'package:fluvita/database/app_database.dart';
-import 'package:fluvita/database/dao/volumes_dao.dart';
-import 'package:fluvita/database/tables/progress.dart';
-import 'package:fluvita/database/tables/series.dart';
-import 'package:fluvita/database/tables/volumes.dart';
-import 'package:fluvita/database/tables/chapters.dart';
-import 'package:fluvita/database/tables/want_to_read.dart';
-import 'package:fluvita/utils/data_constants.dart';
-import 'package:fluvita/utils/logging.dart';
+import 'package:kover/database/app_database.dart';
+import 'package:kover/database/dao/volumes_dao.dart';
+import 'package:kover/database/tables/chapters.dart';
+import 'package:kover/database/tables/progress.dart';
+import 'package:kover/database/tables/series.dart';
+import 'package:kover/database/tables/volumes.dart';
+import 'package:kover/database/tables/want_to_read.dart';
+import 'package:kover/utils/data_constants.dart';
+import 'package:kover/utils/logging.dart';
 import 'package:rxdart/rxdart.dart';
 
 part 'series_dao.g.dart';

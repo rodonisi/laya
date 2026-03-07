@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:fluvita/models/library_model.dart';
-import 'package:fluvita/pages/library/menu_page/app_list_tile.dart';
-import 'package:fluvita/riverpod/providers/library.dart';
-import 'package:fluvita/riverpod/providers/router.dart';
-import 'package:fluvita/utils/layout_constants.dart';
-import 'package:fluvita/widgets/async_value.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:kover/models/library_model.dart';
+import 'package:kover/pages/library/menu_page/app_list_tile.dart';
+import 'package:kover/riverpod/providers/library.dart';
+import 'package:kover/riverpod/providers/router.dart';
+import 'package:kover/utils/layout_constants.dart';
+import 'package:kover/widgets/async_value.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class SliverLibraries extends ConsumerWidget {

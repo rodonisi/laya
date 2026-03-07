@@ -1,5 +1,5 @@
 import 'package:drift/drift.dart';
-import 'package:fluvita/database/tables/chapters.dart';
+import 'package:kover/database/tables/chapters.dart';
 
 class BookChaptersTable extends Table {
   @override

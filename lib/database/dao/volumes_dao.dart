@@ -1,9 +1,9 @@
 import 'package:drift/drift.dart';
-import 'package:fluvita/database/app_database.dart';
-import 'package:fluvita/database/tables/chapters.dart';
-import 'package:fluvita/database/tables/progress.dart';
-import 'package:fluvita/database/tables/volumes.dart';
-import 'package:fluvita/utils/logging.dart';
+import 'package:kover/database/app_database.dart';
+import 'package:kover/database/tables/chapters.dart';
+import 'package:kover/database/tables/progress.dart';
+import 'package:kover/database/tables/volumes.dart';
+import 'package:kover/utils/logging.dart';
 
 part 'volumes_dao.g.dart';
 

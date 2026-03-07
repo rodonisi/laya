@@ -1,5 +1,5 @@
 import 'package:drift/drift.dart';
-import 'package:fluvita/database/tables/chapters.dart';
+import 'package:kover/database/tables/chapters.dart';
 
 // class EpubPages extends Table {
 //   IntColumn get chapterId => integer().references(Chapters, #id)();

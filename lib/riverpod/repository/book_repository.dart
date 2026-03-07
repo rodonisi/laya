@@ -1,13 +1,13 @@
-import 'package:fluvita/database/app_database.dart';
-import 'package:fluvita/database/converters/page_content_converter.dart';
-import 'package:fluvita/models/book_chapter_model.dart';
-import 'package:fluvita/models/image_model.dart';
-import 'package:fluvita/models/page_content.dart';
-import 'package:fluvita/riverpod/providers/client.dart';
-import 'package:fluvita/riverpod/providers/settings/settings.dart';
-import 'package:fluvita/riverpod/repository/database.dart';
-import 'package:fluvita/sync/book_sync_operations.dart';
-import 'package:fluvita/utils/logging.dart';
+import 'package:kover/database/app_database.dart';
+import 'package:kover/database/converters/page_content_converter.dart';
+import 'package:kover/models/book_chapter_model.dart';
+import 'package:kover/models/image_model.dart';
+import 'package:kover/models/page_content.dart';
+import 'package:kover/riverpod/providers/client.dart';
+import 'package:kover/riverpod/providers/settings/settings.dart';
+import 'package:kover/riverpod/repository/database.dart';
+import 'package:kover/sync/book_sync_operations.dart';
+import 'package:kover/utils/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'book_repository.g.dart';

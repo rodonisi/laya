@@ -1,9 +1,9 @@
 import 'dart:convert';
 
 import 'package:drift/drift.dart';
-import 'package:fluvita/database/app_database.dart';
-import 'package:fluvita/database/tables/riverpod_storage.dart';
-import 'package:fluvita/riverpod/providers/settings/settings.dart';
+import 'package:kover/database/app_database.dart';
+import 'package:kover/database/tables/riverpod_storage.dart';
+import 'package:kover/riverpod/providers/settings/settings.dart';
 
 part 'storage_dao.g.dart';
 

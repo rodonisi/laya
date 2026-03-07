@@ -1,27 +1,27 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
-import 'package:fluvita/database/dao/book_dao.dart';
-import 'package:fluvita/database/dao/chapters_dao.dart';
-import 'package:fluvita/database/dao/download_dao.dart';
-import 'package:fluvita/database/dao/libraries_dao.dart';
-import 'package:fluvita/database/dao/reader_dao.dart';
-import 'package:fluvita/database/dao/riverpod_dao.dart';
-import 'package:fluvita/database/dao/series_dao.dart';
-import 'package:fluvita/database/dao/series_metadata_dao.dart';
-import 'package:fluvita/database/dao/storage_dao.dart';
-import 'package:fluvita/database/dao/volumes_dao.dart';
-import 'package:fluvita/database/tables/book_info.dart';
-import 'package:fluvita/database/tables/chapters.dart';
-import 'package:fluvita/database/tables/download.dart';
-import 'package:fluvita/database/tables/libraries.dart';
-import 'package:fluvita/database/tables/progress.dart';
-import 'package:fluvita/database/tables/riverpod_storage.dart';
-import 'package:fluvita/database/tables/series.dart';
-import 'package:fluvita/database/tables/series_metadata.dart';
-import 'package:fluvita/database/tables/volumes.dart';
-import 'package:fluvita/database/tables/want_to_read.dart';
-import 'package:fluvita/models/enums/format.dart';
-import 'package:fluvita/models/enums/library_type.dart';
+import 'package:kover/database/dao/book_dao.dart';
+import 'package:kover/database/dao/chapters_dao.dart';
+import 'package:kover/database/dao/download_dao.dart';
+import 'package:kover/database/dao/libraries_dao.dart';
+import 'package:kover/database/dao/reader_dao.dart';
+import 'package:kover/database/dao/riverpod_dao.dart';
+import 'package:kover/database/dao/series_dao.dart';
+import 'package:kover/database/dao/series_metadata_dao.dart';
+import 'package:kover/database/dao/storage_dao.dart';
+import 'package:kover/database/dao/volumes_dao.dart';
+import 'package:kover/database/tables/book_info.dart';
+import 'package:kover/database/tables/chapters.dart';
+import 'package:kover/database/tables/download.dart';
+import 'package:kover/database/tables/libraries.dart';
+import 'package:kover/database/tables/progress.dart';
+import 'package:kover/database/tables/riverpod_storage.dart';
+import 'package:kover/database/tables/series.dart';
+import 'package:kover/database/tables/series_metadata.dart';
+import 'package:kover/database/tables/volumes.dart';
+import 'package:kover/database/tables/want_to_read.dart';
+import 'package:kover/models/enums/format.dart';
+import 'package:kover/models/enums/library_type.dart';
 import 'package:path_provider/path_provider.dart';
 
 part 'app_database.g.dart';
@@ -69,7 +69,7 @@ class AppDatabase extends _$AppDatabase {
 
   static QueryExecutor _openConnection() {
     return driftDatabase(
-      name: 'fluvita_db',
+      name: 'kover_db',
       native: const DriftNativeOptions(
         databaseDirectory: getApplicationSupportDirectory,
         shareAcrossIsolates: true,

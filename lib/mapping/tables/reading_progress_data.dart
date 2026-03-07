@@ -1,5 +1,5 @@
-import 'package:fluvita/api/openapi.swagger.dart';
-import 'package:fluvita/database/app_database.dart';
+import 'package:kover/api/openapi.swagger.dart';
+import 'package:kover/database/app_database.dart';
 
 extension ReadingProgressDataMappings on ReadingProgressData {
   ProgressDto toProgressDto() {

@@ -1,5 +1,5 @@
-import 'package:fluvita/models/library_model.dart';
-import 'package:fluvita/riverpod/repository/libraries_repository.dart';
+import 'package:kover/models/library_model.dart';
+import 'package:kover/riverpod/repository/libraries_repository.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'library.g.dart';

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:fluvita/models/chapter_model.dart';
-import 'package:fluvita/widgets/adaptive_sliver_grid.dart';
-import 'package:fluvita/widgets/chapter_card.dart';
+import 'package:kover/models/chapter_model.dart';
+import 'package:kover/widgets/adaptive_sliver_grid.dart';
+import 'package:kover/widgets/chapter_card.dart';
 
 class ChapterGrid extends StatelessWidget {
   final int seriesId;

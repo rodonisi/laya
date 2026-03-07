@@ -1,6 +1,6 @@
-import 'package:fluvita/utils/converters/document_fragment_converter.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:html/dom.dart';
+import 'package:kover/utils/converters/document_fragment_converter.dart';
 
 part 'page_content.freezed.dart';
 part 'page_content.g.dart';

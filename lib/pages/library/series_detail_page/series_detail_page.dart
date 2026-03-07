@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:fluvita/widgets/chapter_grid.dart';
-import 'package:fluvita/pages/library/series_detail_page/series_app_bar.dart';
-import 'package:fluvita/widgets/volume_card.dart';
-import 'package:fluvita/widgets/adaptive_sliver_grid.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:fluvita/models/volume_model.dart';
-import 'package:fluvita/riverpod/providers/series.dart';
-import 'package:fluvita/widgets/async_value.dart';
-import 'package:fluvita/widgets/sliver_bottom_padding.dart';
+import 'package:kover/models/volume_model.dart';
+import 'package:kover/pages/library/series_detail_page/series_app_bar.dart';
+import 'package:kover/riverpod/providers/series.dart';
+import 'package:kover/widgets/adaptive_sliver_grid.dart';
+import 'package:kover/widgets/async_value.dart';
+import 'package:kover/widgets/chapter_grid.dart';
+import 'package:kover/widgets/sliver_bottom_padding.dart';
+import 'package:kover/widgets/volume_card.dart';
 
 class SeriesDetailPage extends HookConsumerWidget {
   final int seriesId;

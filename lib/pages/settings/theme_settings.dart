@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:fluvita/pages/settings/choice_settings_entry.dart';
-import 'package:fluvita/pages/settings/number_settings_entry.dart';
-import 'package:fluvita/pages/settings/switch_settings_entry.dart';
-import 'package:fluvita/riverpod/providers/settings/download_settings.dart';
-import 'package:fluvita/widgets/async_value.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:fluvita/riverpod/providers/theme.dart' hide Theme;
-import 'package:fluvita/utils/layout_constants.dart';
+import 'package:kover/pages/settings/choice_settings_entry.dart';
+import 'package:kover/pages/settings/number_settings_entry.dart';
+import 'package:kover/pages/settings/switch_settings_entry.dart';
+import 'package:kover/riverpod/providers/settings/download_settings.dart';
+import 'package:kover/riverpod/providers/theme.dart' hide Theme;
+import 'package:kover/utils/layout_constants.dart';
+import 'package:kover/widgets/async_value.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class ThemeSettings extends ConsumerWidget {

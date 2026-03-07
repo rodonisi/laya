@@ -1,5 +1,5 @@
-import 'package:fluvita/riverpod/providers/reader/reader.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:kover/riverpod/providers/reader/reader.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'reader_navigation.freezed.dart';

@@ -1,8 +1,8 @@
 import 'package:drift/drift.dart';
-import 'package:fluvita/database/tables/chapters.dart';
-import 'package:fluvita/database/tables/libraries.dart';
-import 'package:fluvita/database/tables/series.dart';
-import 'package:fluvita/database/tables/volumes.dart';
+import 'package:kover/database/tables/chapters.dart';
+import 'package:kover/database/tables/libraries.dart';
+import 'package:kover/database/tables/series.dart';
+import 'package:kover/database/tables/volumes.dart';
 
 // class ContinuePoints extends Table {
 //   IntColumn get seriesId => integer().references(Series, #id)();

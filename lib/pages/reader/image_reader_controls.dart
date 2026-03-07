@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:fluvita/riverpod/providers/settings/image_reader_settings.dart'
+import 'package:kover/models/read_direction.dart';
+import 'package:kover/riverpod/providers/settings/image_reader_settings.dart'
     show
         ImageReaderSettingsLimits,
         ImageScaleType,
         ReaderMode,
         imageReaderSettingsProvider;
-import 'package:fluvita/models/read_direction.dart';
-import 'package:fluvita/utils/layout_constants.dart';
+import 'package:kover/utils/layout_constants.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class ImageReaderControls extends ConsumerWidget {

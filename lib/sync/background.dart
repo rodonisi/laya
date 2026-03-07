@@ -1,14 +1,14 @@
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:fluvita/api/openapi.swagger.dart';
-import 'package:fluvita/database/app_database.dart';
-import 'package:fluvita/riverpod/providers/client.dart';
-import 'package:fluvita/riverpod/repository/reader_repository.dart';
-import 'package:fluvita/sync/reader_sync_operations.dart';
-import 'package:fluvita/utils/logging.dart';
-import 'package:fluvita/utils/safe_platform.dart';
+import 'package:kover/api/openapi.swagger.dart';
+import 'package:kover/database/app_database.dart';
+import 'package:kover/riverpod/providers/client.dart';
+import 'package:kover/riverpod/repository/reader_repository.dart';
+import 'package:kover/sync/reader_sync_operations.dart';
+import 'package:kover/utils/logging.dart';
+import 'package:kover/utils/safe_platform.dart';
 import 'package:workmanager/workmanager.dart';
 
-const String _periodicTaskId = 'com.rodonisi.fluvita.periodic_task';
+const String _periodicTaskId = 'com.rodonisi.kover.periodic_task';
 
 @pragma('vm:entry-point')
 void callbackDispatcher() {

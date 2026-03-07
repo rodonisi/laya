@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:fluvita/utils/layout_constants.dart';
+import 'package:kover/utils/layout_constants.dart';
 
 class NumberSettingsEntry extends HookWidget {
   final String title;

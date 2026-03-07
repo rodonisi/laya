@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:fluvita/models/volume_model.dart';
-import 'package:fluvita/pages/library/series_detail_page/series_info_background.dart';
-import 'package:fluvita/riverpod/providers/reader.dart';
-import 'package:fluvita/riverpod/providers/volume.dart';
-import 'package:fluvita/utils/layout_constants.dart';
-import 'package:fluvita/widgets/actions_menu.dart';
-import 'package:fluvita/widgets/adaptive_sliver_app_bar.dart';
-import 'package:fluvita/widgets/cover_card.dart';
-import 'package:fluvita/widgets/cover_image.dart';
-import 'package:fluvita/widgets/info_widgets.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:kover/models/volume_model.dart';
+import 'package:kover/pages/library/series_detail_page/series_info_background.dart';
+import 'package:kover/riverpod/providers/reader.dart';
+import 'package:kover/riverpod/providers/volume.dart';
+import 'package:kover/utils/layout_constants.dart';
+import 'package:kover/widgets/actions_menu.dart';
+import 'package:kover/widgets/adaptive_sliver_app_bar.dart';
+import 'package:kover/widgets/cover_card.dart';
+import 'package:kover/widgets/cover_image.dart';
+import 'package:kover/widgets/info_widgets.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class VolumeAppBar extends ConsumerWidget {

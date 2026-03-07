@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_context_menu/flutter_context_menu.dart';
-import 'package:fluvita/utils/layout_constants.dart';
+import 'package:kover/utils/layout_constants.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class ActionsContextMenu extends StatelessWidget {

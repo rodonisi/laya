@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:fluvita/widgets/adaptive_sliver_grid.dart';
-import 'package:fluvita/models/series_model.dart';
-import 'package:fluvita/widgets/series_card.dart';
+import 'package:kover/models/series_model.dart';
+import 'package:kover/widgets/adaptive_sliver_grid.dart';
+import 'package:kover/widgets/series_card.dart';
 
 class SeriesSliverGrid extends StatelessWidget {
   final List<SeriesModel> series;

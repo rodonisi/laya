@@ -1,4 +1,4 @@
-# Fluvita (working name)
+# Kover
 
 An unofficial cross-platform Kavita frontend.
 

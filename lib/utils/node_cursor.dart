@@ -1,5 +1,5 @@
-import 'package:fluvita/utils/logging.dart';
 import 'package:html/dom.dart';
+import 'package:kover/utils/logging.dart';
 
 /// Iterates through the children of the given node, filling a clone of the root every time the iterator is moved
 /// forward

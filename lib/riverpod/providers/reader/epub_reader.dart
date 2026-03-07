@@ -1,14 +1,14 @@
-import 'package:fluvita/models/page_content.dart';
-import 'package:fluvita/riverpod/providers/settings/epub_reader_settings.dart';
-import 'package:fluvita/riverpod/providers/book.dart';
-import 'package:fluvita/riverpod/providers/reader//reader.dart';
-import 'package:fluvita/riverpod/providers/reader/reader_navigation.dart';
-import 'package:fluvita/utils/extensions/document_fragment.dart';
-import 'package:fluvita/utils/html_constants.dart';
-import 'package:fluvita/utils/logging.dart';
-import 'package:fluvita/utils/node_cursor.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:html/dom.dart';
+import 'package:kover/models/page_content.dart';
+import 'package:kover/riverpod/providers/book.dart';
+import 'package:kover/riverpod/providers/reader//reader.dart';
+import 'package:kover/riverpod/providers/reader/reader_navigation.dart';
+import 'package:kover/riverpod/providers/settings/epub_reader_settings.dart';
+import 'package:kover/utils/extensions/document_fragment.dart';
+import 'package:kover/utils/html_constants.dart';
+import 'package:kover/utils/logging.dart';
+import 'package:kover/utils/node_cursor.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'epub_reader.freezed.dart';

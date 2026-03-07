@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart';
-import 'package:fluvita/database/tables/libraries.dart';
-import 'package:fluvita/models/enums/format.dart';
+import 'package:kover/database/tables/libraries.dart';
+import 'package:kover/models/enums/format.dart';
 
 @DataClassName('SeriesData')
 class Series extends Table {

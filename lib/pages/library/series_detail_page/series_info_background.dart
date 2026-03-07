@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:fluvita/utils/extensions/color.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:kover/utils/extensions/color.dart';
 
 class SeriesInfoBackground extends ConsumerWidget {
   final String? primaryColor;

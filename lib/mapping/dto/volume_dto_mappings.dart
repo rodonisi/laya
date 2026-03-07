@@ -1,8 +1,8 @@
 import 'package:drift/drift.dart';
-import 'package:fluvita/api/openapi.swagger.dart';
-import 'package:fluvita/database/app_database.dart';
-import 'package:fluvita/database/dao/volumes_dao.dart';
-import 'package:fluvita/mapping/dto/chapter_dto_mappings.dart';
+import 'package:kover/api/openapi.swagger.dart';
+import 'package:kover/database/app_database.dart';
+import 'package:kover/database/dao/volumes_dao.dart';
+import 'package:kover/mapping/dto/chapter_dto_mappings.dart';
 
 extension VolumeDtoMappings on VolumeDto {
   VolumeWithChaptersCompanion toVolumeCompanion() {
