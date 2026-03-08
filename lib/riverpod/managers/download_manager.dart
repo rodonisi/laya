@@ -2,17 +2,17 @@ import 'dart:async';
 
 import 'package:async/async.dart';
 import 'package:flutter/material.dart';
-import 'package:fluvita/riverpod/managers/sync_manager.dart';
-import 'package:fluvita/riverpod/providers/connectivity.dart';
-import 'package:fluvita/riverpod/providers/settings/download_settings.dart';
-import 'package:fluvita/riverpod/repository/download_repository.dart';
-import 'package:fluvita/riverpod/repository/series_repository.dart';
-import 'package:fluvita/riverpod/repository/storage_repository.dart';
-import 'package:fluvita/riverpod/repository/volumes_repository.dart';
-import 'package:fluvita/utils/lifecycle.dart';
-import 'package:fluvita/utils/logging.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/experimental/persist.dart';
+import 'package:kover/riverpod/managers/sync_manager.dart';
+import 'package:kover/riverpod/providers/connectivity.dart';
+import 'package:kover/riverpod/providers/settings/download_settings.dart';
+import 'package:kover/riverpod/repository/download_repository.dart';
+import 'package:kover/riverpod/repository/series_repository.dart';
+import 'package:kover/riverpod/repository/storage_repository.dart';
+import 'package:kover/riverpod/repository/volumes_repository.dart';
+import 'package:kover/utils/lifecycle.dart';
+import 'package:kover/utils/logging.dart';
 import 'package:riverpod_annotation/experimental/json_persist.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 

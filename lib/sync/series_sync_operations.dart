@@ -1,12 +1,12 @@
 import 'package:drift/drift.dart';
-import 'package:fluvita/api/openapi.swagger.dart';
-import 'package:fluvita/database/app_database.dart';
-import 'package:fluvita/database/dao/series_dao.dart';
-import 'package:fluvita/database/dao/series_metadata_dao.dart';
-import 'package:fluvita/mapping/dto/chapter_dto_mappings.dart';
-import 'package:fluvita/mapping/dto/series_dto_mappings.dart';
-import 'package:fluvita/mapping/dto/series_metadata_dto_mappings.dart';
-import 'package:fluvita/mapping/dto/volume_dto_mappings.dart';
+import 'package:kover/api/openapi.swagger.dart';
+import 'package:kover/database/app_database.dart';
+import 'package:kover/database/dao/series_dao.dart';
+import 'package:kover/database/dao/series_metadata_dao.dart';
+import 'package:kover/mapping/dto/chapter_dto_mappings.dart';
+import 'package:kover/mapping/dto/series_dto_mappings.dart';
+import 'package:kover/mapping/dto/series_metadata_dto_mappings.dart';
+import 'package:kover/mapping/dto/volume_dto_mappings.dart';
 
 class SeriesSyncOperations {
   final Openapi _client;

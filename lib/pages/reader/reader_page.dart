@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:fluvita/pages/reader/epub_reader.dart';
-import 'package:fluvita/pages/reader/image_reader.dart';
-import 'package:fluvita/riverpod/providers/reader//reader.dart';
-import 'package:fluvita/riverpod/managers/sync_manager.dart';
-import 'package:fluvita/widgets/async_value.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:kover/pages/reader/epub_reader.dart';
+import 'package:kover/pages/reader/image_reader.dart';
+import 'package:kover/riverpod/managers/sync_manager.dart';
+import 'package:kover/riverpod/providers/reader//reader.dart';
+import 'package:kover/widgets/async_value.dart';
 
 class ReaderPage extends HookConsumerWidget {
   final int seriesId;

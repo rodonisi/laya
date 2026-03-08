@@ -1,10 +1,10 @@
-import 'package:fluvita/database/app_database.dart';
-import 'package:fluvita/models/image_model.dart';
-import 'package:fluvita/models/volume_model.dart';
-import 'package:fluvita/riverpod/providers/client.dart';
-import 'package:fluvita/riverpod/providers/settings/settings.dart';
-import 'package:fluvita/riverpod/repository/database.dart';
-import 'package:fluvita/sync/volume_sync_operations.dart';
+import 'package:kover/database/app_database.dart';
+import 'package:kover/models/image_model.dart';
+import 'package:kover/models/volume_model.dart';
+import 'package:kover/riverpod/providers/client.dart';
+import 'package:kover/riverpod/providers/settings/settings.dart';
+import 'package:kover/riverpod/repository/database.dart';
+import 'package:kover/sync/volume_sync_operations.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'volumes_repository.g.dart';

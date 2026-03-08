@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
-import 'package:fluvita/api/openapi.swagger.dart';
-import 'package:fluvita/database/app_database.dart';
-import 'package:fluvita/models/enums/format.dart';
+import 'package:kover/api/openapi.swagger.dart';
+import 'package:kover/database/app_database.dart';
+import 'package:kover/models/enums/format.dart';
 
 extension SeriesDtoMappings on SeriesDto {
   SeriesCompanion toSeriesCompanion() {

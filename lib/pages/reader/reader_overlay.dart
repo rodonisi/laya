@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:fluvita/pages/reader/reader_controls.dart';
-import 'package:fluvita/pages/reader/reader_header.dart';
-import 'package:fluvita/pages/reader/toc_drawer.dart';
-import 'package:fluvita/riverpod/providers/reader.dart';
-import 'package:fluvita/riverpod/providers/reader//reader.dart';
-import 'package:fluvita/riverpod/providers/reader/reader_navigation.dart';
-import 'package:fluvita/riverpod/providers/router.dart';
-import 'package:fluvita/utils/layout_constants.dart';
-import 'package:fluvita/utils/logging.dart';
-import 'package:fluvita/widgets/async_value.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:kover/pages/reader/reader_controls.dart';
+import 'package:kover/pages/reader/reader_header.dart';
+import 'package:kover/pages/reader/toc_drawer.dart';
+import 'package:kover/riverpod/providers/reader.dart';
+import 'package:kover/riverpod/providers/reader//reader.dart';
+import 'package:kover/riverpod/providers/reader/reader_navigation.dart';
+import 'package:kover/riverpod/providers/router.dart';
+import 'package:kover/utils/layout_constants.dart';
+import 'package:kover/utils/logging.dart';
+import 'package:kover/widgets/async_value.dart';
 
 enum ShowSnackbar {
   previous,

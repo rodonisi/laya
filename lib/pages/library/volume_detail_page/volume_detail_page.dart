@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:fluvita/models/volume_model.dart';
-import 'package:fluvita/pages/library/series_detail_page/series_app_bar.dart';
-import 'package:fluvita/pages/library/volume_detail_page/volume_app_bar.dart';
-import 'package:fluvita/riverpod/providers/volume.dart';
-import 'package:fluvita/widgets/chapter_grid.dart';
-import 'package:fluvita/widgets/sliver_bottom_padding.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:kover/models/volume_model.dart';
+import 'package:kover/pages/library/series_detail_page/series_app_bar.dart';
+import 'package:kover/pages/library/volume_detail_page/volume_app_bar.dart';
+import 'package:kover/riverpod/providers/volume.dart';
+import 'package:kover/widgets/chapter_grid.dart';
+import 'package:kover/widgets/sliver_bottom_padding.dart';
 
 class VolumeDetailPage extends HookConsumerWidget {
   final VolumeModel volume;

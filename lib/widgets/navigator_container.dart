@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:fluvita/riverpod/managers/sync_manager.dart';
-import 'package:fluvita/riverpod/providers/theme.dart' hide Theme;
 import 'package:go_router/go_router.dart';
-import 'package:fluvita/utils/layout_constants.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:kover/riverpod/managers/sync_manager.dart';
+import 'package:kover/riverpod/providers/theme.dart' hide Theme;
+import 'package:kover/utils/layout_constants.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 String _phaseLabel(SyncPhase phase) => switch (phase) {

@@ -1,5 +1,5 @@
-import 'package:fluvita/models/series_model.dart';
-import 'package:fluvita/riverpod/repository/want_to_read_repository.dart';
+import 'package:kover/models/series_model.dart';
+import 'package:kover/riverpod/repository/want_to_read_repository.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'want_to_read.g.dart';

@@ -1,4 +1,4 @@
-import 'package:fluvita/riverpod/repository/download_repository.dart';
+import 'package:kover/riverpod/repository/download_repository.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'download.g.dart';

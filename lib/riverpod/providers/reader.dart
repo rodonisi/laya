@@ -1,8 +1,8 @@
-import 'package:fluvita/models/chapter_model.dart';
-import 'package:fluvita/models/progress_model.dart';
-import 'package:fluvita/riverpod/providers/connectivity.dart';
-import 'package:fluvita/riverpod/repository/download_repository.dart';
-import 'package:fluvita/riverpod/repository/reader_repository.dart';
+import 'package:kover/models/chapter_model.dart';
+import 'package:kover/models/progress_model.dart';
+import 'package:kover/riverpod/providers/connectivity.dart';
+import 'package:kover/riverpod/repository/download_repository.dart';
+import 'package:kover/riverpod/repository/reader_repository.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'reader.g.dart';

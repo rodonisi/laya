@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:drift/drift.dart';
-import 'package:fluvita/database/app_database.dart';
-import 'package:fluvita/riverpod/repository/database.dart';
 import 'package:hooks_riverpod/experimental/persist.dart';
+import 'package:kover/database/app_database.dart';
+import 'package:kover/riverpod/repository/database.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'storage_repository.g.dart';

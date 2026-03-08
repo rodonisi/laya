@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
-import 'package:fluvita/utils/converters/uint8list_converter.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:kover/utils/converters/uint8list_converter.dart';
 
 part 'image_model.freezed.dart';
 part 'image_model.g.dart';

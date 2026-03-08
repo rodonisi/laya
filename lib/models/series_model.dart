@@ -1,11 +1,11 @@
-import 'package:fluvita/api/openapi.swagger.dart';
-import 'package:fluvita/database/app_database.dart';
-import 'package:fluvita/database/dao/series_dao.dart';
-import 'package:fluvita/database/dao/series_metadata_dao.dart';
-import 'package:fluvita/models/chapter_model.dart';
-import 'package:fluvita/models/enums/format.dart';
-import 'package:fluvita/models/volume_model.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:kover/api/openapi.swagger.dart';
+import 'package:kover/database/app_database.dart';
+import 'package:kover/database/dao/series_dao.dart';
+import 'package:kover/database/dao/series_metadata_dao.dart';
+import 'package:kover/models/chapter_model.dart';
+import 'package:kover/models/enums/format.dart';
+import 'package:kover/models/volume_model.dart';
 
 part 'series_model.freezed.dart';
 part 'series_model.g.dart';

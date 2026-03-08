@@ -1,8 +1,8 @@
 import 'package:drift/drift.dart';
-import 'package:fluvita/api/openapi.swagger.dart';
-import 'package:fluvita/database/app_database.dart';
-import 'package:fluvita/database/dao/series_metadata_dao.dart';
-import 'package:fluvita/database/tables/series_metadata.dart';
+import 'package:kover/api/openapi.swagger.dart';
+import 'package:kover/database/app_database.dart';
+import 'package:kover/database/dao/series_metadata_dao.dart';
+import 'package:kover/database/tables/series_metadata.dart';
 
 extension SeriesMetadataDtoMappings on SeriesMetadataDto {
   SeriesMetadataCompanions toSeriesMetadataCompanions() {

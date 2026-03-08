@@ -1,4 +1,4 @@
-package com.example.laya
+package com.rodonisi.kover
 
 import io.flutter.embedding.android.FlutterActivity
 

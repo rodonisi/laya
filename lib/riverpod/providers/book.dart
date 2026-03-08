@@ -1,7 +1,7 @@
-import 'package:fluvita/models/book_chapter_model.dart';
-import 'package:fluvita/models/image_model.dart';
-import 'package:fluvita/models/page_content.dart';
-import 'package:fluvita/riverpod/repository/book_repository.dart';
+import 'package:kover/models/book_chapter_model.dart';
+import 'package:kover/models/image_model.dart';
+import 'package:kover/models/page_content.dart';
+import 'package:kover/riverpod/repository/book_repository.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'book.g.dart';

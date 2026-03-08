@@ -1,7 +1,7 @@
-import 'package:fluvita/models/read_direction.dart';
-import 'package:fluvita/riverpod/repository/storage_repository.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/experimental/persist.dart';
+import 'package:kover/models/read_direction.dart';
+import 'package:kover/riverpod/repository/storage_repository.dart';
 import 'package:riverpod_annotation/experimental/json_persist.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 

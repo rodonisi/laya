@@ -1,5 +1,5 @@
 import 'package:drift/drift.dart';
-import 'package:fluvita/database/tables/series.dart';
+import 'package:kover/database/tables/series.dart';
 
 class Volumes extends Table {
   IntColumn get id => integer()();

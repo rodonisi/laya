@@ -1,5 +1,5 @@
 import 'package:drift/drift.dart';
-import 'package:fluvita/database/tables/series.dart';
+import 'package:kover/database/tables/series.dart';
 
 @DataClassName('SeriesMetadataData')
 class SeriesMetadata extends Table {

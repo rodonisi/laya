@@ -1,6 +1,6 @@
-import 'package:fluvita/models/image_model.dart';
-import 'package:fluvita/models/series_model.dart';
-import 'package:fluvita/riverpod/repository/series_repository.dart';
+import 'package:kover/models/image_model.dart';
+import 'package:kover/models/series_model.dart';
+import 'package:kover/riverpod/repository/series_repository.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:rxdart/rxdart.dart';
 

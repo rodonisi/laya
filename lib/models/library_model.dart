@@ -1,6 +1,6 @@
-import 'package:fluvita/database/app_database.dart';
-import 'package:fluvita/models/enums/library_type.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:kover/database/app_database.dart';
+import 'package:kover/models/enums/library_type.dart';
 
 part 'library_model.freezed.dart';
 part 'library_model.g.dart';

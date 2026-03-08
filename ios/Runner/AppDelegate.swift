@@ -9,7 +9,7 @@ import workmanager_apple
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
     WorkmanagerPlugin.registerPeriodicTask(
-        withIdentifier: "com.rodonisi.fluvita.periodic_task",
+        withIdentifier: "com.rodonisi.kover.periodic_task",
         frequency: NSNumber(value: 60 * 60) // 1 hour (15 min minimum)
     )
       

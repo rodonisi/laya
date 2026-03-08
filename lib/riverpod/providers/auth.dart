@@ -1,8 +1,8 @@
-import 'package:fluvita/models/user_model.dart';
-import 'package:fluvita/riverpod/providers/client.dart';
-import 'package:fluvita/riverpod/providers/settings/settings.dart';
-import 'package:fluvita/riverpod/repository/storage_repository.dart';
 import 'package:hooks_riverpod/experimental/persist.dart';
+import 'package:kover/models/user_model.dart';
+import 'package:kover/riverpod/providers/client.dart';
+import 'package:kover/riverpod/providers/settings/settings.dart';
+import 'package:kover/riverpod/repository/storage_repository.dart';
 import 'package:riverpod_annotation/experimental/json_persist.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -35,7 +35,7 @@ class CurrentUser extends _$CurrentUser {
       final client = ref.watch(restClientProvider);
       final res = await client.apiPluginAuthenticatePost(
         apiKey: apiKey,
-        pluginName: 'fluvita',
+        pluginName: 'kover',
       );
       if (!res.isSuccessful || res.body == null) {
         throw Exception('Failed to authenticate: ${res.error}');

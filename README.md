@@ -1,6 +1,19 @@
-# Fluvita (working name)
+<div align="center">
+  <img src="assets/icon/icon_rounded.png" width="120" alt="Kover icon" />
 
-An unofficial cross-platform Kavita frontend.
+  # Kover
+
+  An unofficial cross-platform Kavita frontend.
+</div>
+
+## Overview
+
+### Features
+
+- **Library Browsing** — browse series, collections, and libraries hosted on the Kavita server
+- **Offline Reading** — content can be downloaded for reading without an active connection
+- **Progress Sync** — reading progress is synced with the Kavita server; progress made offline is stored locally until a connection is available
+- **Native App** — built with Flutter for a native cross-platform experience on iOS, Android, macOS, Windows, and Linux
 
 ## Getting Started
 

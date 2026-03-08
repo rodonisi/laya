@@ -1,7 +1,7 @@
-import 'package:fluvita/database/app_database.dart';
-import 'package:fluvita/models/enums/format.dart';
-import 'package:fluvita/utils/data_constants.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:kover/database/app_database.dart';
+import 'package:kover/models/enums/format.dart';
+import 'package:kover/utils/data_constants.dart';
 
 part 'chapter_model.freezed.dart';
 part 'chapter_model.g.dart';

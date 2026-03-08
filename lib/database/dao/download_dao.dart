@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
-import 'package:fluvita/database/app_database.dart';
-import 'package:fluvita/database/tables/chapters.dart';
-import 'package:fluvita/database/tables/download.dart';
+import 'package:kover/database/app_database.dart';
+import 'package:kover/database/tables/chapters.dart';
+import 'package:kover/database/tables/download.dart';
 import 'package:rxdart/rxdart.dart';
 
 part 'download_dao.g.dart';

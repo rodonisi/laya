@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:fluvita/models/image_model.dart';
-import 'package:fluvita/riverpod/providers/chapter.dart';
-import 'package:fluvita/riverpod/providers/series.dart';
-import 'package:fluvita/riverpod/providers/volume.dart';
-import 'package:fluvita/widgets/async_value.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:kover/models/image_model.dart';
+import 'package:kover/riverpod/providers/chapter.dart';
+import 'package:kover/riverpod/providers/series.dart';
+import 'package:kover/riverpod/providers/volume.dart';
+import 'package:kover/widgets/async_value.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class SeriesCoverImage extends ConsumerWidget {

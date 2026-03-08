@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:fluvita/riverpod/providers/library.dart';
-import 'package:fluvita/utils/layout_constants.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:fluvita/riverpod/providers/series.dart';
-import 'package:fluvita/widgets/async_value.dart';
-import 'package:fluvita/widgets/series_sliver_grid.dart';
-import 'package:fluvita/widgets/sliver_bottom_padding.dart';
+import 'package:kover/riverpod/providers/library.dart';
+import 'package:kover/riverpod/providers/series.dart';
+import 'package:kover/utils/layout_constants.dart';
+import 'package:kover/widgets/async_value.dart';
+import 'package:kover/widgets/series_sliver_grid.dart';
+import 'package:kover/widgets/sliver_bottom_padding.dart';
 
 class AllSeriesPage extends StatelessWidget {
   const AllSeriesPage({super.key});

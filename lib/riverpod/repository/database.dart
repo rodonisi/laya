@@ -1,4 +1,4 @@
-import 'package:fluvita/database/app_database.dart';
+import 'package:kover/database/app_database.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'database.g.dart';

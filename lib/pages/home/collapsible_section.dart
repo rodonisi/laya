@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:fluvita/models/series_model.dart';
-import 'package:fluvita/utils/layout_constants.dart';
-import 'package:fluvita/widgets/series_sliver_grid.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:kover/models/series_model.dart';
+import 'package:kover/utils/layout_constants.dart';
+import 'package:kover/widgets/series_sliver_grid.dart';
 
 class CollapsibleSection extends HookConsumerWidget {
   final String title;

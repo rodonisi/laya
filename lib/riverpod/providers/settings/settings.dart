@@ -1,12 +1,12 @@
-import 'package:fluvita/riverpod/providers/auth.dart';
-import 'package:fluvita/riverpod/repository/storage_repository.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:hooks_riverpod/experimental/persist.dart';
+import 'package:kover/riverpod/providers/auth.dart';
+import 'package:kover/riverpod/repository/storage_repository.dart';
 import 'package:riverpod_annotation/experimental/json_persist.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:hooks_riverpod/experimental/persist.dart';
 
-part 'settings.g.dart';
 part 'settings.freezed.dart';
+part 'settings.g.dart';
 
 @freezed
 sealed class SettingsState with _$SettingsState {

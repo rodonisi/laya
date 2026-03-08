@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:fluvita/riverpod/providers/client.dart';
 import 'package:flutter/widgets.dart';
-import 'package:fluvita/utils/lifecycle.dart';
-import 'package:fluvita/utils/logging.dart';
+import 'package:kover/riverpod/providers/client.dart';
+import 'package:kover/utils/lifecycle.dart';
+import 'package:kover/utils/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'connectivity.g.dart';

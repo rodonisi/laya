@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:fluvita/riverpod/managers/download_manager.dart';
-import 'package:fluvita/riverpod/managers/sync_manager.dart';
-import 'package:fluvita/riverpod/providers/theme.dart';
-import 'package:fluvita/sync/background.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:fluvita/riverpod/providers/router.dart';
+import 'package:kover/riverpod/managers/download_manager.dart';
+import 'package:kover/riverpod/managers/sync_manager.dart';
+import 'package:kover/riverpod/providers/router.dart';
+import 'package:kover/riverpod/providers/theme.dart';
+import 'package:kover/sync/background.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,7 +25,7 @@ class App extends ConsumerWidget {
     final theme = ref.watch(themeProvider);
     return EagerProviders(
       child: MaterialApp.router(
-        title: 'Fluvita',
+        title: 'Kover',
         debugShowCheckedModeBanner: false,
         theme: theme.lightTheme,
         darkTheme: theme.darkTheme,

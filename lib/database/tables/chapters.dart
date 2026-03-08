@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
-import 'package:fluvita/database/tables/series.dart';
-import 'package:fluvita/database/tables/volumes.dart';
-import 'package:fluvita/models/enums/format.dart';
+import 'package:kover/database/tables/series.dart';
+import 'package:kover/database/tables/volumes.dart';
+import 'package:kover/models/enums/format.dart';
 
 class Chapters extends Table {
   IntColumn get id => integer()();

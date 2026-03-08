@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:fluvita/pages/settings/credentials_settings.dart';
-import 'package:fluvita/pages/settings/theme_settings.dart';
-import 'package:fluvita/widgets/sliver_bottom_padding.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:kover/pages/settings/credentials_settings.dart';
+import 'package:kover/pages/settings/theme_settings.dart';
+import 'package:kover/widgets/sliver_bottom_padding.dart';
 
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});

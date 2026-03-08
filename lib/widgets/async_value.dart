@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:fluvita/utils/logging.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:kover/utils/logging.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class Async<T> extends StatelessWidget {

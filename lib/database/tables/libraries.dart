@@ -1,5 +1,5 @@
 import 'package:drift/drift.dart';
-import 'package:fluvita/models/enums/library_type.dart';
+import 'package:kover/models/enums/library_type.dart';
 
 class Libraries extends Table {
   IntColumn get id => integer()();

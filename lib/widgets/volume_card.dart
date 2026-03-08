@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:fluvita/riverpod/managers/download_manager.dart';
-import 'package:fluvita/riverpod/providers/download.dart';
-import 'package:fluvita/riverpod/providers/reader.dart';
-import 'package:fluvita/riverpod/providers/router.dart';
-import 'package:fluvita/riverpod/providers/volume.dart';
-import 'package:fluvita/widgets/actions_menu.dart';
-import 'package:fluvita/widgets/async_value.dart';
-import 'package:fluvita/widgets/cover_card.dart';
-import 'package:fluvita/widgets/cover_image.dart';
-import 'package:fluvita/widgets/download_status_icon.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:kover/riverpod/managers/download_manager.dart';
+import 'package:kover/riverpod/providers/download.dart';
+import 'package:kover/riverpod/providers/reader.dart';
+import 'package:kover/riverpod/providers/router.dart';
+import 'package:kover/riverpod/providers/volume.dart';
+import 'package:kover/widgets/actions_menu.dart';
+import 'package:kover/widgets/async_value.dart';
+import 'package:kover/widgets/cover_card.dart';
+import 'package:kover/widgets/cover_image.dart';
+import 'package:kover/widgets/download_status_icon.dart';
 
 class VolumeCard extends HookConsumerWidget {
   const VolumeCard({
