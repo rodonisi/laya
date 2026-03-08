@@ -24,6 +24,11 @@ class VerticalContinuousReader extends ConsumerStatefulWidget {
       _VerticalContinuousReaderState();
 }
 
+/// How many pages on each side of the current page render their image.
+/// Pages outside this window are replaced with a same-height coloured
+/// placeholder so the decoded bitmap is not kept in memory.
+const int _visiblePageRadius = 3;
+
 class _VerticalContinuousReaderState
     extends ConsumerState<VerticalContinuousReader> {
   late ScrollController _scrollController;
@@ -31,6 +36,7 @@ class _VerticalContinuousReaderState
   final Map<int, double> _cachedHeights = {};
   BuildContext? _sliverContext;
   int? _totalPages;
+  int _currentPage = 0;
 
   @override
   void initState() {
@@ -79,6 +85,8 @@ class _VerticalContinuousReaderState
         )
         .currentPage;
 
+    _currentPage = initialPage;
+
     _observerController =
         SliverObserverController(
             controller: _scrollController,
@@ -111,10 +119,24 @@ class _VerticalContinuousReaderState
   Widget _buildItem(BuildContext context, int index) {
     _sliverContext ??= context;
 
+    final isVisible = (index - _currentPage).abs() <= _visiblePageRadius;
+
     return _KeepAlivePage(
       key: ValueKey(index),
       child: Consumer(
         builder: (context, ref, _) {
+          // Outside the visible window and height already known: swap the
+          // decoded bitmap for a same-height coloured placeholder so the
+          // image is not kept in memory.
+          if (!isVisible && _cachedHeights.containsKey(index)) {
+            return SizedBox(
+              height: _cachedHeights[index]!,
+              child: ColoredBox(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              ),
+            );
+          }
+
           final image = ref.watch(
             imagePageProvider(
               chapterId: widget.chapterId,
@@ -178,6 +200,7 @@ class _VerticalContinuousReaderState
       (previous, next) async {
         setState(() {
           _totalPages ??= next.totalPages;
+          _currentPage = next.currentPage;
         });
 
         if (!_scrollController.hasClients ||
