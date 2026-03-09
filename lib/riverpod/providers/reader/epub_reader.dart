@@ -66,6 +66,11 @@ sealed class EpubReaderState with _$EpubReaderState {
 class EpubReader extends _$EpubReader {
   bool _processingRender = false;
 
+  // The scroll-id to seek to on resume. Set once from the DB on the very
+  // first build and cleared as soon as we reach a Display state, so that
+  // subsequent page-turn rebuilds never re-trigger a seek.
+  String? _resumeScrollId;
+
   @override
   Future<EpubReaderState> build({
     required int seriesId,
@@ -89,8 +94,11 @@ class EpubReader extends _$EpubReader {
         )
         .currentPage;
 
-    final scrollId = readerState.bookScrollId;
-    final pageContent = await ref.watch(
+    if (state.value == null) {
+      _resumeScrollId = readerState.bookScrollId;
+    }
+
+    final pageContent = await ref.read(
       epubPageProvider(
         chapterId: chapterId,
         page: currentPage,
@@ -103,7 +111,6 @@ class EpubReader extends _$EpubReader {
               as Element,
     );
 
-    final hadState = state.value != null;
     final fromLast = (state.value != null)
         ? state.value!.pageIndex == currentPage + 1
         : false;
@@ -111,9 +118,11 @@ class EpubReader extends _$EpubReader {
     final fragment = DocumentFragment();
 
     listenSelf((prev, next) {
-      next.whenData((data) {
-        data.whenOrNull(
+      next.whenData((data) async {
+        await data.whenOrNull(
           display: (display) async {
+            _resumeScrollId = null;
+
             await ref
                 .read(
                   readerProvider(
@@ -136,7 +145,7 @@ class EpubReader extends _$EpubReader {
       fromLast: fromLast,
       page: pageContent,
       subpage: fragment,
-      scrollId: hadState ? null : scrollId,
+      scrollId: _resumeScrollId,
       cursor: cursor,
     );
   }
@@ -283,7 +292,7 @@ class EpubReader extends _$EpubReader {
   Future<void> nextPage() async {
     final current = await future;
 
-    current.whenOrNull(
+    await current.whenOrNull(
       display: (display) async {
         final nextSubpageIndex = display.subpageIndex + 1;
         //  Next subpage is already measured and available
@@ -314,7 +323,7 @@ class EpubReader extends _$EpubReader {
           state = const AsyncLoading();
           state = AsyncData(next);
           log.d('state updated, adding first element');
-          addElement();
+          await addElement();
           return;
         }
 
@@ -345,7 +354,7 @@ class EpubReader extends _$EpubReader {
       return;
     }
 
-    current.whenOrNull(
+    await current.whenOrNull(
       display: (display) async {
         log.d('moving to previous page');
         if (display.subpageIndex <= 0) {

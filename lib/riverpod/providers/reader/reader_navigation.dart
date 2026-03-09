@@ -26,7 +26,10 @@ class ReaderNavigation extends _$ReaderNavigation {
       readerProvider(seriesId: seriesId, chapterId: chapterId),
     );
 
-    listenSelf((_, next) async => await saveProgress(next.currentPage));
+    listenSelf((prev, next) async {
+      if (prev == null) return;
+      await saveProgress(next.currentPage);
+    });
 
     return ReaderNavigationState(
       currentPage: readerState.value?.initialPage ?? 0,
