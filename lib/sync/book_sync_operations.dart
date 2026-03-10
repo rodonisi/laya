@@ -219,7 +219,6 @@ class BookSyncOperations {
 
   Future<Map<String, List<Uint8List>>> _parseFonts(String css) async {
     final res = <String, List<Uint8List>>{};
-    // 3. Regex to find @font-face blocks and extract values
     final fontFaceRegex = RegExp(r'@font-face\s*\{([^}]*)\}', multiLine: true);
     final familyRegex = RegExp(
       r'''font-family:\s*(?:"([^"]+)"|'([^']+)'|([^;'"]+))\s*;?''',
