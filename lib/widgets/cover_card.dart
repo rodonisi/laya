@@ -72,9 +72,14 @@ class CoverCard extends ConsumerWidget {
                             ? ClipRRect(
                                 borderRadius: BorderRadius.circular(50),
                                 child: BackdropFilter(
-                                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                  filter: ImageFilter.blur(
+                                    sigmaX: 10,
+                                    sigmaY: 10,
+                                  ),
                                   child: FilledButton.icon(
-                                    icon: actionDisabledIcon ?? const Icon(LucideIcons.wifiOff),
+                                    icon:
+                                        actionDisabledIcon ??
+                                        const Icon(LucideIcons.wifiOff),
                                     label: FittedBox(child: Text(actionLabel)),
                                     onPressed: null,
                                   ),

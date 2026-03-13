@@ -34,8 +34,7 @@ class ChapterCard extends HookConsumerWidget {
         ref.watch(chapterDownloadedProvider(chapterId: chapterId)).value ??
         false;
 
-    final canRead =
-        ref.watch(canReadChapterProvider(chapterId)).value ?? false;
+    final canRead = ref.watch(canReadChapterProvider(chapterId)).value ?? false;
 
     final downloadProgress = ref
         .watch(chapterDownloadProgressProvider(chapterId: chapterId))
