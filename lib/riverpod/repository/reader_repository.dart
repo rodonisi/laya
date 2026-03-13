@@ -109,8 +109,7 @@ class ReaderRepository {
     }
   }
 
-  /// Refresh complete progress for continue points. Does not update dirty
-  /// entries.
+  /// Refresh complete progress for continue points.
   Future<void> refreshContinuePointsAndProgress() async {
     final series = await _db.seriesDao.allSeries().get();
     final updates = await Future.wait(
@@ -124,7 +123,7 @@ class ReaderRepository {
       }),
     );
 
-    await _db.readerDao.upsertCleanProgressBatch(
+    await _db.readerDao.mergeProgressBatch(
       updates.map((u) => u.progress),
     );
   }
@@ -137,13 +136,21 @@ class ReaderRepository {
 
     log.d('processing ${dirty.length} progress entries');
 
-    final updatedProgress = <ReadingProgressCompanion>[];
-    for (final d in dirty) {
-      await _client.sendProgress(d);
-      updatedProgress.add(await _client.getProgress(d.chapterId));
-    }
+    final remoteProgress = <ReadingProgressCompanion>[];
 
-    await _db.readerDao.mergeProgressBatch(updatedProgress);
+    await Future.wait(
+      dirty.map((d) async {
+        remoteProgress.add(await _client.getProgress(d.chapterId));
+      }),
+    );
+    await Future.wait(
+      dirty.map((d) async {
+        await _client.sendProgress(d);
+      }),
+    );
+
+    await _db.readerDao.mergeProgressBatch(remoteProgress);
+    await _db.readerDao.clearDirtyFlags(dirty.map((e) => e.chapterId));
   }
 
   /// Mark [seriesId] as read. This will set the progress for all chapters

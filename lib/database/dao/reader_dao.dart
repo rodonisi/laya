@@ -85,7 +85,7 @@ class ReaderDao extends DatabaseAccessor<AppDatabase> with _$ReaderDaoMixin {
   /// Merge a progress batch. Updates all entries that are last modified at the
   /// same time or before the existing dirty progress entry
   Future<void> mergeProgressBatch(
-    List<ReadingProgressCompanion> incomingList,
+    Iterable<ReadingProgressCompanion> incomingList,
   ) async {
     final ids = incomingList.map((p) => p.chapterId.value).toList();
     final localRecords = await (select(
@@ -108,6 +108,13 @@ class ReaderDao extends DatabaseAccessor<AppDatabase> with _$ReaderDaoMixin {
         b.insertAllOnConflictUpdate(readingProgress, toUpdate);
       });
     }
+  }
+
+  /// Clear dirty flag for all progress entries for the given [chapterIds]
+  Future<void> clearDirtyFlags(Iterable<int> chapterIds) async {
+    await managers.readingProgress
+        .filter((f) => f.chapterId.id.isIn(chapterIds))
+        .update((u) => u(dirty: const Value(false)));
   }
 
   /// Upsert chapter progress batch only where the existing progress is not
