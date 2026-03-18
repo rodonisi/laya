@@ -20,69 +20,72 @@ class ThemeSettings extends ConsumerWidget {
       margin: LayoutConstants.mediumEdgeInsets,
       child: Padding(
         padding: LayoutConstants.mediumEdgeInsets,
-        child: Column(
-          mainAxisSize: .min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: LayoutConstants.smallPadding,
-          children: [
-            Text(
-              'General',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            ChoiceSettingsEntry<ThemeMode>(
-              title: 'Theme Mode',
-              segments: const [
-                ButtonSegment<ThemeMode>(
-                  value: ThemeMode.system,
-                  label: Text('System'),
-                  icon: Icon(
-                    LucideIcons.sunMoon,
-                    size: LayoutConstants.smallIcon,
-                  ),
-                ),
-                ButtonSegment<ThemeMode>(
-                  value: ThemeMode.light,
-                  label: Text('Light'),
-                  icon: Icon(
-                    LucideIcons.sun,
-                    size: LayoutConstants.smallIcon,
-                  ),
-                ),
-                ButtonSegment<ThemeMode>(
-                  value: ThemeMode.dark,
-                  label: Text('Dark'),
-                  icon: Icon(
-                    LucideIcons.moon,
-                    size: LayoutConstants.smallIcon,
-                  ),
-                ),
-              ],
-              selected: theme.mode,
-              onSelectionChanged: (newSelection) {
-                ref.read(themeProvider.notifier).setMode(newSelection);
-              },
-            ),
-            SwitchSettingsEntry(
-              title: 'Outlined Theme',
-              value: theme.outlined,
-              onChanged: (value) =>
-                  ref.read(themeProvider.notifier).setOutlined(value),
-            ),
-            Async(
-              asyncValue: ref.watch(downloadSettingsProvider),
-              data: (data) => NumberSettingsEntry(
-                title: 'Max Concurrent Downloads',
-                value: data.concurrentDownloads,
-                onChanged: (value) {
-                  ref
-                      .read(downloadSettingsProvider.notifier)
-                      .setConcurrentDownloads(value);
-                },
-                min: 1,
-                max: 10,
+        child: Async(
+          asyncValue: theme,
+          data: (theme) => Column(
+            mainAxisSize: .min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: LayoutConstants.smallPadding,
+            children: [
+              Text(
+                'General',
+                style: Theme.of(context).textTheme.headlineSmall,
               ),
-            ),
-          ],
+              ChoiceSettingsEntry<ThemeMode>(
+                title: 'Theme Mode',
+                segments: const [
+                  ButtonSegment<ThemeMode>(
+                    value: ThemeMode.system,
+                    label: Text('System'),
+                    icon: Icon(
+                      LucideIcons.sunMoon,
+                      size: LayoutConstants.smallIcon,
+                    ),
+                  ),
+                  ButtonSegment<ThemeMode>(
+                    value: ThemeMode.light,
+                    label: Text('Light'),
+                    icon: Icon(
+                      LucideIcons.sun,
+                      size: LayoutConstants.smallIcon,
+                    ),
+                  ),
+                  ButtonSegment<ThemeMode>(
+                    value: ThemeMode.dark,
+                    label: Text('Dark'),
+                    icon: Icon(
+                      LucideIcons.moon,
+                      size: LayoutConstants.smallIcon,
+                    ),
+                  ),
+                ],
+                selected: theme.mode,
+                onSelectionChanged: (newSelection) async {
+                  await ref.read(themeProvider.notifier).setMode(newSelection);
+                },
+              ),
+              SwitchSettingsEntry(
+                title: 'Outlined Theme',
+                value: theme.outlined,
+                onChanged: (value) =>
+                    ref.read(themeProvider.notifier).setOutlined(value),
+              ),
+              Async(
+                asyncValue: ref.watch(downloadSettingsProvider),
+                data: (data) => NumberSettingsEntry(
+                  title: 'Max Concurrent Downloads',
+                  value: data.concurrentDownloads,
+                  onChanged: (value) async {
+                    await ref
+                        .read(downloadSettingsProvider.notifier)
+                        .setConcurrentDownloads(value);
+                  },
+                  min: 1,
+                  max: 10,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
