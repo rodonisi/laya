@@ -142,34 +142,37 @@ class RenderContent extends ConsumerWidget {
       epubReaderSettingsProvider(seriesId: seriesId),
     );
 
-    return Align(
-      alignment: Alignment.topCenter,
-      child: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.all(epubSettings.marginSize),
-          child: GestureDetector(
-            onTap: () {
-              FocusScope.of(context).unfocus();
-            },
-            child: SelectionArea(
-              child: HtmlWidget(
-                html,
-                buildAsync: false,
-                enableCaching: true,
-                customStylesBuilder: (element) {
-                  final s = Map<String, String>.from(
-                    styles[element.localName] ?? {},
-                  );
+    return Async(
+      asyncValue: epubSettings,
+      data: (epubSettings) => Align(
+        alignment: Alignment.topCenter,
+        child: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.all(epubSettings.marginSize),
+            child: GestureDetector(
+              onTap: () {
+                FocusScope.of(context).unfocus();
+              },
+              child: SelectionArea(
+                child: HtmlWidget(
+                  html,
+                  buildAsync: false,
+                  enableCaching: true,
+                  customStylesBuilder: (element) {
+                    final s = Map<String, String>.from(
+                      styles[element.localName] ?? {},
+                    );
 
-                  for (final className in element.classes) {
-                    s.addAll(styles['.$className'] ?? {});
-                  }
+                    for (final className in element.classes) {
+                      s.addAll(styles['.$className'] ?? {});
+                    }
 
-                  return s;
-                },
-                textStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontSize: epubSettings.fontSize,
-                  height: epubSettings.lineHeight,
+                    return s;
+                  },
+                  textStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontSize: epubSettings.fontSize,
+                    height: epubSettings.lineHeight,
+                  ),
                 ),
               ),
             ),

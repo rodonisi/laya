@@ -46,13 +46,13 @@ sealed class ImageReaderSettingsState with _$ImageReaderSettingsState {
 @JsonPersist()
 class DefaultImageReaderSettings extends _$DefaultImageReaderSettings {
   @override
-  ImageReaderSettingsState build() {
-    persist(ref.watch(storageProvider.future));
-    return const ImageReaderSettingsState();
+  Future<ImageReaderSettingsState> build() async {
+    await persist(ref.watch(storageProvider.future)).future;
+    return state.value ?? const ImageReaderSettingsState();
   }
 
   void setDefault(ImageReaderSettingsState newDefault) {
-    state = newDefault;
+    state = AsyncData(newDefault);
   }
 }
 
@@ -60,80 +60,113 @@ class DefaultImageReaderSettings extends _$DefaultImageReaderSettings {
 @JsonPersist()
 class ImageReaderSettings extends _$ImageReaderSettings {
   @override
-  ImageReaderSettingsState build({required int seriesId}) {
-    persist(ref.watch(storageProvider.future));
-    return ref.watch(defaultImageReaderSettingsProvider);
+  Future<ImageReaderSettingsState> build({required int seriesId}) async {
+    await persist(ref.watch(storageProvider.future)).future;
+    return state.value ??
+        await ref.watch(defaultImageReaderSettingsProvider.future);
   }
 
-  void toggleScaleType() {
-    state = state.copyWith(
-      scaleType: state.scaleType == .fitWidth ? .fitHeight : .fitWidth,
-    );
-  }
+  Future<void> toggleScaleType() async {
+    final current = await future;
 
-  void toggleReadDirection() {
-    state = state.copyWith(
-      readDirection: state.readDirection == .leftToRight
-          ? .rightToLeft
-          : .leftToRight,
-    );
-  }
-
-  void toggleReaderMode() {
-    state = state.copyWith(
-      readerMode: state.readerMode == .horizontal ? .vertical : .horizontal,
-    );
-  }
-
-  void _setVerticalReaderGap(double gap) {
-    state = state.copyWith(
-      verticalReaderGap: gap.clamp(
-        ImageReaderSettingsLimits.verticalReaderGapMin,
-        ImageReaderSettingsLimits.verticalReaderGapMax,
+    state = AsyncData(
+      current.copyWith(
+        scaleType: current.scaleType == .fitWidth ? .fitHeight : .fitWidth,
       ),
     );
   }
 
-  void decreaseVerticalReaderGap() {
-    _setVerticalReaderGap(
-      state.verticalReaderGap - ImageReaderSettingsLimits.verticalReaderGapStep,
-    );
-  }
-
-  void increaseVerticalReaderGap() {
-    _setVerticalReaderGap(
-      state.verticalReaderGap + ImageReaderSettingsLimits.verticalReaderGapStep,
-    );
-  }
-
-  void _setVerticalReaderPadding(double padding) {
-    state = state.copyWith(
-      verticalReaderPadding: padding.clamp(
-        ImageReaderSettingsLimits.verticalReaderPaddingMin,
-        ImageReaderSettingsLimits.verticalReaderPaddingMax,
+  Future<void> toggleReadDirection() async {
+    final current = await future;
+    state = AsyncData(
+      current.copyWith(
+        readDirection: current.readDirection == .leftToRight
+            ? .rightToLeft
+            : .leftToRight,
       ),
     );
   }
 
-  void decreaseVerticalReaderPadding() {
-    _setVerticalReaderPadding(
-      state.verticalReaderPadding -
+  Future<void> toggleReaderMode() async {
+    final current = await future;
+
+    state = AsyncData(
+      current.copyWith(
+        readerMode: current.readerMode == .horizontal ? .vertical : .horizontal,
+      ),
+    );
+  }
+
+  Future<void> _setVerticalReaderGap(double gap) async {
+    final current = await future;
+
+    state = AsyncData(
+      current.copyWith(
+        verticalReaderGap: gap.clamp(
+          ImageReaderSettingsLimits.verticalReaderGapMin,
+          ImageReaderSettingsLimits.verticalReaderGapMax,
+        ),
+      ),
+    );
+  }
+
+  Future<void> decreaseVerticalReaderGap() async {
+    final current = await future;
+
+    await _setVerticalReaderGap(
+      current.verticalReaderGap -
+          ImageReaderSettingsLimits.verticalReaderGapStep,
+    );
+  }
+
+  Future<void> increaseVerticalReaderGap() async {
+    final current = await future;
+
+    await _setVerticalReaderGap(
+      current.verticalReaderGap +
+          ImageReaderSettingsLimits.verticalReaderGapStep,
+    );
+  }
+
+  Future<void> _setVerticalReaderPadding(double padding) async {
+    final current = await future;
+
+    state = AsyncData(
+      current.copyWith(
+        verticalReaderPadding: padding.clamp(
+          ImageReaderSettingsLimits.verticalReaderPaddingMin,
+          ImageReaderSettingsLimits.verticalReaderPaddingMax,
+        ),
+      ),
+    );
+  }
+
+  Future<void> decreaseVerticalReaderPadding() async {
+    final current = await future;
+
+    await _setVerticalReaderPadding(
+      current.verticalReaderPadding -
           ImageReaderSettingsLimits.verticalReaderPaddingStep,
     );
   }
 
-  void increaseVerticalReaderPadding() {
-    _setVerticalReaderPadding(
-      state.verticalReaderPadding +
+  Future<void> increaseVerticalReaderPadding() async {
+    final current = await future;
+
+    await _setVerticalReaderPadding(
+      current.verticalReaderPadding +
           ImageReaderSettingsLimits.verticalReaderPaddingStep,
     );
   }
 
-  void reset() {
-    state = ref.read(defaultImageReaderSettingsProvider);
+  Future<void> reset() async {
+    state = AsyncData(
+      await ref.read(defaultImageReaderSettingsProvider.future),
+    );
   }
 
-  void setDefault() {
-    ref.read(defaultImageReaderSettingsProvider.notifier).setDefault(state);
+  Future<void> setDefault() async {
+    final current = await future;
+    ref.read(defaultImageReaderSettingsProvider.notifier).setDefault(current);
   }
 }

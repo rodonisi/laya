@@ -47,32 +47,37 @@ class HorizontalPagedReader extends HookConsumerWidget {
     return Async(
       asyncValue: ref.watch(provider),
       data: (state) {
-        return PageView.builder(
-          controller: pageController,
-          allowImplicitScrolling: true,
-          scrollDirection: .horizontal,
-          reverse: settings.readDirection == .rightToLeft,
-          itemCount: state.totalPages,
-          pageSnapping: true,
-          onPageChanged: (index) {
-            ref.read(navProvider.notifier).jumpToPage(index);
-          },
-          itemBuilder: (context, index) {
-            return Async(
-              asyncValue: ref.watch(
-                imagePageProvider(
-                  chapterId: chapterId,
-                  page: index,
+        return Async(
+          asyncValue: settings,
+          data: (settings) => PageView.builder(
+            controller: pageController,
+            allowImplicitScrolling: true,
+            scrollDirection: .horizontal,
+            reverse: settings.readDirection == .rightToLeft,
+            itemCount: state.totalPages,
+            pageSnapping: true,
+            onPageChanged: (index) {
+              ref.read(navProvider.notifier).jumpToPage(index);
+            },
+            itemBuilder: (context, index) {
+              return Async(
+                asyncValue: ref.watch(
+                  imagePageProvider(
+                    chapterId: chapterId,
+                    page: index,
+                  ),
                 ),
-              ),
-              data: (data) {
-                return Image.memory(
-                  data.data,
-                  fit: settings.scaleType == .fitWidth ? .fitWidth : .fitHeight,
-                );
-              },
-            );
-          },
+                data: (data) {
+                  return Image.memory(
+                    data.data,
+                    fit: settings.scaleType == .fitWidth
+                        ? .fitWidth
+                        : .fitHeight,
+                  );
+                },
+              );
+            },
+          ),
         );
       },
     );

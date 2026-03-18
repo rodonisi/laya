@@ -3,6 +3,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:kover/models/read_direction.dart';
 import 'package:kover/riverpod/providers/settings/epub_reader_settings.dart';
 import 'package:kover/utils/layout_constants.dart';
+import 'package:kover/widgets/async_value.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class EpubReaderControls extends ConsumerWidget {
@@ -33,108 +34,119 @@ class _ReaderSettingsBottomSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(epubReaderSettingsProvider(seriesId: seriesId));
-    final notifier = ref.read(
-      epubReaderSettingsProvider(seriesId: seriesId).notifier,
-    );
+    final provider = epubReaderSettingsProvider(seriesId: seriesId);
 
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.only(
-          left: LayoutConstants.mediumPadding,
-          right: LayoutConstants.mediumPadding,
-          bottom: LayoutConstants.largePadding,
-        ),
-        child: Column(
-          mainAxisSize: .min,
-          crossAxisAlignment: .start,
-          spacing: LayoutConstants.mediumPadding,
-          children: [
-            Text(
-              'Reader Settings',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            Row(
-              children: [
-                const Expanded(child: Text('Read Direction')),
-                SegmentedButton<ReadDirection>(
-                  segments: const [
-                    ButtonSegment<ReadDirection>(
-                      value: .leftToRight,
-                      label: Text('LTR'),
-                      icon: Icon(LucideIcons.chevronsRight),
-                    ),
-                    ButtonSegment<ReadDirection>(
-                      value: .rightToLeft,
-                      label: Text('RTL'),
-                      icon: Icon(LucideIcons.chevronsLeft),
-                    ),
-                  ],
-                  selected: {settings.readDirection},
-                  onSelectionChanged: (Set<ReadDirection> newSelection) {
-                    if (newSelection.first != settings.readDirection) {
-                      notifier.toggleReadDirection();
-                    }
-                  },
-                ),
-              ],
-            ),
-            _SettingRow(
-              label: 'Font Size',
-              value: '${settings.fontSize.toInt()}',
-              increaseIcon: LucideIcons.aArrowUp,
-              decreaseIcon: LucideIcons.aArrowDown,
-              onDecrease: settings.canDecreaseFontSize
-                  ? notifier.decreaseFontSize
-                  : null,
-              onIncrease: settings.canIncreaseFontSize
-                  ? notifier.increaseFontSize
-                  : null,
-            ),
-            _SettingRow(
-              label: 'Margins',
-              value: '${settings.marginSize.toInt()}',
-              increaseIcon: LucideIcons.arrowRightFromLine,
-              decreaseIcon: LucideIcons.arrowLeftToLine,
-              onDecrease: settings.canDecreaseMarginSize
-                  ? notifier.decreaseMarginSize
-                  : null,
-              onIncrease: settings.canIncreaseMarginSize
-                  ? notifier.increaseMarginSize
-                  : null,
-            ),
-            _SettingRow(
-              label: 'Line Height',
-              value: settings.lineHeight.toStringAsFixed(1),
-              increaseIcon: LucideIcons.listChevronsUpDown,
-              decreaseIcon: LucideIcons.listChevronsDownUp,
-              onDecrease: settings.canDecreaseLineHeight
-                  ? notifier.decreaseLineHeight
-                  : null,
-              onIncrease: settings.canIncreaseLineHeight
-                  ? notifier.increaseLineHeight
-                  : null,
-            ),
-            Row(
-              spacing: LayoutConstants.mediumPadding,
-              children: [
-                Expanded(
-                  child: FilledButton.tonalIcon(
-                    onPressed: notifier.setDefault,
-                    icon: const Icon(LucideIcons.save),
-                    label: const Text('Use as Defaults'),
+    return Async(
+      asyncValue: ref.watch(provider),
+      data: (settings) => SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.only(
+            left: LayoutConstants.mediumPadding,
+            right: LayoutConstants.mediumPadding,
+            bottom: LayoutConstants.largePadding,
+          ),
+          child: Column(
+            mainAxisSize: .min,
+            crossAxisAlignment: .start,
+            spacing: LayoutConstants.mediumPadding,
+            children: [
+              Text(
+                'Reader Settings',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              Row(
+                children: [
+                  const Expanded(child: Text('Read Direction')),
+                  SegmentedButton<ReadDirection>(
+                    segments: const [
+                      ButtonSegment<ReadDirection>(
+                        value: .leftToRight,
+                        label: Text('LTR'),
+                        icon: Icon(LucideIcons.chevronsRight),
+                      ),
+                      ButtonSegment<ReadDirection>(
+                        value: .rightToLeft,
+                        label: Text('RTL'),
+                        icon: Icon(LucideIcons.chevronsLeft),
+                      ),
+                    ],
+                    selected: {settings.readDirection},
+                    onSelectionChanged:
+                        (Set<ReadDirection> newSelection) async {
+                          if (newSelection.first != settings.readDirection) {
+                            await ref
+                                .read(provider.notifier)
+                                .toggleReadDirection();
+                          }
+                        },
                   ),
-                ),
-                Expanded(
-                  child: FilledButton.tonalIcon(
-                    onPressed: notifier.reset,
-                    icon: const Icon(LucideIcons.rotateCcw),
-                    label: const Text('Reset to Defaults'),
+                ],
+              ),
+              _SettingRow(
+                label: 'Font Size',
+                value: '${settings.fontSize.toInt()}',
+                increaseIcon: LucideIcons.aArrowUp,
+                decreaseIcon: LucideIcons.aArrowDown,
+                onDecrease: settings.canDecreaseFontSize
+                    ? () async =>
+                          await ref.read(provider.notifier).decreaseFontSize()
+                    : null,
+                onIncrease: settings.canIncreaseFontSize
+                    ? () async =>
+                          await ref.read(provider.notifier).increaseFontSize()
+                    : null,
+              ),
+              _SettingRow(
+                label: 'Margins',
+                value: '${settings.marginSize.toInt()}',
+                increaseIcon: LucideIcons.arrowRightFromLine,
+                decreaseIcon: LucideIcons.arrowLeftToLine,
+                onDecrease: settings.canDecreaseMarginSize
+                    ? () async =>
+                          await ref.read(provider.notifier).decreaseMarginSize()
+                    : null,
+                onIncrease: settings.canIncreaseMarginSize
+                    ? () async =>
+                          await ref.read(provider.notifier).increaseMarginSize()
+                    : null,
+              ),
+              _SettingRow(
+                label: 'Line Height',
+                value: settings.lineHeight.toStringAsFixed(1),
+                increaseIcon: LucideIcons.listChevronsUpDown,
+                decreaseIcon: LucideIcons.listChevronsDownUp,
+                onDecrease: settings.canDecreaseLineHeight
+                    ? () async =>
+                          await ref.read(provider.notifier).decreaseLineHeight()
+                    : null,
+                onIncrease: settings.canIncreaseLineHeight
+                    ? () async =>
+                          await ref.read(provider.notifier).increaseLineHeight()
+                    : null,
+              ),
+              Row(
+                spacing: LayoutConstants.mediumPadding,
+                children: [
+                  Expanded(
+                    child: FilledButton.tonalIcon(
+                      onPressed: () async =>
+                          await ref.read(provider.notifier).setDefault(),
+                      icon: const Icon(LucideIcons.save),
+                      label: const Text('Use as Defaults'),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                  Expanded(
+                    child: FilledButton.tonalIcon(
+                      onPressed: () async =>
+                          await ref.read(provider.notifier).reset(),
+                      icon: const Icon(LucideIcons.rotateCcw),
+                      label: const Text('Reset to Defaults'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

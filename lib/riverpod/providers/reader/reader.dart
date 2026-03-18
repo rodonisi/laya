@@ -115,11 +115,11 @@ class Reader extends _$Reader {
 }
 
 @riverpod
-ReadDirection readDirection(
+Future<ReadDirection> readDirection(
   Ref ref, {
   required int seriesId,
   int? chapterId,
-}) {
+}) async {
   final format =
       ref.watch(
         readerProvider(seriesId: seriesId, chapterId: chapterId).select(
@@ -129,10 +129,12 @@ ReadDirection readDirection(
       Format.unknown;
 
   return switch (format) {
-    .epub =>
-      ref.watch(epubReaderSettingsProvider(seriesId: seriesId)).readDirection,
-    .archive =>
-      ref.watch(imageReaderSettingsProvider(seriesId: seriesId)).readDirection,
+    .epub => (await ref.watch(
+      epubReaderSettingsProvider(seriesId: seriesId).future,
+    )).readDirection,
+    .archive => (await ref.watch(
+      imageReaderSettingsProvider(seriesId: seriesId).future,
+    )).readDirection,
     .unknown => .rightToLeft,
   };
 }

@@ -5,6 +5,7 @@ import 'package:kover/pages/reader/reader_overlay.dart';
 import 'package:kover/pages/reader/vertical_continuous_reader.dart';
 import 'package:kover/riverpod/providers/reader/reader_navigation.dart';
 import 'package:kover/riverpod/providers/settings/image_reader_settings.dart';
+import 'package:kover/widgets/async_value.dart';
 
 class ImageReader extends ConsumerWidget {
   final int seriesId;
@@ -24,32 +25,35 @@ class ImageReader extends ConsumerWidget {
       chapterId: chapterId,
     );
 
-    return ReaderOverlay(
-      seriesId: seriesId,
-      chapterId: chapterId,
-      onNextPage: () {
-        settings.readDirection == .leftToRight
-            ? ref.read(navProvider.notifier).nextPage()
-            : ref.read(navProvider.notifier).previousPage();
-      },
-      onPreviousPage: () {
-        settings.readDirection == .leftToRight
-            ? ref.read(navProvider.notifier).previousPage()
-            : ref.read(navProvider.notifier).nextPage();
-      },
-      onJumpToPage: (page) {
-        ref.read(navProvider.notifier).jumpToPage(page);
-      },
-      child: switch (settings.readerMode) {
-        ReaderMode.horizontal => HorizontalPagedReader(
-          seriesId: seriesId,
-          chapterId: chapterId,
-        ),
-        ReaderMode.vertical => VerticalContinuousReader(
-          seriesId: seriesId,
-          chapterId: chapterId,
-        ),
-      },
+    return Async(
+      asyncValue: settings,
+      data: (settings) => ReaderOverlay(
+        seriesId: seriesId,
+        chapterId: chapterId,
+        onNextPage: () {
+          settings.readDirection == .leftToRight
+              ? ref.read(navProvider.notifier).nextPage()
+              : ref.read(navProvider.notifier).previousPage();
+        },
+        onPreviousPage: () {
+          settings.readDirection == .leftToRight
+              ? ref.read(navProvider.notifier).previousPage()
+              : ref.read(navProvider.notifier).nextPage();
+        },
+        onJumpToPage: (page) {
+          ref.read(navProvider.notifier).jumpToPage(page);
+        },
+        child: switch (settings.readerMode) {
+          ReaderMode.horizontal => HorizontalPagedReader(
+            seriesId: seriesId,
+            chapterId: chapterId,
+          ),
+          ReaderMode.vertical => VerticalContinuousReader(
+            seriesId: seriesId,
+            chapterId: chapterId,
+          ),
+        },
+      ),
     );
   }
 }
