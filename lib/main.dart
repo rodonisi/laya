@@ -5,6 +5,7 @@ import 'package:kover/riverpod/managers/sync_manager.dart';
 import 'package:kover/riverpod/providers/router.dart';
 import 'package:kover/riverpod/providers/theme.dart';
 import 'package:kover/sync/background.dart';
+import 'package:kover/widgets/async_value.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,13 +25,17 @@ class App extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = ref.watch(themeProvider);
     return EagerProviders(
-      child: MaterialApp.router(
-        title: 'Kover',
-        debugShowCheckedModeBanner: false,
-        theme: theme.lightTheme,
-        darkTheme: theme.darkTheme,
-        themeMode: theme.mode,
-        routerConfig: ref.watch(routerProvider),
+      child: Async(
+        asyncValue: theme,
+        data: (theme) => MaterialApp.router(
+          title: 'Kover',
+          debugShowCheckedModeBanner: false,
+          theme: theme.lightTheme,
+          darkTheme: theme.darkTheme,
+          themeMode: theme.mode,
+          routerConfig: ref.watch(routerProvider),
+        ),
+        loading: () => const SizedBox.shrink(),
       ),
     );
   }

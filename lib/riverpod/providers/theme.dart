@@ -121,21 +121,25 @@ sealed class ThemeModel with _$ThemeModel {
 @JsonPersist()
 class Theme extends _$Theme {
   @override
-  ThemeModel build() {
-    persist(ref.watch(storageProvider.future));
+  Future<ThemeModel> build() async {
+    await persist(ref.watch(storageProvider.future)).future;
 
-    return const ThemeModel();
+    return state.value ?? const ThemeModel();
   }
 
-  void setMode(ThemeMode mode) {
-    state = state.copyWith(mode: mode);
+  Future<void> setMode(ThemeMode mode) async {
+    final current = await future;
+
+    state = AsyncData(current.copyWith(mode: mode));
   }
 
-  void setOutlined(bool value) {
-    state = state.copyWith(outlined: value);
+  Future<void> setOutlined(bool value) async {
+    final current = await future;
+
+    state = AsyncData(current.copyWith(outlined: value));
   }
 
   void reset() {
-    state = const ThemeModel();
+    state = const AsyncData(ThemeModel());
   }
 }

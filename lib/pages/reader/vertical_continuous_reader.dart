@@ -241,7 +241,7 @@ class _VerticalContinuousReaderState
 
     ref.listen(
       imageReaderSettingsProvider(seriesId: widget.seriesId).select(
-        (settings) => settings.verticalReaderPadding,
+        (settings) => settings.value?.verticalReaderPadding,
       ),
       (previous, next) {
         if (previous != next) {
@@ -263,16 +263,19 @@ class _VerticalContinuousReaderState
           scrollbars: false,
         ),
         slivers: [
-          SliverPadding(
-            padding: EdgeInsets.symmetric(
-              horizontal: settings.verticalReaderPadding,
-            ),
-            sliver: SliverList.separated(
-              addAutomaticKeepAlives: true,
-              itemCount: _totalPages,
-              itemBuilder: _buildItem,
-              separatorBuilder: (context, index) =>
-                  SizedBox(height: settings.verticalReaderGap),
+          AsyncSliver(
+            asyncValue: settings,
+            data: (settings) => SliverPadding(
+              padding: EdgeInsets.symmetric(
+                horizontal: settings.verticalReaderPadding,
+              ),
+              sliver: SliverList.separated(
+                addAutomaticKeepAlives: true,
+                itemCount: _totalPages,
+                itemBuilder: _buildItem,
+                separatorBuilder: (context, index) =>
+                    SizedBox(height: settings.verticalReaderGap),
+              ),
             ),
           ),
         ],

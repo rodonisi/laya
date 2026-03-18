@@ -4,6 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:kover/riverpod/managers/sync_manager.dart';
 import 'package:kover/riverpod/providers/theme.dart' hide Theme;
 import 'package:kover/utils/layout_constants.dart';
+import 'package:kover/widgets/async_value.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 String _phaseLabel(SyncPhase phase) => switch (phase) {
@@ -89,39 +90,42 @@ class NavigatorContainer extends ConsumerWidget {
           context: context,
           removeBottom: true,
           removeTop: true,
-          child: Card(
-            clipBehavior: .hardEdge,
-            shape: RoundedRectangleBorder(
-              side: ref.read(themeProvider).outlined
-                  ? BorderSide(
-                      color: Theme.of(context).colorScheme.outline,
-                      width: 2.0,
-                    )
-                  : BorderSide.none,
-              borderRadius: BorderRadius.circular(24.0),
-            ),
-            child: NavigationBar(
-              selectedIndex: navigationShell.currentIndex,
-              onDestinationSelected: (index) {
-                navigationShell.goBranch(
-                  index,
-                  initialLocation: true,
-                );
-              },
-              destinations: const [
-                NavigationDestination(
-                  icon: Icon(LucideIcons.house),
-                  label: 'Home',
-                ),
-                NavigationDestination(
-                  icon: Icon(LucideIcons.star),
-                  label: 'Want to Read',
-                ),
-                NavigationDestination(
-                  icon: Icon(LucideIcons.library),
-                  label: 'Menu',
-                ),
-              ],
+          child: Async(
+            asyncValue: ref.watch(themeProvider),
+            data: (theme) => Card(
+              clipBehavior: .hardEdge,
+              shape: RoundedRectangleBorder(
+                side: theme.outlined
+                    ? BorderSide(
+                        color: Theme.of(context).colorScheme.outline,
+                        width: 2.0,
+                      )
+                    : BorderSide.none,
+                borderRadius: BorderRadius.circular(24.0),
+              ),
+              child: NavigationBar(
+                selectedIndex: navigationShell.currentIndex,
+                onDestinationSelected: (index) {
+                  navigationShell.goBranch(
+                    index,
+                    initialLocation: true,
+                  );
+                },
+                destinations: const [
+                  NavigationDestination(
+                    icon: Icon(LucideIcons.house),
+                    label: 'Home',
+                  ),
+                  NavigationDestination(
+                    icon: Icon(LucideIcons.star),
+                    label: 'Want to Read',
+                  ),
+                  NavigationDestination(
+                    icon: Icon(LucideIcons.library),
+                    label: 'Menu',
+                  ),
+                ],
+              ),
             ),
           ),
         ),
