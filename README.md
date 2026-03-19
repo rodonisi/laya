@@ -42,4 +42,14 @@ This project makes heavy use of code generation for APIs and model objects. The 
 - finally the project can be build as usual with `flutter build` or run in debug mode with `flutter run`
 
 Note: remember to regenerate code when modifying annotated classes or run with `dart run build_runner watch
---deleteAlso-conflicting-outputs` during development to watch for changes.
+--delete-conflicting-outputs` during development to watch for changes.
+
+#### Building Web
+
+Web requires additional dependencies to be available, namely the Drift worker and Sqlite3.
+
+A script that pulls the correct versions based on the `pubspec.lock` is available under tools and can be run with
+
+```
+dart run tools/fetch_web_dependencies.dart
+```
