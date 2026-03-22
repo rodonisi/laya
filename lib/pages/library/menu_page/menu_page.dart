@@ -32,11 +32,11 @@ class MenuPage extends ConsumerWidget {
       ),
     );
 
-    return SafeArea(
-      bottom: false,
-      child: Scaffold(
-        extendBody: true,
-        body: CustomScrollView(
+    return Scaffold(
+      extendBody: true,
+      body: SafeArea(
+        bottom: false,
+        child: CustomScrollView(
           slivers: [
             const ActionsAppBar(),
             if (loggedIn) ...[
