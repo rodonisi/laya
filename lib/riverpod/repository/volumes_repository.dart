@@ -9,7 +9,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'volumes_repository.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 VolumesRepository volumesRepository(Ref ref) {
   final db = ref.watch(databaseProvider);
   final restClient = ref.watch(restClientProvider);

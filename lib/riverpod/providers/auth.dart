@@ -18,7 +18,7 @@ Duration? _retry(int retryCount, Object error) {
   return Duration(milliseconds: 200 * (1 << retryCount));
 }
 
-@Riverpod(retry: _retry)
+@Riverpod(retry: _retry, keepAlive: true)
 @JsonPersist()
 class CurrentUser extends _$CurrentUser {
   @override

@@ -8,7 +8,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'storage_repository.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 Future<Storage<String, String>> storage(Ref ref) async {
   final db = ref.watch(databaseProvider);
   return StorageRepository(db: db);

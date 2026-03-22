@@ -30,7 +30,7 @@ sealed class DownloadManagerState with _$DownloadManagerState {
       _$DownloadManagerStateFromJson(json);
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 @JsonPersist()
 class DownloadManager extends _$DownloadManager {
   final Map<int, CancelableOperation<void>> _activeTasks = {};

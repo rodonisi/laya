@@ -17,7 +17,7 @@ sealed class DownloadSettingsState with _$DownloadSettingsState {
       _$DownloadSettingsStateFromJson(json);
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 @JsonPersist()
 class DownloadSettings extends _$DownloadSettings {
   @override

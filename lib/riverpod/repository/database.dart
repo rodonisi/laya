@@ -3,7 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'database.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 AppDatabase database(Ref ref) {
   return AppDatabase();
 }

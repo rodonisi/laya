@@ -12,7 +12,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'book_repository.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 BookRepository bookRepository(Ref ref) {
   final db = ref.watch(databaseProvider);
   final restClient = ref.watch(restClientProvider);

@@ -8,7 +8,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'want_to_read_repository.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 WantToReadRepository wantToReadRepository(Ref ref) {
   final db = ref.watch(databaseProvider);
   final restClient = ref.watch(restClientProvider);

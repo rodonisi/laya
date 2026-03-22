@@ -9,7 +9,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'connectivity.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 /// Returns wheter a connection to the server can be established.
 Stream<bool> hasConnection(Ref ref) async* {
   final ping = ref.watch(pingProvider).value ?? false;
@@ -38,7 +38,7 @@ Stream<bool> hasConnection(Ref ref) async* {
 
 Duration? _neverRetry(int retryCount, Object error) => null;
 
-@Riverpod(retry: _neverRetry)
+@Riverpod(retry: _neverRetry, keepAlive: true)
 Future<bool> ping(Ref ref) async {
   final client = ref.watch(restClientProvider);
 

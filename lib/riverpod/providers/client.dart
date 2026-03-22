@@ -18,7 +18,7 @@ ChopperClient getChopperClient(Uri uri, String apiKey) {
   );
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 ChopperClient authenticatedClient(Ref ref) {
   final settings = ref.watch(settingsProvider).value;
   final key = ref.watch(apiKeyProvider);
@@ -46,7 +46,7 @@ ChopperClient authenticatedClient(Ref ref) {
   return client;
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 Openapi restClient(Ref ref) {
   final client = ref.watch(authenticatedClientProvider);
   return Openapi.create(client: client);

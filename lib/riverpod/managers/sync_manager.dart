@@ -33,7 +33,8 @@ enum SyncPhase {
 sealed class SyncState with _$SyncState {
   const factory SyncState.idle() = IdleState;
 
-  const factory SyncState.syncing({required Set<SyncPhase> phases}) = SyncingState;
+  const factory SyncState.syncing({required Set<SyncPhase> phases}) =
+      SyncingState;
 
   const factory SyncState.error({
     required SyncPhase phase,
@@ -41,17 +42,40 @@ sealed class SyncState with _$SyncState {
   }) = ErrorState;
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 class SyncManager extends _$SyncManager {
   bool _hasUser = false;
   bool _hasConnection = false;
   final Set<SyncPhase> _runningPhases = {};
+  SyncEngine get _engine {
+    final seriesRepo = ref.read(seriesRepositoryProvider);
+    final bookRepo = ref.read(bookRepositoryProvider);
+    final librariesRepo = ref.read(librariesRepositoryProvider);
+    final wantToReadRepo = ref.read(wantToReadRepositoryProvider);
+    final readerRepo = ref.read(readerRepositoryProvider);
+    final volumesRepo = ref.read(volumesRepositoryProvider);
+    final chaptersRepo = ref.read(chaptersRepositoryProvider);
+
+    return SyncEngine(
+      seriesRepo: seriesRepo,
+      bookRepo: bookRepo,
+      librariesRepo: librariesRepo,
+      wantToReadRepo: wantToReadRepo,
+      readerRepo: readerRepo,
+      volumesRepo: volumesRepo,
+      chaptersRepo: chaptersRepo,
+    );
+  }
 
   @override
   SyncState build() {
+    _hasUser = ref.read(currentUserProvider).hasValue;
+    _hasConnection = ref.read(hasConnectionProvider).value ?? false;
+
     _listenUser();
     _listenConnectivity();
     _listenAppLifecycle();
+
     return const SyncState.idle();
   }
 
@@ -62,8 +86,8 @@ class SyncManager extends _$SyncManager {
     await Future.wait([
       _syncRecentlyUpdated(),
       _syncRecentlyAdded(),
-      _syncLibraries(),
-      _syncProgress(),
+      syncLibraries(),
+      syncProgress(),
       _syncMetadata(),
     ]);
 
@@ -72,81 +96,45 @@ class SyncManager extends _$SyncManager {
 
   /// Sync libraries
   Future<void> syncLibraries() async {
-    await _syncLibraries();
+    await _runPhase(.libraries, () async {
+      await _engine.syncLibraries();
+    });
   }
 
   /// Sync progress
   Future<void> syncProgress() async {
-    await _syncProgress();
+    await _runPhase(.progress, () async {
+      await _engine.syncProgress();
+    });
   }
 
   Future<void> _syncAllSeries() async {
     await _runPhase(.allSeries, () async {
-      final seriesRepo = ref.read(seriesRepositoryProvider);
-
-      await seriesRepo.refreshAllSeries();
-      await seriesRepo.fetchMissingMetadata();
+      await _engine.syncAllSeries();
     });
   }
 
   Future<void> _syncMetadata() async {
     await _runPhase(.metadata, () async {
-      final seriesRepo = ref.read(seriesRepositoryProvider);
-      final bookRepo = ref.read(bookRepositoryProvider);
-
-      await seriesRepo.fetchMissingMetadata();
-      await bookRepo.fetchMissingChaptersTocs();
-    });
-  }
-
-  Future<void> _syncLibraries() async {
-    await _runPhase(.libraries, () async {
-      final librariesRepo = ref.read(librariesRepositoryProvider);
-      final wantToReadRepo = ref.read(wantToReadRepositoryProvider);
-
-      await librariesRepo.refreshLibraries();
-      await wantToReadRepo.mergeWantToRead();
+      await _engine.syncMetadata();
     });
   }
 
   Future<void> _syncRecentlyUpdated() async {
     await _runPhase(.recentlyUpdated, () async {
-      final seriesRepo = ref.read(seriesRepositoryProvider);
-
-      await seriesRepo.refreshRecentlyUpdated();
-      await seriesRepo.fetchMissingMetadata();
+      await _engine.syncRecentlyUpdated();
     });
   }
 
   Future<void> _syncRecentlyAdded() async {
     await _runPhase(.recentlyAdded, () async {
-      final seriesRepo = ref.read(seriesRepositoryProvider);
-
-      await seriesRepo.refreshRecentlyAdded();
-      await seriesRepo.fetchMissingMetadata();
-    });
-  }
-
-  Future<void> _syncProgress() async {
-    await _runPhase(.progress, () async {
-      final readerRepo = ref.read(readerRepositoryProvider);
-
-      await readerRepo.refreshOutdatedProgress();
-      await readerRepo.mergeProgress();
+      await _engine.syncRecentlyAdded();
     });
   }
 
   Future<void> _syncCovers() async {
     await _runPhase(.covers, () async {
-      final seriesRepo = ref.read(seriesRepositoryProvider);
-      final volumesRepo = ref.read(volumesRepositoryProvider);
-      final chapterRepo = ref.read(chaptersRepositoryProvider);
-
-      await Future.wait([
-        seriesRepo.fetchMissingCovers(),
-        volumesRepo.fetchMissingCovers(),
-        chapterRepo.fetchMissingCovers(),
-      ]);
+      await _engine.syncCovers();
     });
   }
 
@@ -181,10 +169,10 @@ class SyncManager extends _$SyncManager {
   void _listenUser() {
     ref.listen(currentUserProvider, (prev, next) {
       _hasUser = next.hasValue;
-
       if (next.hasError) return;
-
-      if (prev?.value != next.value) fullSync();
+      if (next.hasValue && prev?.value != next.value) {
+        fullSync();
+      }
     });
   }
 
@@ -205,5 +193,61 @@ class SyncManager extends _$SyncManager {
     final observer = LifecycleOnResumeObserver(onResume: fullSync);
     WidgetsBinding.instance.addObserver(observer);
     ref.onDispose(() => WidgetsBinding.instance.removeObserver(observer));
+  }
+}
+
+class SyncEngine {
+  final SeriesRepository seriesRepo;
+  final BookRepository bookRepo;
+  final LibrariesRepository librariesRepo;
+  final WantToReadRepository wantToReadRepo;
+  final ReaderRepository readerRepo;
+  final VolumesRepository volumesRepo;
+  final ChaptersRepository chaptersRepo;
+
+  const SyncEngine({
+    required this.seriesRepo,
+    required this.bookRepo,
+    required this.librariesRepo,
+    required this.wantToReadRepo,
+    required this.readerRepo,
+    required this.volumesRepo,
+    required this.chaptersRepo,
+  });
+
+  Future<void> syncAllSeries() async {
+    await seriesRepo.refreshAllSeries();
+    await seriesRepo.fetchMissingMetadata();
+  }
+
+  Future<void> syncMetadata() async {
+    await seriesRepo.fetchMissingMetadata();
+    await bookRepo.fetchMissingChaptersTocs();
+  }
+
+  Future<void> syncLibraries() async {
+    await librariesRepo.refreshLibraries();
+    await wantToReadRepo.mergeWantToRead();
+  }
+
+  Future<void> syncRecentlyUpdated() async {
+    await seriesRepo.refreshRecentlyUpdated();
+  }
+
+  Future<void> syncRecentlyAdded() async {
+    await seriesRepo.refreshRecentlyAdded();
+  }
+
+  Future<void> syncProgress() async {
+    await readerRepo.refreshOutdatedProgress();
+    await readerRepo.mergeProgress();
+  }
+
+  Future<void> syncCovers() async {
+    await Future.wait([
+      seriesRepo.fetchMissingCovers(),
+      volumesRepo.fetchMissingCovers(),
+      chaptersRepo.fetchMissingCovers(),
+    ]);
   }
 }

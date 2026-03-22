@@ -19,7 +19,7 @@ sealed class SettingsState with _$SettingsState {
       _$SettingsStateFromJson(json);
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 @JsonPersist()
 class Settings extends _$Settings {
   static const String settingsKey = 'Settings';
@@ -40,7 +40,7 @@ class Settings extends _$Settings {
   }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 String? apiKey(Ref ref) {
   final settings = ref.watch(settingsProvider).value;
   return settings?.apiKey;

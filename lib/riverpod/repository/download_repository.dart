@@ -13,7 +13,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'download_repository.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 DownloadRepository downloadRepository(Ref ref) {
   final db = ref.watch(databaseProvider);
   final client = ref.watch(restClientProvider);

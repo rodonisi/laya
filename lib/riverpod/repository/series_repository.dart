@@ -10,7 +10,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'series_repository.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 SeriesRepository seriesRepository(Ref ref) {
   final db = ref.watch(databaseProvider);
   final restClient = ref.watch(restClientProvider);
@@ -143,20 +143,18 @@ class SeriesRepository {
     await _db.seriesMetadataDao.upsertMetadataBatch(metadata);
   }
 
-  /// Refresh recently added series. This also refreshes the respective series
+  /// Refresh recently added series.
   /// details
   Future<void> refreshRecentlyAdded() async {
     final series = await _client.getRecentlyAdded();
     await _db.seriesDao.upsertRecentlyAdded(series);
-    await refreshSeriesDetails(series.map((s) => s.id.value));
   }
 
-  /// Refresh recently updated series. This also refreshes the respective series
+  /// Refresh recently updated series.
   /// details
   Future<void> refreshRecentlyUpdated() async {
     final series = await _client.getRecentlyUpdated();
     await _db.seriesDao.upsertRecentlyUpdated(series);
-    await refreshSeriesDetails(series.map((s) => s.id.value));
   }
 
   /// Refresh series details for a list of series
