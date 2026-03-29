@@ -90,7 +90,6 @@ class SeriesCard extends HookConsumerWidget {
           ),
           onTap: () {
             SeriesDetailRoute(
-              libraryId: series.libraryId,
               seriesId: seriesId,
             ).push(context);
           },

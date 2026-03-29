@@ -26,7 +26,6 @@ final _darkBorderSide = BorderSide(
 );
 
 final _cardTheme = const CardThemeData(elevation: 0);
-
 final _outlinedLightCardTheme = _cardTheme.copyWith(
   shape: RoundedRectangleBorder(
     side: _lightBorderSide,
@@ -39,6 +38,10 @@ final _outlinedDarkCardTheme = _cardTheme.copyWith(
     side: _darkBorderSide,
     borderRadius: BorderRadius.circular(12.0),
   ),
+);
+
+final _progressIndicatorTheme = const ProgressIndicatorThemeData(
+  strokeCap: .round,
 );
 
 @freezed
@@ -76,6 +79,7 @@ sealed class ThemeModel with _$ThemeModel {
         }),
       ),
     ),
+    progressIndicatorTheme: _progressIndicatorTheme,
   );
 
   ThemeData get _outlinedLightTheme => _lightTheme.copyWith(
@@ -108,6 +112,7 @@ sealed class ThemeModel with _$ThemeModel {
         }),
       ),
     ),
+    progressIndicatorTheme: _progressIndicatorTheme,
   );
 
   ThemeData get _outlinedDarkTheme => _darkTheme.copyWith(

@@ -7,9 +7,9 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'reader.g.dart';
 
-@riverpod
 /// Whether [chapterId] can be read in the current state.
 /// Returns false if there is no connectivity and the chapter is not downloaded.
+@riverpod
 Stream<bool> canReadChapter(Ref ref, int chapterId) {
   final hasConnection = ref.watch(hasConnectionProvider).value ?? false;
   final repo = ref.watch(downloadRepositoryProvider);
@@ -18,10 +18,10 @@ Stream<bool> canReadChapter(Ref ref, int chapterId) {
       .map((isDownloaded) => isDownloaded || hasConnection);
 }
 
-@riverpod
 /// Whether the [seriesId] can be read in the current state.
 /// Returns false if there is no connectivity and the continue point is
 /// not downloaded.
+@riverpod
 Stream<bool> canReadSeries(Ref ref, int seriesId) {
   final hasConnection = ref.watch(hasConnectionProvider).value ?? false;
 
@@ -38,16 +38,16 @@ Stream<bool> canReadSeries(Ref ref, int seriesId) {
       .map((isDownloaded) => isDownloaded || hasConnection);
 }
 
-@riverpod
 /// Fetch continue point for [seriesId] asynchronously. Guarantees a value
 /// is returned and does not update until manually invalidated or disposed.
+@riverpod
 Future<ChapterModel> continuePoint(Ref ref, {required int seriesId}) async {
   final repo = ref.watch(readerRepositoryProvider);
   return await repo.getContinuePoint(seriesId: seriesId);
 }
 
-@riverpod
 /// Watch continue point for [seriesId], reacting to changes automatically.
+@riverpod
 Stream<ChapterModel> continuePointStream(
   Ref ref, {
   required int seriesId,
@@ -56,11 +56,21 @@ Stream<ChapterModel> continuePointStream(
   yield* repo.watchContinuePoint(seriesId: seriesId);
 }
 
-@riverpod
 /// Watch the progress of the continue point for the given [seriesId]
+@riverpod
 Stream<double> continuePointProgress(Ref ref, {required int seriesId}) async* {
   final repo = ref.watch(readerRepositoryProvider);
   yield* repo.watchContinuePointProgress(seriesId: seriesId).distinct();
+}
+
+/// Watch continue point for the given volume [volumeId]
+@riverpod
+Stream<ChapterModel> volumeContinuePoint(
+  Ref ref, {
+  required int volumeId,
+}) async* {
+  final repo = ref.watch(readerRepositoryProvider);
+  yield* repo.watchVolumeContinuePoint(volumeId: volumeId);
 }
 
 @riverpod

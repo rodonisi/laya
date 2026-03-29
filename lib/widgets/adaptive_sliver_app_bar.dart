@@ -6,7 +6,7 @@ import 'package:kover/widgets/measured_widget.dart';
 
 class AdaptiveSliverAppBar extends HookConsumerWidget {
   final PreferredSizeWidget? bottom;
-  final String title;
+  final Widget title;
   final Widget? background;
   final List<Widget>? actions;
   final Widget child;
@@ -32,13 +32,14 @@ class AdaptiveSliverAppBar extends HookConsumerWidget {
       [topPadding, bottom],
     );
     final expandedHeight = useMemoized(
-      () => infoHeight.value + kToolbarHeight + topPadding,
-      [infoHeight.value, topPadding],
+      () =>
+          infoHeight.value + topPadding + (bottom?.preferredSize.height ?? 0.0),
+      [infoHeight.value, topPadding, bottom],
     );
 
     return SliverAppBar(
       title: isCollapsed.value
-          ? Text(title).animate(target: isCollapsed.value ? 1 : 0).fade()
+          ? title.animate(target: isCollapsed.value ? 1 : 0).fade()
           : null,
       pinned: true,
       expandedHeight: expandedHeight,
