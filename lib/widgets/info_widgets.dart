@@ -7,35 +7,40 @@ import 'package:kover/widgets/async_value.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class LimitedList extends StatelessWidget {
-  final String title;
-  final List<String> items;
+  final String? title;
+  final List<Widget> items;
+  final int maxItems;
   const LimitedList({
     super.key,
-    required this.title,
+    this.title,
     required this.items,
+    this.maxItems = 3,
   });
 
   @override
   Widget build(BuildContext context) {
-    final display = Set.from(items).take(3);
+    final display = items.take(maxItems);
     return Column(
       mainAxisSize: .min,
       crossAxisAlignment: .start,
       children: [
-        Text(title, style: Theme.of(context).textTheme.titleMedium),
-        Wrap(
-          spacing: LayoutConstants.mediumPadding,
-          children: [
-            for (final writer in display)
-              Text(writer, style: Theme.of(context).textTheme.labelMedium),
-
-            if (display.length < items.length)
-              Text(
-                '+${items.length - display.length} more',
-                style: Theme.of(context).textTheme.labelMedium,
-              ),
-          ],
-        ),
+        if (title != null)
+          Text(title!, style: Theme.of(context).textTheme.titleMedium),
+        if (items.isEmpty)
+          const Text('-')
+        else
+          Wrap(
+            spacing: LayoutConstants.mediumPadding,
+            crossAxisAlignment: .center,
+            children: [
+              for (final item in display) item,
+              if (display.length < items.length)
+                Text(
+                  '+${items.length - display.length} more',
+                  style: Theme.of(context).textTheme.labelMedium,
+                ),
+            ],
+          ),
       ],
     );
   }

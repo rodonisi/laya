@@ -22,6 +22,12 @@ sealed class LayoutConstants {
 
   static const double chapterCardAspectRatio = 3 / 5;
   static const double coverAspectRatio = 2 / 3;
+
+  static const double smallerBorderRadius = 8.0;
+  static const double smallBorderRadius = 12.0;
+  static const double mediumBorderRadius = 16.0;
+  static const double largeBorderRadius = 32.0;
+  static const double largerBorderRadius = 64.0;
 }
 
 sealed class Breakpoints {

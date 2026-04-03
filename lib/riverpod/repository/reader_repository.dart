@@ -63,6 +63,12 @@ class ReaderRepository {
     return _db.readerDao.watchContinuePointProgress(seriesId: seriesId);
   }
 
+  Stream<ChapterModel> watchVolumeContinuePoint({required int volumeId}) {
+    return _db.readerDao
+        .watchVolumeContinuePoint(volumeId: volumeId)
+        .map(ChapterModel.fromDatabaseModel);
+  }
+
   /// Get reading progress for [chapterId]
   Future<ProgressModel?> getProgress(int chapterId) async {
     final progress = await _db.readerDao.getProgress(chapterId);

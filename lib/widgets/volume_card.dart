@@ -34,54 +34,64 @@ class VolumeCard extends HookConsumerWidget {
         ref.watch(volumeDownloadProgressProvider(volumeId: volumeId)).value ??
         0.0;
 
+    final continuePoint = ref.watch(
+      volumeContinuePointProvider(volumeId: volumeId),
+    );
+
     return Async(
       asyncValue: volume,
-      data: (volume) => ActionsContextMenu(
-        onMarkRead: () async {
-          await ref.read(markReadProvider.notifier).markRead();
-        },
-        onMarkUnread: () async {
-          await ref.read(markReadProvider.notifier).markUnread();
-        },
-        onDownload: downloadProgress < 1.0
-            ? () async {
-                await ref
-                    .read(downloadManagerProvider.notifier)
-                    .enqueueVolume(volumeId);
-              }
-            : null,
-        onRemoveDownload: downloadProgress > 0.0
-            ? () async {
-                await ref
-                    .read(downloadManagerProvider.notifier)
-                    .deleteVolume(volumeId);
-              }
-            : null,
-        child: CoverCard(
-          title: volume.name,
-          coverImage: VolumeCoverImage(volumeId: volume.id),
-          progress: progress,
-          downloadStatusIcon: DownloadStatusIcon(
-            progress: downloadProgress,
-          ),
-          actionDisabled:
-              !(ref
-                      .watch(
-                        canReadChapterProvider(volume.chapters.first.id),
-                      )
-                      .value ??
-                  false),
-          onActionTap: volume.chapters.isEmpty
-              ? null
-              : () {
-                  ReaderRoute(
-                    seriesId: volume.seriesId,
-                    chapterId: volume.chapters.first.id,
-                  ).push(context);
-                },
-          onTap: () {
-            VolumeDetailRoute(volume).push(context);
+      data: (volume) => Async(
+        asyncValue: continuePoint,
+        data: (continuePoint) => ActionsContextMenu(
+          onMarkRead: () async {
+            await ref.read(markReadProvider.notifier).markRead();
           },
+          onMarkUnread: () async {
+            await ref.read(markReadProvider.notifier).markUnread();
+          },
+          onDownload: downloadProgress < 1.0
+              ? () async {
+                  await ref
+                      .read(downloadManagerProvider.notifier)
+                      .enqueueVolume(volumeId);
+                }
+              : null,
+          onRemoveDownload: downloadProgress > 0.0
+              ? () async {
+                  await ref
+                      .read(downloadManagerProvider.notifier)
+                      .deleteVolume(volumeId);
+                }
+              : null,
+          child: CoverCard(
+            title: volume.name,
+            coverImage: VolumeCoverImage(volumeId: volume.id),
+            progress: progress,
+            downloadStatusIcon: DownloadStatusIcon(
+              progress: downloadProgress,
+            ),
+            actionDisabled:
+                !(ref
+                        .watch(
+                          canReadChapterProvider(continuePoint.id),
+                        )
+                        .value ??
+                    false),
+            onActionTap: volume.chapters.isEmpty
+                ? null
+                : () {
+                    ReaderRoute(
+                      seriesId: volume.seriesId,
+                      chapterId: continuePoint.id,
+                    ).push(context);
+                  },
+            onTap: () {
+              VolumeDetailRoute(
+                seriesId: volume.seriesId,
+                volumeId: volume.id,
+              ).push(context);
+            },
+          ),
         ),
       ),
     );

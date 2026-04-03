@@ -3,30 +3,41 @@ import 'package:kover/database/app_database.dart';
 import 'package:kover/database/tables/chapters.dart';
 import 'package:kover/database/tables/progress.dart';
 import 'package:kover/database/tables/series.dart';
+import 'package:kover/database/tables/volumes.dart';
 import 'package:kover/utils/logging.dart';
 
 part 'reader_dao.g.dart';
 
-@DriftAccessor(tables: [Series, Chapters, ReadingProgress])
+@DriftAccessor(tables: [Series, Volumes, Chapters, ReadingProgress])
 class ReaderDao extends DatabaseAccessor<AppDatabase> with _$ReaderDaoMixin {
   ReaderDao(super.attachedDatabase);
 
   JoinedSelectStatement<HasResultSet, dynamic> _chaptersWithProgressQuery({
     required int seriesId,
+    int? volumeId,
   }) {
-    return select(chapters).join([
+    final query = select(chapters).join([
       leftOuterJoin(
         readingProgress,
         readingProgress.chapterId.equalsExp(chapters.id),
       ),
+      leftOuterJoin(
+        volumes,
+        volumes.id.equalsExp(chapters.volumeId),
+      ),
     ])..where(chapters.seriesId.equals(seriesId));
+
+    if (volumeId == null) return query;
+
+    return query..where(chapters.volumeId.equals(volumeId));
   }
 
   /// Base continue point query
   JoinedSelectStatement<HasResultSet, dynamic> _continuePointQuery({
     required int seriesId,
+    int? volumeId,
   }) {
-    return _chaptersWithProgressQuery(seriesId: seriesId)
+    return _chaptersWithProgressQuery(seriesId: seriesId, volumeId: volumeId)
       ..orderBy([
         OrderingTerm.desc(
           readingProgress.chapterId.isNotNull() &
@@ -38,6 +49,7 @@ class ReaderDao extends DatabaseAccessor<AppDatabase> with _$ReaderDaoMixin {
               readingProgress.pagesRead.equals(0),
         ),
         OrderingTerm.asc(chapters.sortOrder),
+        OrderingTerm.asc(volumes.minNumber),
       ])
       ..limit(1);
   }
@@ -47,6 +59,18 @@ class ReaderDao extends DatabaseAccessor<AppDatabase> with _$ReaderDaoMixin {
     return _continuePointQuery(
       seriesId: seriesId,
     ).map((row) => row.readTable(chapters));
+  }
+
+  /// Stream of continue point for volume [volumeId]
+  Stream<Chapter> watchVolumeContinuePoint({required int volumeId}) async* {
+    final volume = await managers.volumes
+        .filter((f) => f.id(volumeId))
+        .getSingle();
+
+    yield* _continuePointQuery(
+      seriesId: volume.seriesId,
+      volumeId: volumeId,
+    ).map((row) => row.readTable(chapters)).watchSingle();
   }
 
   /// Watch progress percent for continue point of series [seriesId]

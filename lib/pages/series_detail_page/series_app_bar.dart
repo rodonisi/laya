@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:kover/models/series_model.dart';
-import 'package:kover/pages/library/series_detail_page/series_info_background.dart';
 import 'package:kover/riverpod/managers/download_manager.dart';
 import 'package:kover/riverpod/providers/download.dart';
 import 'package:kover/riverpod/providers/reader.dart';
@@ -9,10 +8,9 @@ import 'package:kover/riverpod/providers/router.dart';
 import 'package:kover/riverpod/providers/series.dart';
 import 'package:kover/utils/layout_constants.dart';
 import 'package:kover/widgets/actions_menu.dart';
-import 'package:kover/widgets/adaptive_sliver_app_bar.dart';
 import 'package:kover/widgets/async_value.dart';
-import 'package:kover/widgets/cover_card.dart';
 import 'package:kover/widgets/cover_image.dart';
+import 'package:kover/widgets/detail_app_bar.dart';
 import 'package:kover/widgets/info_widgets.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -32,13 +30,14 @@ class SeriesAppBar extends HookConsumerWidget {
     final downloadProgress =
         ref.watch(seriesDownloadProgressProvider(seriesId: seriesId)).value ??
         0.0;
+    final progress = ref.watch(seriesProgressProvider(seriesId: seriesId));
 
     return AsyncSliver(
       asyncValue: series,
       data: (data) {
-        return AdaptiveSliverAppBar(
+        return DetailAppBar(
           title: data.name,
-          bottom: bottom,
+          progress: progress.value,
           actions: [
             WantToReadToggle(seriesId: data.id),
             ActionsMenuButton(
@@ -50,9 +49,6 @@ class SeriesAppBar extends HookConsumerWidget {
                       ).notifier,
                     )
                     .markRead();
-                ref.invalidate(
-                  seriesDetailProvider(seriesId: seriesId),
-                );
               },
               onMarkUnread: () async {
                 await ref
@@ -62,9 +58,6 @@ class SeriesAppBar extends HookConsumerWidget {
                       ).notifier,
                     )
                     .markUnread();
-                ref.invalidate(
-                  seriesDetailProvider(seriesId: seriesId),
-                );
               },
               onDownload: downloadProgress < 1.0
                   ? () async {
@@ -83,59 +76,74 @@ class SeriesAppBar extends HookConsumerWidget {
               child: const Icon(LucideIcons.ellipsisVertical),
             ),
           ],
-          background: SeriesInfoBackground(
-            primaryColor: data.primaryColor,
-            secondaryColor: data.secondaryColor,
+          primaryColor: data.primaryColor,
+          secondaryColor: data.secondaryColor,
+          cover: SeriesCoverImage(seriesId: seriesId),
+          info: _Metadata(series: data),
+          collapsedContinueButton: _SeriesTitleContinueButton(
+            seriesId: seriesId,
           ),
-          child: _SeriesInfo(seriesId: seriesId),
+          expandedContinueButton: _SeriesContinuePointButton(
+            seriesId: seriesId,
+          ),
         );
       },
     );
   }
 }
 
-class _SeriesInfo extends ConsumerWidget {
+class _SeriesContinueButtonImage extends ConsumerWidget {
   final int seriesId;
-  const _SeriesInfo({
+  const _SeriesContinueButtonImage({required this.seriesId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final continuePoint = ref.watch(continuePointProvider(seriesId: seriesId));
+
+    return Async(
+      asyncValue: continuePoint,
+      data: (data) => ContinueButtonImage(
+        image: ChapterCoverImage(chapterId: data.id),
+      ),
+    );
+  }
+}
+
+class _SeriesTitleContinueButton extends ConsumerWidget {
+  final int seriesId;
+
+  const _SeriesTitleContinueButton({
     required this.seriesId,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final series = ref.watch(seriesProvider(seriesId: seriesId));
+    return TitleContinueButton(
+      child: _SeriesContinueButtonImage(seriesId: seriesId),
+      onTap: () => ReaderRoute(seriesId: seriesId).push(context),
+    );
+  }
+}
+
+class _SeriesContinuePointButton extends ConsumerWidget {
+  final int seriesId;
+
+  const _SeriesContinuePointButton({required this.seriesId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final continuePoint = ref.watch(continuePointProvider(seriesId: seriesId));
+    final progress = ref.watch(
+      continuePointProgressProvider(seriesId: seriesId),
+    );
+
     return Async(
-      asyncValue: series,
-      data: (series) => Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: LayoutConstants.largePadding,
-        ),
-        child: Column(
-          spacing: LayoutConstants.largePadding,
-          crossAxisAlignment: .start,
-          mainAxisAlignment: .start,
-          mainAxisSize: .min,
-          children: [
-            const SizedBox.square(dimension: kToolbarHeight),
-            Text(
-              series.name,
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-            Row(
-              spacing: LayoutConstants.largePadding,
-              children: [
-                SizedBox(
-                  height: 250,
-                  child: _Cover(seriesId: series.id),
-                ),
-                Expanded(
-                  child: _Metadata(
-                    series: series,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+      asyncValue: continuePoint,
+      data: (data) => ContinuePointButton(
+        title: data.title,
+        cover: _SeriesContinueButtonImage(seriesId: seriesId),
+        progress: progress.value,
+        onTap: () => ReaderRoute(seriesId: seriesId).push(context),
       ),
     );
   }
@@ -180,63 +188,18 @@ class _Metadata extends ConsumerWidget {
             children: [
               LimitedList(
                 title: 'Writers',
-                items: metadata.writers.map((w) => w.name).toList(),
-              ),
-              LimitedList(
-                title: 'Genres',
-                items: metadata.genres.map((a) => a.name).toList(),
+                items: metadata.writers
+                    .map(
+                      (w) => Text(
+                        w.name,
+                        style: Theme.of(context).textTheme.labelMedium,
+                      ),
+                    )
+                    .toList(),
               ),
             ],
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _Cover extends ConsumerWidget {
-  final int seriesId;
-
-  const _Cover({
-    required this.seriesId,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final continuePoint = ref.watch(
-      continuePointStreamProvider(seriesId: seriesId),
-    );
-    final canRead = ref.watch(canReadSeriesProvider(seriesId)).value ?? false;
-    final progress =
-        ref
-            .watch(
-              continuePointProgressProvider(seriesId: seriesId),
-            )
-            .value ??
-        0.0;
-
-    return AspectRatio(
-      aspectRatio: LayoutConstants.chapterCardAspectRatio,
-      child: Async(
-        asyncValue: continuePoint,
-        data: (data) => CoverCard(
-          title: data.title,
-          actionLabel: 'Continue',
-          actionDisabled: !canRead,
-          progress: progress,
-          coverImage: SeriesCoverImage(
-            seriesId: seriesId,
-            fit: BoxFit.cover,
-          ),
-          onActionTap: () {
-            continuePoint.whenData((chapter) {
-              ReaderRoute(
-                seriesId: seriesId,
-                chapterId: chapter.id,
-              ).push(context);
-            });
-          },
-        ),
       ),
     );
   }

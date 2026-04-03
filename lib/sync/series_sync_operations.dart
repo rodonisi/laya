@@ -35,7 +35,6 @@ class SeriesSyncOperations {
             (entry) =>
                 MapEntry(entry.id!, entry.latestReadDate!.normalizeUtc()),
           ),
-
     );
   }
 

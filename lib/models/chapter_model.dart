@@ -12,10 +12,16 @@ sealed class ChapterModel with _$ChapterModel {
 
   const factory ChapterModel({
     required int id,
+    required int seriesId,
     required int volumeId,
     required String title,
     required int pages,
     Format? format,
+    String? summary,
+    int? wordCount,
+    double? avgHoursToRead,
+    String? primaryColor,
+    String? secondaryColor,
   }) = _ChapterModel;
 
   factory ChapterModel.fromJson(Map<String, Object?> json) =>
@@ -24,10 +30,16 @@ sealed class ChapterModel with _$ChapterModel {
   factory ChapterModel.fromDatabaseModel(Chapter table) {
     return ChapterModel(
       id: table.id,
+      seriesId: table.seriesId,
       volumeId: table.volumeId,
-      title: _cleanedTitle(table.title ?? table.titleName) ?? 'Untitled',
+      title: _cleanedTitle(table.titleName ?? table.title) ?? 'Untitled',
       pages: table.pages,
       format: table.format,
+      summary: table.summary,
+      wordCount: table.wordCount,
+      avgHoursToRead: table.avgHoursToRead,
+      primaryColor: table.primaryColor,
+      secondaryColor: table.secondaryColor,
     );
   }
 
