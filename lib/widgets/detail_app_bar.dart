@@ -81,9 +81,7 @@ class DetailAppBar extends HookConsumerWidget {
               ],
             ),
             expandedContinueButton,
-            const SizedBox(
-              height: LayoutConstants.smallPadding,
-            ),
+            const SizedBox.shrink(),
           ],
         ),
       ),
