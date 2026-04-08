@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:kover/pages/reader/reader_overlay.dart';
@@ -18,7 +20,7 @@ class EpubReader extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final reader = epubReaderProvider(
+    final nav = epubNavigationProvider(
       seriesId: seriesId,
       chapterId: chapterId,
     );
@@ -27,55 +29,202 @@ class EpubReader extends HookConsumerWidget {
       seriesId: seriesId,
       chapterId: chapterId,
       onNextPage: () {
-        ref.read(reader.notifier).nextPage();
+        ref.read(nav.notifier).nextPage();
       },
       onPreviousPage: () {
-        ref.read(reader.notifier).previousPage();
+        ref.read(nav.notifier).previousPage();
       },
       onJumpToPage: (page) {
-        ref.read(reader.notifier).jumpToPage(page);
+        ref.read(nav.notifier).jumpToPage(page);
       },
       child: Async(
-        asyncValue: ref.watch(reader),
-        data: (data) {
-          return data.when(
-            measuring: (data) {
-              return MeasureContent(
-                state: data,
-                seriesId: seriesId,
-                chapterId: chapterId,
-              );
-            },
-            display: (data) => SingleChildScrollView(
-              child: RenderContent(
-                seriesId: seriesId,
-                styles: data.page.styles,
-                html: data.subpage.outerHtml,
-              ),
-            ),
-          );
-        },
+        asyncValue: ref.watch(nav),
+        data: (navState) => HookConsumer(
+          builder: (context, ref, child) {
+            final controller = usePageController(
+              initialPage: navState.page,
+            );
+
+            ref.listen(nav.select((s) => s.value?.page), (previous, next) {
+              if (next == null) return;
+
+              if (controller.hasClients && controller.page?.round() != next) {
+                final isSequential =
+                    previous != null && (next - previous).abs() == 1;
+
+                isSequential
+                    ? controller.animateToPage(
+                        next,
+                        duration: 200.ms,
+                        curve: Curves.easeInOut,
+                      )
+                    : controller.jumpToPage(next);
+              }
+            });
+
+            return Stack(
+              children: [
+                Positioned.fill(
+                  child: Offstage(
+                    offstage: !navState.ready,
+                    child: PageView.builder(
+                      controller: controller,
+                      itemCount: navState.totalPages,
+                      allowImplicitScrolling: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemBuilder: (context, index) {
+                        final fromEnd = index < navState.page;
+                        return _Page(
+                          seriesId: seriesId,
+                          chapterId: chapterId,
+                          page: index,
+                          outerController: controller,
+                          fromEnd: fromEnd,
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                if (!navState.ready)
+                  const Positioned.fill(
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
 }
 
-class MeasureContent extends ConsumerWidget {
+class _Page extends HookConsumerWidget {
   final int seriesId;
   final int chapterId;
-  final Measuring state;
-  const MeasureContent({
-    super.key,
-    required this.state,
+  final int page;
+  final PageController outerController;
+  final bool fromEnd;
+
+  const _Page({
     required this.seriesId,
     required this.chapterId,
+    required this.page,
+    required this.outerController,
+    this.fromEnd = false,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final provider = epubReaderProvider(
+    final reflow = ref.watch(
+      epubReflowProvider(
+        seriesId: seriesId,
+        chapterId: chapterId,
+        page: page,
+      ),
+    );
+    final nav = epubNavigationProvider(
       seriesId: seriesId,
       chapterId: chapterId,
+    );
+
+    return Async(
+      asyncValue: ref.watch(nav),
+      data: (navState) {
+        return Stack(
+          children: [
+            Positioned.fill(
+              child: _MeasureContent(
+                seriesId: seriesId,
+                chapterId: chapterId,
+                page: page,
+              ),
+            ),
+            Positioned.fill(
+              child: Async(
+                asyncValue: reflow,
+                data: (reflowState) {
+                  // include buffer spinner page if currently measuring.
+                  final count = reflowState.status == .measuring
+                      ? reflowState.subpages.length + 1
+                      : reflowState.subpages.length;
+
+                  return HookConsumer(
+                    builder: (context, ref, child) {
+                      final controller = usePageController(
+                        initialPage: navState.subpage,
+                      );
+
+                      ref.listen(nav.selectAsync((s) => s.subpage), (
+                        previous,
+                        next,
+                      ) async {
+                        final previousSubpage = await previous;
+                        final newSubpage = await next;
+
+                        if (controller.hasClients &&
+                            controller.page?.round() != newSubpage) {
+                          final isSequential =
+                              previousSubpage != null &&
+                              (newSubpage - previousSubpage).abs() == 1;
+
+                          isSequential
+                              ? controller.animateToPage(
+                                  newSubpage,
+                                  duration: 200.ms,
+                                  curve: Curves.easeInOut,
+                                )
+                              : controller.jumpToPage(newSubpage);
+                        }
+                      });
+
+                      return PageView.builder(
+                        controller: controller,
+                        allowImplicitScrolling: true,
+                        pageSnapping: true,
+                        itemCount: count,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemBuilder: (context, index) {
+                          if (index >= reflowState.subpages.length) {
+                            return const Center(
+                              child: CircularProgressIndicator(),
+                            );
+                          }
+
+                          return _RenderContent(
+                            seriesId: seriesId,
+                            html: reflowState.subpages[index].outerHtml,
+                            styles: reflowState.page.styles,
+                          );
+                        },
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _MeasureContent extends ConsumerWidget {
+  final int seriesId;
+  final int chapterId;
+  final int page;
+  const _MeasureContent({
+    required this.seriesId,
+    required this.chapterId,
+    required this.page,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final provider = epubReflowProvider(
+      seriesId: seriesId,
+      chapterId: chapterId,
+      page: page,
     );
     final key = GlobalKey();
 
@@ -96,40 +245,34 @@ class MeasureContent extends ConsumerWidget {
           }
         });
 
-        return Stack(
-          children: [
-            Positioned.fill(
-              child: Offstage(
-                child: Column(
-                  mainAxisSize: .min,
-                  children: [
-                    RenderContent(
-                      seriesId: seriesId,
-                      key: key,
-                      styles: state.page.styles,
-                      html: state.subpage.outerHtml,
-                    ),
-                  ],
+        return Async(
+          asyncValue: ref.watch(provider),
+          data: (data) => Offstage(
+            // offstage: false,
+            child: Column(
+              mainAxisSize: .min,
+              children: [
+                _RenderContent(
+                  seriesId: seriesId,
+                  key: key,
+                  styles: data.page.styles,
+                  html: data.buffer.outerHtml,
                 ),
-              ),
+              ],
             ),
-            const Align(
-              alignment: .center,
-              child: CircularProgressIndicator(),
-            ),
-          ],
+          ),
         );
       },
     );
   }
 }
 
-class RenderContent extends ConsumerWidget {
+class _RenderContent extends ConsumerWidget {
   final int seriesId;
   final String html;
   final Map<String, Map<String, String>> styles;
 
-  const RenderContent({
+  const _RenderContent({
     super.key,
     required this.seriesId,
     required this.html,
