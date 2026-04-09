@@ -45,20 +45,23 @@ class EpubReader extends HookConsumerWidget {
               initialPage: navState.page,
             );
 
-            ref.listen(nav.select((s) => s.value?.page), (previous, next) {
-              if (next == null) return;
+            ref.listen(nav.selectAsync((s) => s.page), (previous, next) async {
+              final previousPage = await previous;
+              final nextPage = await next;
 
-              if (controller.hasClients && controller.page?.round() != next) {
+              if (controller.hasClients &&
+                  controller.page?.round() != nextPage) {
                 final isSequential =
-                    previous != null && (next - previous).abs() == 1;
+                    previousPage != null &&
+                    (nextPage - previousPage).abs() == 1;
 
                 isSequential
                     ? controller.animateToPage(
-                        next,
+                        nextPage,
                         duration: 200.ms,
                         curve: Curves.easeInOut,
                       )
-                    : controller.jumpToPage(next);
+                    : controller.jumpToPage(nextPage);
               }
             });
 
@@ -154,27 +157,31 @@ class _Page extends HookConsumerWidget {
                         initialPage: navState.subpage,
                       );
 
-                      ref.listen(nav.selectAsync((s) => s.subpage), (
+                      ref.listen(nav, (
                         previous,
                         next,
                       ) async {
-                        final previousSubpage = await previous;
-                        final newSubpage = await next;
+                        next.whenData((next) async {
+                          if (next.page != page) return;
 
-                        if (controller.hasClients &&
-                            controller.page?.round() != newSubpage) {
-                          final isSequential =
-                              previousSubpage != null &&
-                              (newSubpage - previousSubpage).abs() == 1;
+                          final previousSubpage = previous?.value?.subpage;
+                          final newSubpage = next.subpage;
 
-                          isSequential
-                              ? controller.animateToPage(
-                                  newSubpage,
-                                  duration: 200.ms,
-                                  curve: Curves.easeInOut,
-                                )
-                              : controller.jumpToPage(newSubpage);
-                        }
+                          if (controller.hasClients &&
+                              controller.page?.round() != newSubpage) {
+                            final isSequential =
+                                previousSubpage != null &&
+                                (newSubpage - previousSubpage).abs() == 1;
+
+                            isSequential
+                                ? controller.animateToPage(
+                                    newSubpage,
+                                    duration: 200.ms,
+                                    curve: Curves.easeInOut,
+                                  )
+                                : controller.jumpToPage(newSubpage);
+                          }
+                        });
                       });
 
                       return PageView.builder(
