@@ -211,12 +211,20 @@ class EpubNavigation extends _$EpubNavigation {
 
     _handleNavigationProviderChanges();
     _handleProgress();
+    _handleSettingsChanges();
 
     return EpubNavigationState(
       page: reader.initialPage,
       totalPages: reader.totalPages,
       subpage: 0,
     );
+  }
+
+  void _handleSettingsChanges() {
+    ref.listen(epubReaderSettingsProvider(seriesId: seriesId), (prev, next) {
+      _resumed = false;
+      ref.invalidateSelf(asReload: true);
+    });
   }
 
   void _handleProgress() {
@@ -271,6 +279,7 @@ class EpubNavigation extends _$EpubNavigation {
           page: next,
         );
       },
+      fireImmediately: true,
     );
   }
 
