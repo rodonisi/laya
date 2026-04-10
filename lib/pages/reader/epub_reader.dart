@@ -76,12 +76,10 @@ class EpubReader extends HookConsumerWidget {
                       allowImplicitScrolling: true,
                       physics: const NeverScrollableScrollPhysics(),
                       itemBuilder: (context, index) {
-                        final fromEnd = index < navState.page;
                         return _Page(
                           seriesId: seriesId,
                           chapterId: chapterId,
                           page: index,
-                          fromEnd: fromEnd,
                         );
                       },
                     ),
@@ -104,13 +102,11 @@ class _Page extends HookConsumerWidget {
   final int seriesId;
   final int chapterId;
   final int page;
-  final bool fromEnd;
 
   const _Page({
     required this.seriesId,
     required this.chapterId,
     required this.page,
-    this.fromEnd = false,
   });
 
   @override
@@ -127,20 +123,20 @@ class _Page extends HookConsumerWidget {
       chapterId: chapterId,
     );
 
-    return Async(
-      asyncValue: ref.watch(nav),
-      data: (navState) {
-        return Stack(
-          children: [
-            Positioned.fill(
-              child: _MeasureContent(
-                seriesId: seriesId,
-                chapterId: chapterId,
-                page: page,
-              ),
-            ),
-            Positioned.fill(
-              child: Async(
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: _MeasureContent(
+            seriesId: seriesId,
+            chapterId: chapterId,
+            page: page,
+          ),
+        ),
+        Positioned.fill(
+          child: Async(
+            asyncValue: ref.watch(nav),
+            data: (navState) {
+              return Async(
                 asyncValue: reflow,
                 data: (reflowState) {
                   // include buffer spinner page if currently measuring.
@@ -206,16 +202,16 @@ class _Page extends HookConsumerWidget {
                     },
                   );
                 },
-              ),
-            ),
-          ],
-        );
-      },
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }
 
-class _MeasureContent extends ConsumerWidget {
+class _MeasureContent extends HookConsumerWidget {
   final int seriesId;
   final int chapterId;
   final int page;
@@ -227,19 +223,20 @@ class _MeasureContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final key = useState(GlobalKey());
     final provider = epubReflowProvider(
       seriesId: seriesId,
       chapterId: chapterId,
       page: page,
     );
-    final key = GlobalKey();
+    final reflow = ref.watch(provider);
 
     return LayoutBuilder(
       builder: (context, constraints) {
         WidgetsBinding.instance.addPostFrameCallback((_) async {
           await WidgetsBinding.instance.endOfFrame;
           final renderBox =
-              key.currentContext?.findRenderObject() as RenderBox?;
+              key.value.currentContext?.findRenderObject() as RenderBox?;
           if (renderBox == null || !renderBox.hasSize) {
             return;
           }
@@ -252,14 +249,14 @@ class _MeasureContent extends ConsumerWidget {
         });
 
         return Async(
-          asyncValue: ref.watch(provider),
+          asyncValue: reflow,
           data: (data) => Offstage(
             child: Column(
               mainAxisSize: .min,
               children: [
                 _RenderContent(
                   seriesId: seriesId,
-                  key: key,
+                  key: key.value,
                   styles: data.page.styles,
                   html: data.buffer.outerHtml,
                 ),
