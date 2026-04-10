@@ -147,6 +147,20 @@ class EpubReflow extends _$EpubReflow {
       return;
     }
 
+    if (!_cursor.canSplit()) {
+      final newSubpages = [
+        ...current.subpages,
+        if (current.buffer.hasChildNodes()) current.buffer,
+      ];
+      state = AsyncData(
+        current.copyWith(
+          subpages: newSubpages,
+          status: .done,
+        ),
+      );
+      return;
+    }
+
     final newSubpageNode = _cursor.split();
     if (!newSubpageNode.hasChildNodes()) {
       log.d('split resulted in an empty page, re-measuring');
@@ -243,16 +257,16 @@ class EpubNavigation extends _$EpubNavigation {
           ).future,
         );
         try {
-        final scrollId = reflow.subpages[data.subpage].paragraphScrollId();
+          final scrollId = reflow.subpages[data.subpage].paragraphScrollId();
 
-        await ref
-            .read(
+          await ref
+              .read(
                 readerProvider(
                   seriesId: seriesId,
                   chapterId: chapterId,
                 ).notifier,
-            )
-            .saveProgress(page: data.page, scrollId: scrollId);
+              )
+              .saveProgress(page: data.page, scrollId: scrollId);
         } catch (e) {
           log.e('Error saving progress: $e');
         }
