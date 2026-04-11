@@ -52,3 +52,23 @@ dart run tools/fetch_web_dependencies.dart
 
 **Note**: due to CORS, the web version has to be deployed alongside the Kavita server. Alternatively a reverse proxy could
 probably be used to inject additional HTTP headers. This is completely untested and no official guidance exists.
+
+## Screenshots
+
+<p align="center">
+  <img src="screenshots/home.png" alt="Screenshot" width="220" />
+  <img src="screenshots/series_details.png" alt="Screenshot" width="220" />
+  <img src="screenshots/want_to_read.png" alt="Screenshot" width="220" />
+</p>
+
+<p align="center">
+  <img src="screenshots/image_reader.png" alt="Screenshot" width="220" />
+  <img src="screenshots/epub_reader.png" alt="Screenshot" width="220" />
+  <img src="screenshots/image_reader_settings.png" alt="Screenshot" width="220" />
+</p>
+
+<p align="center">
+  <img src="screenshots/epub_reader_settings.png" alt="Screenshot" width="220" />
+  <img src="screenshots/menu.png" alt="Screenshot" width="220" />
+  <img src="screenshots/settings.png" alt="Screenshot" width="220" />
+</p>
