@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:kover/models/chapter_model.dart';
 import 'package:kover/riverpod/providers/series.dart';
@@ -6,14 +7,16 @@ import 'package:kover/utils/layout_constants.dart';
 import 'package:kover/widgets/adaptive_sliver_grid.dart';
 import 'package:kover/widgets/chapter_card.dart';
 import 'package:kover/widgets/sliver_bottom_padding.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-class ChaptersPage extends ConsumerWidget {
+class ChaptersPage extends HookConsumerWidget {
   final int seriesId;
   final int? volumeId;
   const ChaptersPage({super.key, required this.seriesId, this.volumeId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final hideRead = useState(false);
     final chapters = ref.watch(
       seriesDetailProvider(
         seriesId: seriesId,
@@ -25,7 +28,10 @@ class ChaptersPage extends ConsumerWidget {
                   ?.chapters ??
               [];
         }
-        return state.value?.chapters ?? [];
+        return (hideRead.value
+                ? state.value?.unreadChapters
+                : state.value?.chapters) ??
+            [];
       }),
     );
 
@@ -35,8 +41,17 @@ class ChaptersPage extends ConsumerWidget {
         bottom: false,
         child: CustomScrollView(
           slivers: [
-            const SliverAppBar.large(
-              title: Text('Chapters'),
+            SliverAppBar.large(
+              title: const Text('Chapters'),
+              actions: [
+                IconButton(
+                  onPressed: () => hideRead.value = !hideRead.value,
+                  tooltip: hideRead.value ? 'Show read' : 'Hide read',
+                  icon: Icon(
+                    hideRead.value ? LucideIcons.eyeOff : LucideIcons.eye,
+                  ),
+                ),
+              ],
             ),
             SliverPadding(
               padding: LayoutConstants.smallEdgeInsets,

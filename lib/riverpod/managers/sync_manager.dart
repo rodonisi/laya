@@ -18,16 +18,23 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'sync_manager.freezed.dart';
 part 'sync_manager.g.dart';
 
-enum SyncPhase {
-  none,
-  allSeries,
-  seriesDetails,
-  metadata,
-  recentlyAdded,
-  recentlyUpdated,
-  libraries,
-  progress,
-  covers,
+@freezed
+sealed class SyncPhase with _$SyncPhase {
+  const SyncPhase._();
+
+  const factory SyncPhase.allSeries() = AllSeries;
+  const factory SyncPhase.seriesDetails() = SeriesDetails;
+  const factory SyncPhase.metadata() = Metadata;
+  const factory SyncPhase.recentlyAdded() = RecentlyAdded;
+  const factory SyncPhase.recentlyUpdated() = RecentlyUpdated;
+  const factory SyncPhase.libraries() = Libraries;
+  const factory SyncPhase.progress() = Progress;
+  const factory SyncPhase.covers() = Covers;
+  const factory SyncPhase.refreshCovers({required int seriesId}) =
+      RefreshCovers;
+
+  factory SyncPhase.fromJson(Map<String, dynamic> json) =>
+      _$SyncPhaseFromJson(json);
 }
 
 @freezed
@@ -97,45 +104,51 @@ class SyncManager extends _$SyncManager {
 
   /// Sync libraries
   Future<void> syncLibraries() async {
-    await _runPhase(.libraries, () async {
+    await _runPhase(const .libraries(), () async {
       await _engine.syncLibraries();
     });
   }
 
   /// Sync progress
   Future<void> syncProgress() async {
-    await _runPhase(.progress, () async {
+    await _runPhase(const .progress(), () async {
       await _engine.syncProgress();
     });
   }
 
   Future<void> _syncAllSeries() async {
-    await _runPhase(.allSeries, () async {
+    await _runPhase(const .allSeries(), () async {
       await _engine.syncAllSeries();
     });
   }
 
   Future<void> _syncMetadata() async {
-    await _runPhase(.metadata, () async {
+    await _runPhase(const .metadata(), () async {
       await _engine.syncMetadata();
     });
   }
 
   Future<void> _syncRecentlyUpdated() async {
-    await _runPhase(.recentlyUpdated, () async {
+    await _runPhase(const .recentlyUpdated(), () async {
       await _engine.syncRecentlyUpdated();
     });
   }
 
   Future<void> _syncRecentlyAdded() async {
-    await _runPhase(.recentlyAdded, () async {
+    await _runPhase(const .recentlyAdded(), () async {
       await _engine.syncRecentlyAdded();
     });
   }
 
   Future<void> _syncCovers() async {
-    await _runPhase(.covers, () async {
+    await _runPhase(const .covers(), () async {
       await _engine.syncCovers();
+    });
+  }
+
+  Future<void> refreshCovers({required int seriesId}) async {
+    await _runPhase(.refreshCovers(seriesId: seriesId), () async {
+      await _engine.refreshCovers(seriesId: seriesId);
     });
   }
 
