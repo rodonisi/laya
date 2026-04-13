@@ -4,6 +4,8 @@ import 'package:kover/utils/logging.dart';
 /// Iterates through the children of the given node, filling a clone of the root every time the iterator is moved
 /// forward
 class NodeCursor {
+  static final _leafTags = {'p', 'img', 'svg'};
+
   /// Shallow of the root provided during initialization
   final Element root;
 
@@ -71,7 +73,7 @@ class NodeCursor {
     // Otherwise we can split only inside current node.
     final current = iterator.current;
     return current is Element &&
-        current.localName != 'p' &&
+        !_leafTags.contains(current.localName) &&
         current.children.isNotEmpty;
   }
 
