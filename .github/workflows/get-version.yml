@@ -1,0 +1,40 @@
+name: Get Version
+
+on:
+  workflow_call:
+    outputs:
+      version:
+        description: "The semantic version"
+        value: ${{ jobs.version.outputs.version }}
+      build_number:
+        description: "The build number"
+        value: ${{ jobs.version.outputs.build_number }}
+
+jobs:
+  semantic-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.VERSION }}
+      build_number: ${{ steps.version.outputs.BUILD_NUMBER }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Get semantic version
+        id: versioning
+        uses: PaulHatch/semantic-version@v6.0.2
+        with:
+          bump_each_commit: false
+          bump_each_commit_patch_pattern: "fix"
+          minor_pattern: "feat"
+          major_pattern: "feat!"
+          version_format: "${major}.${minor}.${patch}"
+          tag_prefix: ""
+
+      - name: Set version and build number
+        id: version
+        run: |
+          echo "VERSION=${{ steps.versioning.outputs.version }}" >> $GITHUB_OUTPUT
+          echo "BUILD_NUMBER=${{ github.run_number }}" >> $GITHUB_OUTPUT
