@@ -1,11 +1,10 @@
 import 'dart:convert';
 
+import 'package:csslib/parser.dart' as css;
 import 'package:csslib/visitor.dart';
 import 'package:drift/drift.dart' hide Expression;
-import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:html/dom.dart';
 import 'package:html/parser.dart';
-import 'package:csslib/parser.dart' as css;
 import 'package:kover/api/openapi.swagger.dart';
 import 'package:kover/database/app_database.dart';
 import 'package:kover/models/page_content.dart';
