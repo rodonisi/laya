@@ -123,8 +123,9 @@ jobs:
       - name: Promote Testflight Public
         run: |
           cd ios
-          fastlane public_beta changelog='${{ needs.get-release-body.outputs.release_body }}'
+          fastlane public_beta
         env:
+          CHANGELOG: ${{ needs.get-release-body.outputs.release_body }}
           APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
           APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
           APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY }}
@@ -140,8 +141,9 @@ jobs:
       - name: Promote Testflight Public
         run: |
           cd macos
-          fastlane public_beta changelog='${{ needs.get-release-body.outputs.release_body }}'
+          fastlane public_beta
         env:
+          CHANGELOG: ${{ needs.get-release-body.outputs.release_body }}
           APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
           APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
           APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY }}

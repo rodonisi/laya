@@ -67,8 +67,8 @@ platform :ios do
   end
 
   desc 'Promote latest build to public TestFlight group'
-  lane :public_beta do |options|
-    changelog = options[:changelog] || 'Updates'
+  lane :public_beta do
+    changelog = ENV['CHANGELOG'] || 'Updates'
 
     load_asc_api_key
 
