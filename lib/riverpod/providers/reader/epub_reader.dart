@@ -141,6 +141,7 @@ class EpubReflow extends _$EpubReflow {
     _processingRender = true;
     try {
       _processingRender = true;
+
       final current = await future;
 
       if (current.status == .done) return;
@@ -168,7 +169,13 @@ class EpubReflow extends _$EpubReflow {
             'found resume point with scrollId: ${current.scrollId}',
           );
 
-          resumePoint.classes.add(HtmlConstants.resumeParagraphClass);
+          final settings = await ref.read(
+            epubReaderSettingsProvider(seriesId: seriesId).future,
+          );
+          if (settings.highlightResumePoint) {
+            resumePoint.classes.add(HtmlConstants.resumeParagraphClass);
+          }
+
           newState = newState.copyWith(
             scrollId: null,
             resumeSubpage: newSubpages.length - 1,
