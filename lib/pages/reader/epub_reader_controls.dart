@@ -126,7 +126,7 @@ class _ReaderSettingsBottomSheet extends ConsumerWidget {
                     : null,
               ),
               SwitchSettingsEntry(
-                title: 'Highlight resume point',
+                title: 'Highlight Resume Paragraph',
                 value: settings.highlightResumePoint,
                 onChanged: (value) async {
                   await ref
