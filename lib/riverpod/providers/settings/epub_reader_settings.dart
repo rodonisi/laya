@@ -9,6 +9,28 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'epub_reader_settings.freezed.dart';
 part 'epub_reader_settings.g.dart';
 
+sealed class EpubReaderSettingsLimits {
+  static const double fontSizeMin = 8.0;
+  static const double fontSizeMax = 64.0;
+  static const double fontSizeStep = 1;
+
+  static const double marginSizeMin = LayoutConstants.smallerPadding;
+  static const double marginSizeMax = LayoutConstants.largestPadding;
+  static const double marginSizeStep = 4;
+
+  static const double lineHeightMin = 0.5;
+  static const double lineHeightMax = 5.0;
+  static const double lineHeightStep = 0.2;
+
+  static const double wordSpacingMin = -10.0;
+  static const double wordSpacingMax = 10.0;
+  static const double wordSpacingStep = 0.5;
+
+  static const double letterSpacingMin = -10.0;
+  static const double letterSpacingMax = 10.0;
+  static const double letterSpacingStep = 0.5;
+}
+
 @freezed
 sealed class EpubReaderSettingsState with _$EpubReaderSettingsState {
   const EpubReaderSettingsState._();
@@ -16,26 +38,14 @@ sealed class EpubReaderSettingsState with _$EpubReaderSettingsState {
     @Default(LayoutConstants.mediumPadding) double marginSize,
     @Default(14.0) double fontSize,
     @Default(1.5) double lineHeight,
+    @Default(0.0) double wordSpacing,
+    @Default(0.0) double letterSpacing,
     @Default(ReadDirection.leftToRight) ReadDirection readDirection,
     @Default(true) bool highlightResumePoint,
   }) = _EpubReaderSettingsState;
 
   factory EpubReaderSettingsState.fromJson(Map<String, Object?> json) =>
       _$EpubReaderSettingsStateFromJson(json);
-
-  static const double minFontSize = 8.0;
-  static const double maxFontSize = 24.0;
-  static const double minMarginSize = LayoutConstants.smallerPadding;
-  static const double maxMarginSize = LayoutConstants.largerPadding;
-  static const double minLineHeight = 0.5;
-  static const double maxLineHeight = 3.0;
-
-  bool get canIncreaseFontSize => fontSize < maxFontSize;
-  bool get canDecreaseFontSize => fontSize > minFontSize;
-  bool get canIncreaseMarginSize => marginSize < maxMarginSize;
-  bool get canDecreaseMarginSize => marginSize > minMarginSize;
-  bool get canIncreaseLineHeight => lineHeight < maxLineHeight;
-  bool get canDecreaseLineHeight => lineHeight > minLineHeight;
 }
 
 @riverpod
@@ -58,10 +68,6 @@ class DefaultEpubReaderSettings extends _$DefaultEpubReaderSettings {
 @riverpod
 @JsonPersist()
 class EpubReaderSettings extends _$EpubReaderSettings {
-  static const _fontSizeStep = 1;
-  static const _marginSizeStep = 4;
-  static const _lineHeightStep = 0.2;
-
   @override
   Future<EpubReaderSettingsState> build({required int seriesId}) async {
     await persist(
@@ -85,74 +91,68 @@ class EpubReaderSettings extends _$EpubReaderSettings {
     );
   }
 
-  Future<void> increaseFontSize() async {
+  Future<void> setFontSize(double newSize) async {
     final current = await future;
 
-    if (current.fontSize >= EpubReaderSettingsState.maxFontSize) {
-      return;
-    }
     state = AsyncData(
-      current.copyWith(fontSize: current.fontSize + _fontSizeStep),
+      current.copyWith(
+        fontSize: newSize.clamp(
+          EpubReaderSettingsLimits.fontSizeMin,
+          EpubReaderSettingsLimits.fontSizeMax,
+        ),
+      ),
     );
   }
 
-  Future<void> decreaseFontSize() async {
+  Future<void> setMarginSize(double newSize) async {
     final current = await future;
 
-    if (current.fontSize <= EpubReaderSettingsState.minFontSize) {
-      return;
-    }
-
     state = AsyncData(
-      current.copyWith(fontSize: current.fontSize - _fontSizeStep),
+      current.copyWith(
+        marginSize: newSize.clamp(
+          EpubReaderSettingsLimits.marginSizeMin,
+          EpubReaderSettingsLimits.marginSizeMax,
+        ),
+      ),
     );
   }
 
-  Future<void> increaseMarginSize() async {
+  Future<void> setLineHeight(double newSize) async {
     final current = await future;
 
-    if (current.marginSize >= EpubReaderSettingsState.maxMarginSize) {
-      return;
-    }
-
     state = AsyncData(
-      current.copyWith(marginSize: current.marginSize + _marginSizeStep),
+      current.copyWith(
+        lineHeight: newSize.clamp(
+          EpubReaderSettingsLimits.lineHeightMin,
+          EpubReaderSettingsLimits.lineHeightMax,
+        ),
+      ),
     );
   }
 
-  Future<void> decreaseMarginSize() async {
+  Future<void> setWordSpacing(double newSize) async {
     final current = await future;
 
-    if (current.marginSize <= EpubReaderSettingsState.minMarginSize) {
-      return;
-    }
-
     state = AsyncData(
-      current.copyWith(marginSize: current.marginSize - _marginSizeStep),
+      current.copyWith(
+        wordSpacing: newSize.clamp(
+          EpubReaderSettingsLimits.wordSpacingMin,
+          EpubReaderSettingsLimits.wordSpacingMax,
+        ),
+      ),
     );
   }
 
-  Future<void> increaseLineHeight() async {
+  Future<void> setLetterSpacing(double newSize) async {
     final current = await future;
 
-    if (current.lineHeight >= EpubReaderSettingsState.maxLineHeight) {
-      return;
-    }
-
     state = AsyncData(
-      current.copyWith(lineHeight: current.lineHeight + _lineHeightStep),
-    );
-  }
-
-  Future<void> decreaseLineHeight() async {
-    final current = await future;
-
-    if (current.lineHeight <= EpubReaderSettingsState.minLineHeight) {
-      return;
-    }
-
-    state = AsyncData(
-      current.copyWith(lineHeight: current.lineHeight - _lineHeightStep),
+      current.copyWith(
+        letterSpacing: newSize.clamp(
+          EpubReaderSettingsLimits.letterSpacingMin,
+          EpubReaderSettingsLimits.letterSpacingMax,
+        ),
+      ),
     );
   }
 

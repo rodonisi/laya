@@ -318,6 +318,8 @@ class _RenderContent extends ConsumerWidget {
             textStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
               fontSize: epubSettings.fontSize,
               height: epubSettings.lineHeight,
+              wordSpacing: epubSettings.wordSpacing,
+              letterSpacing: epubSettings.letterSpacing,
             ),
           ),
         ),

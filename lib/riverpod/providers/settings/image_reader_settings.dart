@@ -103,7 +103,7 @@ class ImageReaderSettings extends _$ImageReaderSettings {
     );
   }
 
-  Future<void> _setVerticalReaderGap(double gap) async {
+  Future<void> setVerticalReaderGap(double gap) async {
     final current = await future;
 
     state = AsyncData(
@@ -116,25 +116,7 @@ class ImageReaderSettings extends _$ImageReaderSettings {
     );
   }
 
-  Future<void> decreaseVerticalReaderGap() async {
-    final current = await future;
-
-    await _setVerticalReaderGap(
-      current.verticalReaderGap -
-          ImageReaderSettingsLimits.verticalReaderGapStep,
-    );
-  }
-
-  Future<void> increaseVerticalReaderGap() async {
-    final current = await future;
-
-    await _setVerticalReaderGap(
-      current.verticalReaderGap +
-          ImageReaderSettingsLimits.verticalReaderGapStep,
-    );
-  }
-
-  Future<void> _setVerticalReaderPadding(double padding) async {
+  Future<void> setVerticalReaderPadding(double padding) async {
     final current = await future;
 
     state = AsyncData(
@@ -144,24 +126,6 @@ class ImageReaderSettings extends _$ImageReaderSettings {
           ImageReaderSettingsLimits.verticalReaderPaddingMax,
         ),
       ),
-    );
-  }
-
-  Future<void> decreaseVerticalReaderPadding() async {
-    final current = await future;
-
-    await _setVerticalReaderPadding(
-      current.verticalReaderPadding -
-          ImageReaderSettingsLimits.verticalReaderPaddingStep,
-    );
-  }
-
-  Future<void> increaseVerticalReaderPadding() async {
-    final current = await future;
-
-    await _setVerticalReaderPadding(
-      current.verticalReaderPadding +
-          ImageReaderSettingsLimits.verticalReaderPaddingStep,
     );
   }
 

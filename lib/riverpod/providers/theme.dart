@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:kover/riverpod/repository/storage_repository.dart';
+import 'package:kover/utils/layout_constants.dart';
 import 'package:kover/utils/theme.dart';
 import 'package:riverpod_annotation/experimental/json_persist.dart';
 import 'package:riverpod_annotation/experimental/persist.dart';
@@ -52,6 +53,16 @@ final _navigationBarTheme = const NavigationBarThemeData(
   labelBehavior: .alwaysHide,
 );
 
+final _segmentedButtonTheme = SegmentedButtonThemeData(
+  style: SegmentedButton.styleFrom(
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(
+        LayoutConstants.smallerBorderRadius,
+      ),
+    ),
+  ),
+);
+
 @freezed
 sealed class ThemeModel with _$ThemeModel {
   const ThemeModel._();
@@ -89,6 +100,7 @@ sealed class ThemeModel with _$ThemeModel {
     ),
     progressIndicatorTheme: _progressIndicatorTheme,
     navigationBarTheme: _navigationBarTheme,
+    segmentedButtonTheme: _segmentedButtonTheme,
   );
 
   ThemeData get _outlinedLightTheme => _lightTheme.copyWith(
@@ -123,6 +135,7 @@ sealed class ThemeModel with _$ThemeModel {
     ),
     progressIndicatorTheme: _progressIndicatorTheme,
     navigationBarTheme: _navigationBarTheme,
+    segmentedButtonTheme: _segmentedButtonTheme,
   );
 
   ThemeData get _outlinedDarkTheme => _darkTheme.copyWith(

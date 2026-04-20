@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:kover/models/read_direction.dart';
-import 'package:kover/riverpod/providers/settings/image_reader_settings.dart'
-    show
-        ImageReaderSettingsLimits,
-        ImageScaleType,
-        ReaderMode,
-        imageReaderSettingsProvider;
+import 'package:kover/riverpod/providers/settings/image_reader_settings.dart';
 import 'package:kover/utils/layout_constants.dart';
 import 'package:kover/widgets/async_value.dart';
+import 'package:kover/widgets/settings/choice_option.dart';
+import 'package:kover/widgets/settings/numeric_option.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class ImageReaderControls extends ConsumerWidget {
@@ -43,154 +40,159 @@ class _ImageReaderSettingsBottomSheet extends ConsumerWidget {
     final provider = imageReaderSettingsProvider(seriesId: seriesId);
     return Async(
       asyncValue: ref.watch(provider),
-      data: (settings) => SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.only(
-            left: LayoutConstants.mediumPadding,
-            right: LayoutConstants.mediumPadding,
-            bottom: LayoutConstants.largePadding,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            spacing: LayoutConstants.mediumPadding,
-            children: [
-              Text(
-                'Reader Settings',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              Row(
-                children: [
-                  const Expanded(child: Text('Read Direction')),
-                  SegmentedButton<ReadDirection>(
-                    segments: const [
-                      ButtonSegment<ReadDirection>(
-                        value: ReadDirection.leftToRight,
-                        label: Text('LTR'),
-                        icon: Icon(LucideIcons.chevronsRight),
+      data: (settings) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Flexible(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                    left: LayoutConstants.largePadding,
+                    right: LayoutConstants.largePadding,
+                    bottom: LayoutConstants.largePadding,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: LayoutConstants.largePadding,
+                    children: [
+                      Text(
+                        'Reader Settings',
+                        style: Theme.of(context).textTheme.titleLarge,
                       ),
-                      ButtonSegment<ReadDirection>(
-                        value: ReadDirection.rightToLeft,
-                        label: Text('RTL'),
-                        icon: Icon(LucideIcons.chevronsLeft),
-                      ),
-                    ],
-                    selected: {settings.readDirection},
-                    onSelectionChanged:
-                        (Set<ReadDirection> newSelection) async {
-                          if (newSelection.first != settings.readDirection) {
+                      ChoiceOption<ReadDirection>(
+                        title: 'Reading Direction',
+                        icon: settings.readDirection == .leftToRight
+                            ? LucideIcons.chevronsRight
+                            : LucideIcons.chevronsLeft,
+                        options: const [
+                          ChoiceOptionEntry(
+                            value: ReadDirection.leftToRight,
+                            label: 'Left to Right',
+                            icon: LucideIcons.chevronsRight,
+                          ),
+                          ChoiceOptionEntry(
+                            value: ReadDirection.rightToLeft,
+                            label: 'Right to Left',
+                            icon: LucideIcons.chevronsLeft,
+                          ),
+                        ],
+                        value: settings.readDirection,
+                        onChanged: (newValue) async {
+                          if (newValue != settings.readDirection) {
                             await ref
                                 .read(provider.notifier)
                                 .toggleReadDirection();
                           }
                         },
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  const Expanded(child: Text('Reader Mode')),
-                  SegmentedButton<ReaderMode>(
-                    segments: const [
-                      ButtonSegment<ReaderMode>(
-                        value: ReaderMode.vertical,
-                        label: Text('Vertical'),
-                        icon: Icon(LucideIcons.moveVertical),
                       ),
-                      ButtonSegment<ReaderMode>(
-                        value: ReaderMode.horizontal,
-                        label: Text('Horizontal'),
-                        icon: Icon(LucideIcons.moveHorizontal),
+                      ChoiceOption<ReaderMode>(
+                        title: 'Reader Mode',
+                        icon: settings.readerMode == ReaderMode.vertical
+                            ? LucideIcons.moveVertical
+                            : LucideIcons.moveHorizontal,
+                        options: const [
+                          ChoiceOptionEntry(
+                            value: ReaderMode.horizontal,
+                            label: 'Horizontal',
+                            icon: LucideIcons.moveHorizontal,
+                          ),
+                          ChoiceOptionEntry(
+                            value: ReaderMode.vertical,
+                            label: 'Vertical',
+                            icon: LucideIcons.moveVertical,
+                          ),
+                        ],
+                        value: settings.readerMode,
+                        onChanged: (newValue) async {
+                          if (newValue != settings.readerMode) {
+                            await ref
+                                .read(provider.notifier)
+                                .toggleReaderMode();
+                          }
+                        },
                       ),
-                    ],
-                    selected: {settings.readerMode},
-                    onSelectionChanged: (Set<ReaderMode> newSelection) async {
-                      if (newSelection.first != settings.readerMode) {
-                        await ref.read(provider.notifier).toggleReaderMode();
-                      }
-                    },
-                  ),
-                ],
-              ),
-              if (settings.readerMode == ReaderMode.vertical) ...[
-                _SettingRow(
-                  label: 'Vertical Gap',
-                  value: settings.verticalReaderGap.toStringAsFixed(1),
-                  increaseIcon: LucideIcons.unfoldVertical,
-                  decreaseIcon: LucideIcons.foldVertical,
-                  onDecrease:
-                      settings.verticalReaderGap >
-                          ImageReaderSettingsLimits.verticalReaderGapMin
-                      ? () async => await ref
-                            .read(provider.notifier)
-                            .decreaseVerticalReaderGap()
-                      : null,
-                  onIncrease:
-                      settings.verticalReaderGap <
-                          ImageReaderSettingsLimits.verticalReaderGapMax
-                      ? () async => await ref
-                            .read(provider.notifier)
-                            .increaseVerticalReaderGap()
-                      : null,
-                ),
-                _SettingRow(
-                  label: 'Side Padding',
-                  value: settings.verticalReaderPadding.toStringAsFixed(1),
-                  increaseIcon: LucideIcons.arrowRightFromLine,
-                  decreaseIcon: LucideIcons.arrowLeftToLine,
-                  onDecrease:
-                      settings.verticalReaderPadding >
-                          ImageReaderSettingsLimits.verticalReaderPaddingMin
-                      ? () async => await ref
-                            .read(provider.notifier)
-                            .decreaseVerticalReaderPadding()
-                      : null,
-                  onIncrease:
-                      settings.verticalReaderPadding <
-                          ImageReaderSettingsLimits.verticalReaderPaddingMax
-                      ? () async => await ref
-                            .read(provider.notifier)
-                            .increaseVerticalReaderPadding()
-                      : null,
-                ),
-              ] else
-                Row(
-                  children: [
-                    const Expanded(child: Text('Fit Direction')),
-                    SegmentedButton<ImageScaleType>(
-                      segments: const [
-                        ButtonSegment<ImageScaleType>(
-                          value: ImageScaleType.fitWidth,
-                          label: Text('Fit Width'),
-                          icon: Icon(LucideIcons.chevronsLeftRight),
-                        ),
-                        ButtonSegment<ImageScaleType>(
-                          value: ImageScaleType.fitHeight,
-                          label: Text('Fit Height'),
-                          icon: Icon(LucideIcons.chevronsUpDown),
-                        ),
-                      ],
-                      selected: {settings.scaleType},
-                      onSelectionChanged:
-                          (Set<ImageScaleType> newSelection) async {
-                            if (newSelection.first != settings.scaleType) {
+                      if (settings.readerMode == .horizontal) ...[
+                        ChoiceOption<ImageScaleType>(
+                          title: 'Fit Direction',
+                          icon: settings.scaleType == ImageScaleType.fitWidth
+                              ? LucideIcons.chevronsLeftRight
+                              : LucideIcons.chevronsUpDown,
+                          options: const [
+                            ChoiceOptionEntry(
+                              value: ImageScaleType.fitWidth,
+                              label: 'Fit Width',
+                              icon: LucideIcons.chevronsLeftRight,
+                            ),
+                            ChoiceOptionEntry(
+                              value: ImageScaleType.fitHeight,
+                              label: 'Fit Height',
+                              icon: LucideIcons.chevronsUpDown,
+                            ),
+                          ],
+                          value: settings.scaleType,
+                          onChanged: (newValue) async {
+                            if (newValue != settings.scaleType) {
                               await ref
                                   .read(provider.notifier)
                                   .toggleScaleType();
                             }
                           },
-                    ),
-                  ],
+                        ),
+                      ],
+                      if (settings.readerMode == .vertical) ...[
+                        NumericOption(
+                          title: 'Margins',
+                          icon: LucideIcons.panelLeftDashed,
+                          value: settings.verticalReaderPadding,
+                          min: ImageReaderSettingsLimits
+                              .verticalReaderPaddingMin,
+                          max: ImageReaderSettingsLimits
+                              .verticalReaderPaddingMax,
+                          step: ImageReaderSettingsLimits
+                              .verticalReaderPaddingStep,
+                          onChanged: (newValue) async => await ref
+                              .read(provider.notifier)
+                              .setVerticalReaderPadding(newValue),
+                        ),
+                        NumericOption(
+                          title: 'Vertical Gap',
+                          icon: LucideIcons.unfoldVertical,
+                          value: settings.verticalReaderGap,
+                          min: ImageReaderSettingsLimits.verticalReaderGapMin,
+                          max: ImageReaderSettingsLimits.verticalReaderGapMax,
+                          step: ImageReaderSettingsLimits.verticalReaderGapStep,
+                          onChanged: (newValue) async => await ref
+                              .read(provider.notifier)
+                              .setVerticalReaderGap(newValue),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
-              Row(
+              ),
+            ),
+            const Divider(),
+            Padding(
+              padding: const EdgeInsets.only(
+                left: LayoutConstants.largePadding,
+                right: LayoutConstants.largePadding,
+                bottom: LayoutConstants.largePadding,
+                top: LayoutConstants.mediumPadding,
+              ),
+              child: Row(
                 spacing: LayoutConstants.mediumPadding,
+                crossAxisAlignment: .center,
+                mainAxisAlignment: .center,
                 children: [
                   Expanded(
                     child: FilledButton.tonalIcon(
                       onPressed: () async =>
                           await ref.read(provider.notifier).setDefault(),
                       icon: const Icon(LucideIcons.save),
-                      label: const Text('Use as Defaults'),
+                      label: const Text('Set Defaults'),
                     ),
                   ),
                   Expanded(
@@ -198,62 +200,15 @@ class _ImageReaderSettingsBottomSheet extends ConsumerWidget {
                       onPressed: () async =>
                           await ref.read(provider.notifier).reset(),
                       icon: const Icon(LucideIcons.rotateCcw),
-                      label: const Text('Reset to Defaults'),
+                      label: const Text('Reset'),
                     ),
                   ),
                 ],
               ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SettingRow extends StatelessWidget {
-  const _SettingRow({
-    required this.label,
-    required this.value,
-    required this.increaseIcon,
-    required this.decreaseIcon,
-    required this.onDecrease,
-    required this.onIncrease,
-  });
-
-  final String label;
-  final String value;
-  final IconData increaseIcon;
-  final IconData decreaseIcon;
-  final VoidCallback? onDecrease;
-  final VoidCallback? onIncrease;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label),
-              Text(
-                value,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
-          ),
-        ),
-        IconButton.filledTonal(
-          onPressed: onDecrease,
-          icon: Icon(decreaseIcon),
-        ),
-        const SizedBox(width: 8),
-        IconButton.filledTonal(
-          onPressed: onIncrease,
-          icon: Icon(increaseIcon),
-        ),
-      ],
+            ),
+          ],
+        );
+      },
     );
   }
 }

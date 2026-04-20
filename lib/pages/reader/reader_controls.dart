@@ -25,6 +25,7 @@ class ReaderControls extends HookConsumerWidget {
         (state) => state.value?.series.format,
       ),
     );
+
     return Card.filled(
       margin: LayoutConstants.mediumEdgeInsets,
       child: Padding(
