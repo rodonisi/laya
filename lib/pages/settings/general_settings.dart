@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:kover/pages/settings/choice_settings_entry.dart';
-import 'package:kover/pages/settings/number_settings_entry.dart';
-import 'package:kover/pages/settings/switch_settings_entry.dart';
 import 'package:kover/riverpod/providers/settings/download_settings.dart';
 import 'package:kover/riverpod/providers/theme.dart' hide Theme;
 import 'package:kover/utils/layout_constants.dart';
 import 'package:kover/widgets/async_value.dart';
+import 'package:kover/widgets/settings/boolean_option.dart';
+import 'package:kover/widgets/settings/choice_option.dart';
+import 'package:kover/widgets/settings/numeric_option.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-class ThemeSettings extends ConsumerWidget {
-  const ThemeSettings({super.key});
+class GeneralSettings extends ConsumerWidget {
+  const GeneralSettings({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -25,63 +25,59 @@ class ThemeSettings extends ConsumerWidget {
           data: (theme) => Column(
             mainAxisSize: .min,
             crossAxisAlignment: CrossAxisAlignment.start,
-            spacing: LayoutConstants.smallPadding,
+            spacing: LayoutConstants.largePadding,
             children: [
               Text(
                 'General',
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
-              ChoiceSettingsEntry<ThemeMode>(
+              ChoiceOption(
                 title: 'Theme Mode',
-                segments: const [
-                  ButtonSegment<ThemeMode>(
+                icon: LucideIcons.palette,
+                options: const [
+                  ChoiceOptionEntry(
                     value: ThemeMode.system,
-                    label: Text('System'),
-                    icon: Icon(
-                      LucideIcons.sunMoon,
-                      size: LayoutConstants.smallIcon,
-                    ),
+                    label: 'System',
+                    icon: LucideIcons.sunMoon,
                   ),
-                  ButtonSegment<ThemeMode>(
+                  ChoiceOptionEntry(
                     value: ThemeMode.light,
-                    label: Text('Light'),
-                    icon: Icon(
-                      LucideIcons.sun,
-                      size: LayoutConstants.smallIcon,
-                    ),
+                    label: 'Light',
+                    icon: LucideIcons.sun,
                   ),
-                  ButtonSegment<ThemeMode>(
+                  ChoiceOptionEntry(
                     value: ThemeMode.dark,
-                    label: Text('Dark'),
-                    icon: Icon(
-                      LucideIcons.moon,
-                      size: LayoutConstants.smallIcon,
-                    ),
+                    label: 'Dark',
+                    icon: LucideIcons.moon,
                   ),
                 ],
-                selected: theme.mode,
-                onSelectionChanged: (newSelection) async {
-                  await ref.read(themeProvider.notifier).setMode(newSelection);
+                value: theme.mode,
+                onChanged: (newValue) async {
+                  await ref.read(themeProvider.notifier).setMode(newValue);
                 },
               ),
-              SwitchSettingsEntry(
+              BooleanOption(
                 title: 'Outlined Theme',
+                icon: LucideIcons.squareDashed,
                 value: theme.outlined,
                 onChanged: (value) =>
                     ref.read(themeProvider.notifier).setOutlined(value),
               ),
               Async(
                 asyncValue: ref.watch(downloadSettingsProvider),
-                data: (data) => NumberSettingsEntry(
+                data: (data) => NumericOption(
                   title: 'Max Concurrent Downloads',
-                  value: data.concurrentDownloads,
+                  icon: LucideIcons.download,
+                  min: 1,
+                  max: 10,
+                  step: 1,
+                  decimalPlaces: 0,
+                  value: data.concurrentDownloads.toDouble(),
                   onChanged: (value) async {
                     await ref
                         .read(downloadSettingsProvider.notifier)
-                        .setConcurrentDownloads(value);
+                        .setConcurrentDownloads(value.round());
                   },
-                  min: 1,
-                  max: 10,
                 ),
               ),
             ],

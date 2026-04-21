@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:kover/pages/settings/credentials_settings.dart';
-import 'package:kover/pages/settings/theme_settings.dart';
+import 'package:kover/pages/settings/general_settings.dart';
 import 'package:kover/widgets/sliver_bottom_padding.dart';
 
 class SettingsPage extends ConsumerWidget {
@@ -19,7 +19,7 @@ class SettingsPage extends ConsumerWidget {
               title: Text('Settings'),
             ),
             SliverToBoxAdapter(child: CredentialsSettings()),
-            SliverToBoxAdapter(child: ThemeSettings()),
+            SliverToBoxAdapter(child: GeneralSettings()),
             SliverBottomPadding(),
           ],
         ),
