@@ -236,8 +236,6 @@ class EpubNavigation extends _$EpubNavigation {
   void _handleProgress() {
     listenSelf((prev, next) {
       next.whenData((data) async {
-        if (!data.ready) return;
-
         final reflow = await ref.read(
           epubReflowProvider(
             seriesId: seriesId,
