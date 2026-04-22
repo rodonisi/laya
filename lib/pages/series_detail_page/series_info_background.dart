@@ -14,6 +14,10 @@ class SeriesInfoBackground extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (primaryColor == null || secondaryColor == null) {
+      return Container();
+    }
+
     return Opacity(
       opacity: 0.2,
       child: Container(
@@ -22,8 +26,8 @@ class SeriesInfoBackground extends ConsumerWidget {
             begin: .topLeft,
             end: .bottomRight,
             colors: [
-              if (primaryColor != null) primaryColor!.toColor(),
-              if (secondaryColor != null) secondaryColor!.toColor(),
+              primaryColor!.toColor(),
+              secondaryColor!.toColor(),
             ],
           ),
         ),
