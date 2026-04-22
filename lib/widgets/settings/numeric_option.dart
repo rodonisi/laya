@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kover/utils/layout_constants.dart';
 import 'package:kover/widgets/settings/option_container.dart';
 
 class NumericOption extends StatelessWidget {
@@ -29,12 +30,14 @@ class NumericOption extends StatelessWidget {
       icon: icon,
       value: value.toStringAsFixed(decimalPlaces),
       child: Slider(
-        padding: EdgeInsets.zero,
+        padding: const EdgeInsets.symmetric(
+          horizontal: LayoutConstants.smallPadding,
+        ),
         value: value,
         min: min,
         max: max,
         divisions: ((max - min) / step).round(),
-         onChanged: (newValue) => onChanged?.call(newValue),
+        onChanged: (newValue) => onChanged?.call(newValue),
       ),
     );
   }
