@@ -53,6 +53,10 @@ class EpubReflow extends _$EpubReflow {
   }) async {
     // force rerender on settings change
     ref.listen(epubReaderSettingsProvider(seriesId: seriesId), (prev, next) {
+      ref.invalidate(
+        readerProvider(seriesId: seriesId, chapterId: chapterId),
+        asReload: true,
+      );
       ref.invalidateSelf(asReload: true);
     });
 
@@ -63,7 +67,7 @@ class EpubReflow extends _$EpubReflow {
       ).future,
     );
 
-    if (state.value == null && page == readerState.initialPage) {
+    if (page == readerState.initialPage) {
       _resumeScrollId = readerState.bookScrollId;
     }
 
@@ -230,9 +234,11 @@ class EpubNavigation extends _$EpubNavigation {
     ref.listen(epubReaderSettingsProvider(seriesId: seriesId), (
       prev,
       next,
-    ) async {
+    ) {
+      final current = state.value;
+      if (current == null) return;
+
       _resumed = false;
-      final current = await future;
       state = AsyncData(
         current.copyWith(ready: false, subpage: 0),
       );
@@ -241,19 +247,22 @@ class EpubNavigation extends _$EpubNavigation {
 
   void _handleProgress() {
     listenSelf((prev, next) {
-      next.whenData((data) async {
-        final reflow = await ref.read(
-          epubReflowProvider(
-            seriesId: seriesId,
-            chapterId: chapterId,
-            page: data.page,
-          ).future,
-        );
-        if (reflow.subpages.length <= data.subpage) return;
+      next.whenData((data) {
+        final reflow = ref
+            .read(
+              epubReflowProvider(
+                seriesId: seriesId,
+                chapterId: chapterId,
+                page: data.page,
+              ),
+            )
+            .value;
+
+        if (reflow == null || reflow.subpages.length <= data.subpage) return;
 
         final scrollId = reflow.subpages[data.subpage].paragraphScrollId();
 
-        await ref
+        ref
             .read(
               readerProvider(
                 seriesId: seriesId,
