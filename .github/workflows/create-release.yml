@@ -170,8 +170,8 @@ jobs:
 
       - name: Write Changelog
         run: |
-          mkdir -p android/fastlane/metadata/en-US/changelogs
-          echo "${{ needs.get-release-body.outputs.release_body }}" > android/fastlane/metadata/en-US/changelogs/default.txt
+          mkdir -p android/fastlane/metadata/android/en-US/changelogs
+          echo "${{ needs.get-release-body.outputs.release_body }}" > android/fastlane/metadata/android/en-US/changelogs/default.txt
 
       - name: Promote Google Play
         run: |
