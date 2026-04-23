@@ -17,41 +17,44 @@ class TocDrawer extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final chapters = ref.watch(bookChaptersProvider(chapterId: chapterId));
+    final entries = ref
+        .watch(bookChaptersProvider(chapterId: chapterId))
+        .whenData((chapters) {
+          return chapters.map<Widget>((chapter) {
+            return Card.filled(
+              clipBehavior: .hardEdge,
+              margin: EdgeInsets.zero,
+              child: TocEntry(
+                seriesId: seriesId,
+                chapterId: chapterId,
+                chapter: chapter,
+              ),
+            );
+          }).toList();
+        });
 
     return Drawer(
-      child: CustomScrollView(
-        slivers: [
-          SliverPadding(
-            padding: LayoutConstants.mediumEdgeInsets,
-            sliver: SliverToBoxAdapter(
-              child: Text(
-                'Table of Contents',
-                style: Theme.of(context).textTheme.headlineMedium,
+      child: Async(
+        asyncValue: entries,
+        data: (entries) {
+          return SingleChildScrollView(
+            child: Padding(
+              padding: LayoutConstants.mediumEdgeInsets,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                spacing: LayoutConstants.smallPadding,
+                crossAxisAlignment: .start,
+                children: [
+                  Text(
+                    'Table of Contents',
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
+                  ...entries,
+                ],
               ),
             ),
-          ),
-          AsyncSliver(
-            asyncValue: chapters,
-            data: (data) => SliverList.builder(
-              itemCount: data.length,
-              itemBuilder: (context, index) {
-                return Card.filled(
-                  clipBehavior: .hardEdge,
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: LayoutConstants.mediumPadding,
-                    vertical: LayoutConstants.smallerPadding,
-                  ),
-                  child: TocEntry(
-                    seriesId: seriesId,
-                    chapterId: chapterId,
-                    chapter: data[index],
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
@@ -75,11 +78,24 @@ class TocEntry extends ConsumerWidget {
     final nav = ref.watch(
       readerNavigationProvider(seriesId: seriesId, chapterId: chapterId),
     );
+    final key = GlobalKey();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (nav.currentPage == chapter.page && key.currentContext != null) {
+        Scrollable.ensureVisible(
+          key.currentContext!,
+          alignment: 0.2,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
 
     return Column(
       mainAxisSize: .min,
       children: [
         ListTile(
+          key: key,
           selected: nav.currentPage == chapter.page,
           contentPadding: depth > 0
               ? EdgeInsetsGeometry.only(
