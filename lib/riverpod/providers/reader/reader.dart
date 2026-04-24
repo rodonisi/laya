@@ -88,6 +88,11 @@ class Reader extends _$Reader {
 
       if (!ref.mounted) return;
 
+      if (page >= current.totalPages - 1) {
+        await markComplete();
+        return;
+      }
+
       await ref
           .read(readerRepositoryProvider)
           .saveProgress(
@@ -100,10 +105,6 @@ class Reader extends _$Reader {
               bookScrollId: scrollId,
             ),
           );
-
-      if (page >= current.totalPages - 1) {
-        await markComplete();
-      }
     });
   }
 
@@ -137,6 +138,6 @@ Future<ReadDirection> readDirection(
     .archive => (await ref.watch(
       imageReaderSettingsProvider(seriesId: seriesId).future,
     )).readDirection,
-    _=> .rightToLeft,
+    _ => .rightToLeft,
   };
 }
