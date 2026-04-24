@@ -38,6 +38,14 @@ class ChaptersDao extends DatabaseAccessor<AppDatabase>
       q.filter((f) => f.seriesId.id(seriesId));
     }
 
+    q.orderBy(
+      (o) =>
+          o.sortOrder.asc() &
+          o.seriesId.id.asc() &
+          o.titleName.asc() &
+          o.title.asc(),
+    );
+
     return q.get();
   }
 

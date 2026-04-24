@@ -41,6 +41,8 @@ class VolumesDao extends DatabaseAccessor<AppDatabase> with _$VolumesDaoMixin {
       q.filter((f) => f.seriesId.id(seriesId));
     }
 
+    q.orderBy((o) => o.minNumber.asc() & o.name.asc());
+
     return await q.map((result) {
       final (vol, refs) = result;
       return VolumeWithRelations(

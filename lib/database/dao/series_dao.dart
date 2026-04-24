@@ -49,6 +49,8 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
       q.filter((s) => s.libraryId.id(libraryId));
     }
 
+    q.orderBy((o) => o.sortName.asc());
+
     return await q.get();
   }
 
