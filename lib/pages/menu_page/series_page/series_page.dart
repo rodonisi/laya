@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_context_menu/flutter_context_menu.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:kover/riverpod/providers/library.dart';
@@ -8,6 +9,18 @@ import 'package:kover/widgets/async_value.dart';
 import 'package:kover/widgets/details/filter_input_field.dart';
 import 'package:kover/widgets/lists/series_sliver_grid.dart';
 import 'package:kover/widgets/sliver_bottom_padding.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart' show LucideIcons;
+
+enum _SeriesSortOption {
+  name,
+  dateAdded,
+  lastModified,
+}
+
+enum _SeriesSortDirection {
+  ascending,
+  descending,
+}
 
 class AllSeriesPage extends StatelessWidget {
   const AllSeriesPage({super.key});
@@ -54,11 +67,28 @@ class SeriesPage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final sortOption = useState(_SeriesSortOption.name);
+    final sortDirection = useState(_SeriesSortDirection.ascending);
     final controller = useTextEditingController();
 
-    final allSeries = ref.watch(allSeriesProvider(libraryId: libraryId));
+    final allSeries = ref.watch(
+      allSeriesProvider(
+        libraryId: libraryId,
+        orderByName: sortOption.value == .name,
+        orderByRecentlyAdded: sortOption.value == .dateAdded,
+        orderByRecentlyUpdated: sortOption.value == .lastModified,
+        ascending: sortDirection.value == .ascending,
+      ),
+    );
     final query = ref.watch(
-      searchSeriesProvider(controller.text, libraryId: libraryId),
+      searchSeriesProvider(
+        controller.text,
+        libraryId: libraryId,
+        orderByName: sortOption.value == .name,
+        orderByRecentlyAdded: sortOption.value == .dateAdded,
+        orderByRecentlyUpdated: sortOption.value == .lastModified,
+        ascending: sortDirection.value == .ascending,
+      ),
     );
 
     useListenable(controller);
@@ -68,6 +98,28 @@ class SeriesPage extends HookConsumerWidget {
         slivers: [
           SliverAppBar.large(
             title: Text(title),
+            actions: [
+              InkWell(
+                customBorder: const CircleBorder(),
+                onTapUp: (details) async {
+                  await showContextMenu(
+                    context,
+                    contextMenu: _menu(
+                      sortOption,
+                      sortDirection,
+                      details.globalPosition,
+                    ),
+                  );
+                },
+                child: const Padding(
+                  padding: LayoutConstants.smallEdgeInsets,
+                  child: Icon(LucideIcons.arrowDownNarrowWide),
+                ),
+              ),
+              const SizedBox.square(
+                dimension: LayoutConstants.smallPadding,
+              ),
+            ],
           ),
           SliverPadding(
             padding: const EdgeInsets.symmetric(
@@ -98,5 +150,58 @@ class SeriesPage extends HookConsumerWidget {
         ],
       ),
     );
+  }
+
+  ContextMenu<dynamic> _menu(
+    ValueNotifier<_SeriesSortOption> sortOption,
+    ValueNotifier<_SeriesSortDirection> sortDirection,
+    Offset? position,
+  ) {
+    return ContextMenu(
+      position: position,
+      entries: <ContextMenuEntry>[
+        const MenuHeader(text: 'Sort by'),
+        MenuItem(
+          label: const Text('Name'),
+          icon: _getItemIcon(sortOption.value == .name),
+          onSelected: (_) {
+            sortOption.value = .name;
+          },
+        ),
+        MenuItem(
+          label: const Text('Date Added'),
+          icon: _getItemIcon(sortOption.value == .dateAdded),
+          onSelected: (_) {
+            sortOption.value = .dateAdded;
+          },
+        ),
+        MenuItem(
+          label: const Text('Last Modified'),
+          icon: _getItemIcon(sortOption.value == .lastModified),
+          onSelected: (_) {
+            sortOption.value = .lastModified;
+          },
+        ),
+        const MenuHeader(text: 'Direction'),
+        MenuItem(
+          label: const Text('Ascending'),
+          icon: _getItemIcon(sortDirection.value == .ascending),
+          onSelected: (_) {
+            sortDirection.value = .ascending;
+          },
+        ),
+        MenuItem(
+          label: const Text('Descending'),
+          icon: _getItemIcon(sortDirection.value == .descending),
+          onSelected: (_) {
+            sortDirection.value = .descending;
+          },
+        ),
+      ],
+    );
+  }
+
+  Icon? _getItemIcon(bool selected) {
+    return selected ? const Icon(LucideIcons.check) : null;
   }
 }

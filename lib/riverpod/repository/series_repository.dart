@@ -64,6 +64,10 @@ class SeriesRepository {
   Future<List<SeriesModel>> searchSeries(
     String query, {
     int? libraryId,
+    bool orderByName = false,
+    bool orderByRecentlyAdded = false,
+    bool orderByRecentlyUpdated = false,
+    bool ascending = true,
   }) async {
     if (query.isEmpty) {
       return [];
@@ -72,6 +76,10 @@ class SeriesRepository {
     final result = await _db.seriesDao.searchSeries(
       query,
       libraryId: libraryId,
+      orderByName: orderByName,
+      orderByRecentlyAdded: orderByRecentlyAdded,
+      orderByRecentlyUpdated: orderByRecentlyUpdated,
+      ascending: ascending,
     );
 
     return result.map(SeriesModel.fromDatabaseModel).toList();
@@ -116,9 +124,21 @@ class SeriesRepository {
   }
 
   /// Watch the list of all series, optionally filterying by [libraryId]
-  Stream<List<SeriesModel>> watchAllSeries({int? libraryId}) {
+  Stream<List<SeriesModel>> watchAllSeries({
+    int? libraryId,
+    bool orderByName = false,
+    bool orderByRecentlyAdded = false,
+    bool orderByRecentlyUpdated = false,
+    bool ascending = true,
+  }) {
     return _db.seriesDao
-        .allSeries(libraryId: libraryId)
+        .allSeries(
+          libraryId: libraryId,
+          orderByName: orderByName,
+          orderByRecentlyAdded: orderByRecentlyAdded,
+          orderByRecentlyUpdated: orderByRecentlyUpdated,
+          ascending: ascending,
+        )
         .watch()
         .distinct()
         .map(
