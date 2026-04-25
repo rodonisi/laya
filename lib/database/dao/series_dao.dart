@@ -36,20 +36,43 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
   Future<List<SeriesData>> searchSeries(
     String query, {
     int? libraryId,
+    bool orderByName = false,
+    bool orderByRecentlyAdded = false,
+    bool orderByRecentlyUpdated = false,
+    bool ascending = true,
   }) async {
-    final q = managers.series.filter(
-      (s) =>
-          s.name.contains(query) |
-          s.originalName.contains(query) |
-          s.localizedName.contains(query) |
-          s.sortName.contains(query),
-    );
+    final q = select(series)
+      ..where(
+        (table) =>
+            table.name.contains(query) |
+            table.sortName.contains(query) |
+            table.localizedName.contains(query) |
+            table.originalName.contains(query),
+      );
 
     if (libraryId != null) {
-      q.filter((s) => s.libraryId.id(libraryId));
+      q.where((table) => table.libraryId.equals(libraryId));
     }
 
-    q.orderBy((o) => o.sortName.asc() & o.name.asc());
+    q.orderBy([
+      if (orderByName)
+        (table) => OrderingTerm(
+          expression: table.sortName,
+          mode: ascending ? .asc : .desc,
+        ),
+
+      if (orderByRecentlyAdded)
+        (table) => OrderingTerm(
+          expression: table.created,
+          mode: ascending ? .asc : .desc,
+        ),
+
+      if (orderByRecentlyUpdated)
+        (table) => OrderingTerm(
+          expression: table.lastChapterAdded,
+          mode: ascending ? .asc : .desc,
+        ),
+    ]);
 
     return await q.get();
   }
@@ -143,11 +166,38 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
   }
 
   /// Get all series stored in the database, optionally filtering by [libraryId]
-  MultiSelectable<SeriesData> allSeries({int? libraryId}) {
+  MultiSelectable<SeriesData> allSeries({
+    int? libraryId,
+    bool orderByName = false,
+    bool orderByRecentlyAdded = false,
+    bool orderByRecentlyUpdated = false,
+    bool ascending = true,
+  }) {
     final query = select(series);
+
     if (libraryId != null) {
-      return (query..where((row) => row.libraryId.equals(libraryId)));
+      query.where((table) => table.libraryId.equals(libraryId));
     }
+
+    query.orderBy([
+      if (orderByName)
+        (table) => OrderingTerm(
+          expression: table.sortName,
+          mode: ascending ? OrderingMode.asc : OrderingMode.desc,
+        ),
+
+      if (orderByRecentlyAdded)
+        (table) => OrderingTerm(
+          expression: table.created,
+          mode: ascending ? OrderingMode.asc : OrderingMode.desc,
+        ),
+
+      if (orderByRecentlyUpdated)
+        (table) => OrderingTerm(
+          expression: table.lastChapterAdded,
+          mode: ascending ? OrderingMode.asc : OrderingMode.desc,
+        ),
+    ]);
 
     return query;
   }

@@ -17,11 +17,19 @@ Future<List<SeriesModel>> searchSeries(
   Ref ref,
   String query, {
   int? libraryId,
+  bool orderByName = false,
+  bool orderByRecentlyAdded = false,
+  bool orderByRecentlyUpdated = false,
+  bool ascending = true,
 }) {
   final repo = ref.watch(seriesRepositoryProvider);
   return repo.searchSeries(
     query,
     libraryId: libraryId,
+    orderByName: orderByName,
+    orderByRecentlyAdded: orderByRecentlyAdded,
+    orderByRecentlyUpdated: orderByRecentlyUpdated,
+    ascending: ascending,
   );
 }
 
@@ -47,9 +55,24 @@ Stream<ImageModel?> seriesCover(Ref ref, {required int seriesId}) async* {
 }
 
 @riverpod
-Stream<List<SeriesModel>> allSeries(Ref ref, {int? libraryId}) async* {
+Stream<List<SeriesModel>> allSeries(
+  Ref ref, {
+  int? libraryId,
+  bool orderByName = false,
+  bool orderByRecentlyAdded = false,
+  bool orderByRecentlyUpdated = false,
+  bool ascending = true,
+}) async* {
   final repo = ref.watch(seriesRepositoryProvider);
-  yield* repo.watchAllSeries(libraryId: libraryId).distinct();
+  yield* repo
+      .watchAllSeries(
+        libraryId: libraryId,
+        orderByName: orderByName,
+        orderByRecentlyAdded: orderByRecentlyAdded,
+        orderByRecentlyUpdated: orderByRecentlyUpdated,
+        ascending: ascending,
+      )
+      .distinct();
 }
 
 @riverpod
