@@ -17,7 +17,7 @@ class FilterInputField extends HookWidget {
       controller: controller,
       decoration: InputDecoration(
         hintText: 'Filter',
-        prefixIcon: const Icon(LucideIcons.search),
+        prefixIcon: const Icon(LucideIcons.listFilter),
         suffixIcon: controller.text.isNotEmpty
             ? IconButton(
                 onPressed: () {
@@ -27,6 +27,9 @@ class FilterInputField extends HookWidget {
               )
             : null,
       ),
+      onTapOutside: (_) {
+        FocusScope.of(context).unfocus();
+      },
     );
   }
 }
