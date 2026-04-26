@@ -11,11 +11,12 @@ An unofficial cross-platform Kavita client.
 
 ### Features
 
-- **Library Browsing** — browse series, collections, and libraries hosted on the Kavita server
-- **Offline Reading** — content can be downloaded for reading without an active connection
-- **Progress Sync** — reading progress is synced with the Kavita server; progress made offline is stored locally until a connection is available
-- **Cross-Platform** — built with Flutter with the goal of keeping all platforms supported, including desktop and
-  (because why not) web
+- Dedicated Kavita client, directly integrating with the Kavita API.
+- Library synchronization with support for both streaming chapters, or downloading them for offline reading.
+- Epub and image readers with support for various reading modes, navigation options and customizations.
+- Reading progress stored locally and automatically synchronized with the server when a connection is available.
+- Library browsing with support for filtering, sorting and searching.
+- Built with Flutter with the goal of keeping all platforms supported, i.e. mobile, desktop and (because why not) web
 
 ## Getting Started
 
@@ -23,13 +24,19 @@ An unofficial cross-platform Kavita client.
 
 #### iOS & MacOS
 
-The app is currently available on TestFlight as a public beta. The beta can be joined by following this link: <https://testflight.apple.com/join/UsCtQUeY>
+The app is currently available in open beta on TestFlight, which can be joined [here](https://testflight.apple.com/join/UsCtQUeY).
 
 #### Android
 
 The app is currently on a closed beta on the Play Store. A public beta and join link may be setup in the future.
 
 An APK build is also available in the [releases](https://github.com/rodonisi/kover/releases/latest) section of this repository.
+
+#### Other platforms
+
+The remainder platforms are currently not packaged automatically. It is planned setup pipelines for Windows, Linux and MacOS and push builds to the release page in the future.
+
+For now, those could still be built from source for local use by following the instructions below.
 
 ### Building from Source
 
@@ -47,7 +54,7 @@ This project makes heavy use of code generation for APIs, model and database obj
   dart run build_runner build --delete-conflicting-outputs
   ```
 
-- finally the project can be build as usual with `flutter build` or run in debug mode with `flutter run`
+- finally the project can be built normally with `flutter build` or run in debug mode with `flutter run`
 
 Note: remember to regenerate code when modifying annotated classes or run with `dart run build_runner watch
 --delete-conflicting-outputs` during development to watch for changes.
@@ -62,8 +69,7 @@ A script that pulls the correct versions based on the `pubspec.lock` is availabl
 dart run tools/fetch_web_dependencies.dart
 ```
 
-**Note**: due to CORS, the web version has to be deployed alongside the Kavita server. Alternatively a reverse proxy could
-probably be used to inject additional HTTP headers. This is completely untested and no official guidance exists.
+**Note**: due to CORS, the web version has to be served on the same domain as Kavita, or put behind a reverse proxy setup to inject additional HTTP allow-origin headers for the desired domains. This is completely untested and no official guidance exists.
 
 ## Screenshots
 
@@ -73,6 +79,7 @@ probably be used to inject additional HTTP headers. This is completely untested 
   <img src="screenshots/home.png" alt="Screenshot" width="220" />
   <img src="screenshots/series_details.png" alt="Screenshot" width="220" />
   <img src="screenshots/series_details2.png" alt="Screenshot" width="220" />
+  <img src="screenshots/all_series.png" alt="Screenshot" width="220" />
   <img src="screenshots/want_to_read.png" alt="Screenshot" width="220" />
   <img src="screenshots/menu.png" alt="Screenshot" width="220" />
 </p>
