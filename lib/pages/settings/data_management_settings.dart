@@ -66,6 +66,71 @@ class DataManagementSettings extends ConsumerWidget {
   }
 }
 
+class DefragmentButton extends ConsumerWidget {
+  const DefragmentButton({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final defragStatus = ref.watch(databaseDefragmentationProvider);
+    return Async(
+      asyncValue: defragStatus,
+      data: (status) {
+        return switch (status) {
+          .idle => FilledButton.icon(
+            onPressed: () async {
+              await ref
+                  .read(databaseDefragmentationProvider.notifier)
+                  .defragment();
+            },
+            icon: const Icon(LucideIcons.database),
+            label: const Text('Defragment Database'),
+          ),
+          .busy => FilledButton.icon(
+            onPressed: null,
+            icon: const SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            label: const Text('Database Busy...'),
+          ),
+          .inProgress => FilledButton.icon(
+            onPressed: null,
+            icon: const SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            label: const Text('Defragmenting...'),
+          ),
+          .error => FilledButton.icon(
+            onPressed: () async {
+              await ref
+                  .read(databaseDefragmentationProvider.notifier)
+                  .defragment();
+            },
+            icon: Icon(
+              LucideIcons.circleX,
+              color: Theme.of(context).colorScheme.error,
+            ),
+            label: const Text('Retry'),
+          ),
+          .completed => FilledButton.icon(
+            onPressed: null,
+            icon: Icon(
+              LucideIcons.circleCheck,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            label: const Text('Completed'),
+          ),
+        };
+      },
+    );
+  }
+}
+
 class DatabaseSize extends ConsumerWidget {
   const DatabaseSize({
     super.key,

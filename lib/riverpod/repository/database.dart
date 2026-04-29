@@ -19,6 +19,7 @@ AppDatabase database(Ref ref) {
 
 @riverpod
 Future<int> databaseSize(Ref ref) async {
+  ref.watch(databaseDefragmentationProvider);
   ref.watch(syncManagerProvider);
 
   final applicationSubbportDir = await getApplicationSupportDirectory();
@@ -33,4 +34,32 @@ Future<int> databaseSize(Ref ref) async {
   }
 }
 
+enum DefragmentationStatus {
+  idle,
+  busy,
+  inProgress,
+  completed,
+  error,
+}
 
+@riverpod
+class DatabaseDefragmentation extends _$DatabaseDefragmentation {
+  @override
+  Future<DefragmentationStatus> build() async {
+    final syncing = ref.watch(
+      syncManagerProvider.select((sync) => sync is SyncingState),
+    );
+    return syncing ? .busy : .idle;
+  }
+
+  Future<void> defragment() async {
+    state = const AsyncData(.inProgress);
+    try {
+      final db = ref.read(databaseProvider);
+      await db.defragment();
+      state = const AsyncData(.completed);
+    } catch (e) {
+      state = const AsyncData(.error);
+    }
+  }
+}
