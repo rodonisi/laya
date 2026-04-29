@@ -5,6 +5,7 @@ import 'package:kover/riverpod/providers/client.dart';
 import 'package:kover/riverpod/providers/settings/credentials.dart';
 import 'package:kover/riverpod/repository/database.dart';
 import 'package:kover/sync/volume_sync_operations.dart';
+import 'package:kover/utils/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'volumes_repository.g.dart';
@@ -58,8 +59,29 @@ class VolumesRepository {
   /// Watch cover for volume [volumeId]
   Stream<ImageModel?> watchVolumeCover(int volumeId) {
     return _db.volumesDao
-        .watchVolumeCover(volumeId: volumeId)
-        .map((cover) => cover != null ? ImageModel(data: cover.image) : null);
+        .volumeCover(volumeId: volumeId)
+        .watchSingleOrNull()
+        .asyncMap((
+          cover,
+        ) async {
+          if (cover != null) {
+            final image = ImageModel(data: cover.image);
+            return image;
+          }
+          try {
+            final remoteCover = await _client.getVolumeCover(volumeId);
+            if (remoteCover != null) {
+              return ImageModel(data: remoteCover.image.value);
+            }
+          } catch (e) {
+            log.e(
+              'Failed to fetch series cover for series $volumeId',
+              error: e,
+            );
+          }
+
+          return null;
+        });
   }
 
   Future<List<int>> getChapterIds({required int volumeId}) async {

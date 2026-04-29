@@ -88,11 +88,9 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
         .watchSingle();
   }
 
-  /// Watch cover for series [seriesId]
-  Stream<SeriesCover?> watchSeriesCover({required int seriesId}) {
-    return managers.seriesCovers
-        .filter((f) => f.seriesId.id(seriesId))
-        .watchSingleOrNull();
+  /// Get [SingleOrNullSelectable] cover for series [seriesId]
+  SingleOrNullSelectable<SeriesCover?> seriesCover({required int seriesId}) {
+    return managers.seriesCovers.filter((f) => f.seriesId.id(seriesId));
   }
 
   /// Watch series details for series [seriesId]

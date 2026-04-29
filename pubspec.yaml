@@ -53,6 +53,7 @@ dependencies:
   async: ^2.13.0
   csslib: ^1.0.2
   flutter_markdown_plus: ^1.0.7
+  path: ^1.9.1
 
 dev_dependencies:
   flutter_test:

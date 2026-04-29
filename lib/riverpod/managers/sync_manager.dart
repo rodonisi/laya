@@ -3,6 +3,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:kover/riverpod/providers/auth.dart';
 import 'package:kover/riverpod/providers/connectivity.dart';
 import 'package:kover/riverpod/providers/series.dart';
+import 'package:kover/riverpod/providers/settings/download_settings.dart';
 import 'package:kover/riverpod/repository/book_repository.dart';
 import 'package:kover/riverpod/repository/chapters_repository.dart';
 import 'package:kover/riverpod/repository/database.dart';
@@ -100,7 +101,8 @@ class SyncManager extends _$SyncManager {
       _syncMetadata(),
     ]);
 
-    await _syncCovers();
+    final settings = await ref.read(downloadSettingsProvider.future);
+    if (settings.downloadCovers) await _syncCovers();
   }
 
   /// Sync libraries

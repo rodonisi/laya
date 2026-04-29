@@ -11,6 +11,7 @@ part 'download_settings.g.dart';
 sealed class DownloadSettingsState with _$DownloadSettingsState {
   const factory DownloadSettingsState({
     @Default(3) int concurrentDownloads,
+    @Default(false) bool downloadCovers,
   }) = _DownloadSettingsState;
 
   factory DownloadSettingsState.fromJson(Map<String, Object?> json) =>
@@ -32,5 +33,10 @@ class DownloadSettings extends _$DownloadSettings {
   Future<void> setConcurrentDownloads(int count) async {
     final current = await future;
     state = AsyncData(current.copyWith(concurrentDownloads: count));
+  }
+
+  Future<void> setDownloadCovers(bool value) async {
+    final current = await future;
+    state = AsyncData(current.copyWith(downloadCovers: value));
   }
 }

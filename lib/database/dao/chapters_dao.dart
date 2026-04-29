@@ -2,7 +2,6 @@ import 'package:drift/drift.dart';
 import 'package:kover/database/app_database.dart';
 import 'package:kover/database/tables/chapters.dart';
 import 'package:kover/database/tables/progress.dart';
-import 'package:stream_transform/stream_transform.dart';
 
 part 'chapters_dao.g.dart';
 
@@ -11,13 +10,11 @@ class ChaptersDao extends DatabaseAccessor<AppDatabase>
     with _$ChaptersDaoMixin {
   ChaptersDao(super.attachedDatabase);
 
-  /// Watch chapter [chapterId]
-  Stream<Chapter> watchChapter(int chapterId) {
+  /// Get [SingleSelectable] for chapter [chapterId]
+  SingleSelectable<Chapter> chapter(int chapterId) {
     return (select(
-          chapters,
-        )..where((row) => row.id.equals(chapterId)))
-        .watchSingleOrNull()
-        .whereNotNull();
+      chapters,
+    )..where((row) => row.id.equals(chapterId)));
   }
 
   /// Search chapters by [query]. Optionally filter by [volumeId] and/or [seriesId]
@@ -60,11 +57,11 @@ class ChaptersDao extends DatabaseAccessor<AppDatabase>
     );
   }
 
-  /// Watch cover for chapter [chapterId]. Returns null if no cover is present
-  Stream<ChapterCover?> watchChapterCover({required int chapterId}) {
+  /// Get [SingleOrNullSelectable] cover for chapter [chapterId]. Returns null if no cover is present
+  SingleOrNullSelectable<ChapterCover?> chapterCover({required int chapterId}) {
     return (select(
       chapterCovers,
-    )..where((row) => row.chapterId.equals(chapterId))).watchSingleOrNull();
+    )..where((row) => row.chapterId.equals(chapterId)));
   }
 
   /// Get the list chapter ids missing a cover

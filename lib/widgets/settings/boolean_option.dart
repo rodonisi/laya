@@ -3,6 +3,7 @@ import 'package:kover/widgets/settings/option_container.dart';
 
 class BooleanOption extends StatelessWidget {
   final String title;
+  final String? description;
   final bool value;
   final IconData? icon;
   final void Function(bool)? onChanged;
@@ -10,6 +11,7 @@ class BooleanOption extends StatelessWidget {
     super.key,
     required this.title,
     required this.value,
+    this.description,
     this.icon,
     this.onChanged,
   });
@@ -18,6 +20,7 @@ class BooleanOption extends StatelessWidget {
   Widget build(BuildContext context) {
     return OptionContainer(
       title: title,
+      description: description,
       icon: icon,
       sameRow: true,
       child: Row(

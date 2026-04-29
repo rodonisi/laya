@@ -51,6 +51,7 @@ class DownloadManager extends _$DownloadManager {
 
   Future<void> enqueue(int chapterId) async {
     final current = await future;
+
     state = AsyncData(
       current.copyWith(
         downloadQueue: {...current.downloadQueue, chapterId},
