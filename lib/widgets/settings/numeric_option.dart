@@ -4,6 +4,7 @@ import 'package:kover/widgets/settings/option_container.dart';
 
 class NumericOption extends StatelessWidget {
   final String title;
+  final String? description;
   final double value;
   final double step;
   final double min;
@@ -18,6 +19,7 @@ class NumericOption extends StatelessWidget {
     required this.step,
     required this.min,
     required this.max,
+    this.description,
     this.decimalPlaces = 1,
     this.icon,
     this.onChanged,
@@ -27,6 +29,7 @@ class NumericOption extends StatelessWidget {
   Widget build(BuildContext context) {
     return OptionContainer(
       title: title,
+      description: description,
       icon: icon,
       value: value.toStringAsFixed(decimalPlaces),
       child: Slider(

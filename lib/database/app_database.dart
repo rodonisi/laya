@@ -63,6 +63,8 @@ part 'app_database.g.dart';
   ],
 )
 class AppDatabase extends _$AppDatabase {
+  static const dbName = 'kover_db';
+
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
@@ -77,12 +79,27 @@ class AppDatabase extends _$AppDatabase {
       await delete(volumes).go();
       await delete(series).go();
       await delete(libraries).go();
+      await delete(seriesMetadata).go();
+      await clearCovers();
     });
+  }
+
+  Future<void> clearCovers() {
+    log.i('Clearing covers from database');
+    return transaction(() async {
+      await delete(chapterCovers).go();
+      await delete(volumeCovers).go();
+      await delete(seriesCovers).go();
+    });
+  }
+
+  Future<void> defragment() async {
+    await customStatement('VACUUM');
   }
 
   static QueryExecutor _openConnection() {
     return driftDatabase(
-      name: 'kover_db',
+      name: dbName,
       native: const DriftNativeOptions(
         databaseDirectory: getApplicationSupportDirectory,
         shareAcrossIsolates: true,

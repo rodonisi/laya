@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:kover/riverpod/providers/settings/download_settings.dart';
 import 'package:kover/riverpod/providers/theme.dart' hide Theme;
 import 'package:kover/utils/layout_constants.dart';
 import 'package:kover/widgets/async_value.dart';
 import 'package:kover/widgets/settings/boolean_option.dart';
 import 'package:kover/widgets/settings/choice_option.dart';
-import 'package:kover/widgets/settings/numeric_option.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class GeneralSettings extends ConsumerWidget {
@@ -62,23 +60,6 @@ class GeneralSettings extends ConsumerWidget {
                 value: theme.outlined,
                 onChanged: (value) =>
                     ref.read(themeProvider.notifier).setOutlined(value),
-              ),
-              Async(
-                asyncValue: ref.watch(downloadSettingsProvider),
-                data: (data) => NumericOption(
-                  title: 'Max Concurrent Downloads',
-                  icon: LucideIcons.download,
-                  min: 1,
-                  max: 10,
-                  step: 1,
-                  decimalPlaces: 0,
-                  value: data.concurrentDownloads.toDouble(),
-                  onChanged: (value) async {
-                    await ref
-                        .read(downloadSettingsProvider.notifier)
-                        .setConcurrentDownloads(value.round());
-                  },
-                ),
               ),
             ],
           ),

@@ -39,7 +39,10 @@ class _ActionsBar extends ConsumerWidget {
         ),
       ),
       child: const Padding(
-        padding: EdgeInsets.all(LayoutConstants.smallerPadding),
+        padding: EdgeInsets.symmetric(
+          vertical: LayoutConstants.smallerPadding,
+          horizontal: LayoutConstants.smallPadding,
+        ),
         child: Row(
           spacing: LayoutConstants.smallPadding,
           mainAxisSize: MainAxisSize.min,

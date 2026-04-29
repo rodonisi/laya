@@ -5,6 +5,7 @@ import 'package:kover/riverpod/providers/client.dart';
 import 'package:kover/riverpod/providers/settings/credentials.dart';
 import 'package:kover/riverpod/repository/database.dart';
 import 'package:kover/sync/chapter_sync_operations.dart';
+import 'package:kover/utils/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'chapters_repository.g.dart';
@@ -33,7 +34,8 @@ class ChaptersRepository {
     required int chapterId,
   }) {
     return _db.chaptersDao
-        .watchChapter(chapterId)
+        .chapter(chapterId)
+        .watchSingle()
         .map(ChapterModel.fromDatabaseModel);
   }
 
@@ -64,19 +66,47 @@ class ChaptersRepository {
   /// Watch the chapter cover for [chapterId]
   Stream<ImageModel?> watchChapterCover(int chapterId) {
     return _db.chaptersDao
-        .watchChapterCover(chapterId: chapterId)
-        .map((cover) => cover != null ? ImageModel(data: cover.image) : null);
+        .chapterCover(chapterId: chapterId)
+        .watchSingleOrNull()
+        .asyncMap((
+          cover,
+        ) async {
+          if (cover != null) {
+            final image = ImageModel(data: cover.image);
+            return image;
+          }
+          try {
+            final remoteCover = await _client.getChapterCover(chapterId);
+            if (remoteCover != null) {
+              return ImageModel(data: remoteCover.image.value);
+            }
+          } catch (e) {
+            log.e(
+              'Failed to fetch series cover for series $chapterId',
+              error: e,
+            );
+          }
+
+          return null;
+        });
+  }
+
+  Future<void> downloadChapterCover(int chapterId) async {
+    try {
+      final remoteCover = await _client.getChapterCover(chapterId);
+      if (remoteCover != null) {
+        await _db.chaptersDao.upsertChapterCover(remoteCover);
+      }
+    } catch (e) {
+      log.e('Failed to fetch series cover for series $chapterId', error: e);
+    }
   }
 
   /// Fetch all missing chapter covers
   Future<void> fetchMissingCovers() async {
     final missing = await _db.chaptersDao.getMissingCovers();
     for (final id in missing) {
-      final chapterCover = await _client.getChapterCover(id);
-
-      if (chapterCover == null) continue;
-
-      await _db.chaptersDao.upsertChapterCover(chapterCover);
+      await downloadChapterCover(id);
     }
   }
 }

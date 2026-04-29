@@ -8,6 +8,7 @@ import 'package:kover/riverpod/repository/database.dart';
 import 'package:kover/sync/chapter_sync_operations.dart';
 import 'package:kover/sync/series_sync_operations.dart';
 import 'package:kover/sync/volume_sync_operations.dart';
+import 'package:kover/utils/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'series_repository.g.dart';
@@ -112,8 +113,29 @@ class SeriesRepository {
   /// Watch series cover for series [seriesId]
   Stream<ImageModel?> watchSeriesCover(int seriesId) {
     return _db.seriesDao
-        .watchSeriesCover(seriesId: seriesId)
-        .map((cover) => cover != null ? ImageModel(data: cover.image) : null);
+        .seriesCover(seriesId: seriesId)
+        .watchSingleOrNull()
+        .asyncMap((
+          cover,
+        ) async {
+          if (cover != null) {
+            final image = ImageModel(data: cover.image);
+            return image;
+          }
+          try {
+            final remoteCover = await _client.getSeriesCover(seriesId);
+            if (remoteCover != null) {
+              return ImageModel(data: remoteCover.image.value);
+            }
+          } catch (e) {
+            log.e(
+              'Failed to fetch series cover for series $seriesId',
+              error: e,
+            );
+          }
+
+          return null;
+        });
   }
 
   /// Watch [SeriesDetailModel] for series [seriesId]

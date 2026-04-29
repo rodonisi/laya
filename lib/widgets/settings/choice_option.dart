@@ -3,6 +3,7 @@ import 'package:kover/widgets/settings/option_container.dart';
 
 class ChoiceOption<T> extends StatelessWidget {
   final String title;
+  final String? description;
   final T value;
   final List<ChoiceOptionEntry<T>> options; // Custom model for labels/icons
   final IconData? icon;
@@ -13,6 +14,7 @@ class ChoiceOption<T> extends StatelessWidget {
     required this.title,
     required this.value,
     required this.options,
+    this.description,
     this.icon,
     this.onChanged,
   });
@@ -21,6 +23,7 @@ class ChoiceOption<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     return OptionContainer(
       title: title,
+      description: description,
       icon: icon,
       child: Row(
         children: [

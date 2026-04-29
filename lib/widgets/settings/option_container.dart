@@ -3,6 +3,7 @@ import 'package:kover/utils/layout_constants.dart';
 
 class OptionContainer extends StatelessWidget {
   final String title;
+  final String? description;
   final String? value;
   final IconData? icon;
   final bool sameRow;
@@ -12,6 +13,7 @@ class OptionContainer extends StatelessWidget {
     super.key,
     required this.title,
     required this.child,
+    this.description,
     this.value,
     this.icon,
     this.sameRow = false,
@@ -27,11 +29,29 @@ class OptionContainer extends StatelessWidget {
         Row(
           spacing: LayoutConstants.smallPadding,
           children: [
-            if (icon != null) Icon(icon),
             Expanded(
-              child: Text(
-                title,
-                style: Theme.of(context).textTheme.titleSmall,
+              child: Row(
+                spacing: LayoutConstants.smallPadding,
+                children: [
+                  if (icon != null) Icon(icon),
+                  Flexible(
+                    child: Text(
+                      title,
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                  ),
+                  if (description != null)
+                    Tooltip(
+                      message: description!,
+                      triggerMode: .tap,
+                      child: const IconButton(
+                        icon: Icon(
+                          Icons.info_outline,
+                        ),
+                        onPressed: null,
+                      ),
+                    ),
+                ],
               ),
             ),
             if (sameRow) child,

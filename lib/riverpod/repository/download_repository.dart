@@ -8,6 +8,8 @@ import 'package:kover/riverpod/providers/settings/credentials.dart';
 import 'package:kover/riverpod/repository/database.dart';
 import 'package:kover/sync/book_sync_operations.dart';
 import 'package:kover/sync/chapter_sync_operations.dart';
+import 'package:kover/sync/series_sync_operations.dart';
+import 'package:kover/sync/volume_sync_operations.dart';
 import 'package:kover/utils/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -23,6 +25,8 @@ DownloadRepository downloadRepository(Ref ref) {
     db: db,
     bookClient: BookSyncOperations(client: client, apiKey: apiKey!),
     chapterClient: ChapterSyncOperations(client: client, apiKey: apiKey),
+    volumeClient: VolumeSyncOperations(client: client, apiKey: apiKey),
+    seriesClient: SeriesSyncOperations(client: client, apiKey: apiKey),
   );
 }
 
@@ -30,14 +34,20 @@ class DownloadRepository {
   final AppDatabase _db;
   final BookSyncOperations _bookClient;
   final ChapterSyncOperations _chapterClient;
+  final VolumeSyncOperations _volumeClient;
+  final SeriesSyncOperations _seriesClient;
 
   DownloadRepository({
     required AppDatabase db,
     required BookSyncOperations bookClient,
     required ChapterSyncOperations chapterClient,
+    required VolumeSyncOperations volumeClient,
+    required SeriesSyncOperations seriesClient,
   }) : _db = db,
        _bookClient = bookClient,
-       _chapterClient = chapterClient;
+       _chapterClient = chapterClient,
+       _volumeClient = volumeClient,
+       _seriesClient = seriesClient;
 
   /// Whether every page of [chapterId] is persisted locally.
   Future<bool> isChapterDownloaded({required int chapterId}) {
@@ -64,10 +74,9 @@ class DownloadRepository {
   /// - Any page that is already stored in the DB is skipped so that partial
   ///   downloads can be resumed.
   Future<void> downloadChapter({required int chapterId}) async {
-    // Resolve chapter metadata (page count, format).
-    final chapter = await _chapterClient.getChapter(chapterId);
-    final totalPages = chapter.pages.value;
-    final format = chapter.format.value;
+    final chapter = await _db.chaptersDao.chapter(chapterId).getSingle();
+    final totalPages = chapter.pages;
+    final format = chapter.format;
 
     if (totalPages == 0) {
       throw Exception('Chapter $chapterId has no pages to download');
@@ -96,6 +105,68 @@ class DownloadRepository {
           data: blob,
           lastSync: Value(DateTime.timestamp()),
         ),
+      );
+    }
+
+    await downloadMissingCovers(chapter);
+  }
+
+  Future<void> downloadMissingCovers(Chapter chapter) async {
+    try {
+      final chapterCover = await _db.chaptersDao
+          .chapterCover(chapterId: chapter.id)
+          .getSingleOrNull();
+
+      if (chapterCover == null) {
+        final remoteCover = await _chapterClient.getChapterCover(
+          chapter.id,
+        );
+        if (remoteCover != null) {
+          await _db.chaptersDao.upsertChapterCover(remoteCover);
+        }
+      }
+    } catch (e) {
+      log.e(
+        'Failed to fetch chapter cover for chapter ${chapter.id}',
+        error: e,
+      );
+    }
+
+    try {
+      final volumeCover = await _db.volumesDao
+          .volumeCover(volumeId: chapter.volumeId)
+          .getSingleOrNull();
+      if (volumeCover == null) {
+        final remoteCover = await _volumeClient.getVolumeCover(
+          chapter.volumeId,
+        );
+        if (remoteCover != null) {
+          await _db.volumesDao.upsertVolumeCover(remoteCover);
+        }
+      }
+    } catch (e) {
+      log.e(
+        'Failed to fetch series cover for series ${chapter.volumeId}',
+        error: e,
+      );
+    }
+
+    try {
+      final seriesCover = await _db.seriesDao
+          .seriesCover(seriesId: chapter.seriesId)
+          .getSingleOrNull();
+      if (seriesCover == null) {
+        final remoteCover = await _seriesClient.getSeriesCover(
+          chapter.seriesId,
+        );
+        if (remoteCover != null) {
+          await _db.seriesDao.upsertSeriesCover(remoteCover);
+        }
+      }
+    } catch (e) {
+      log.e(
+        'Failed to fetch series cover for series ${chapter.seriesId}',
+        error: e,
       );
     }
   }

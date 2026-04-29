@@ -47,7 +47,7 @@ class SearchButton extends HookConsumerWidget {
       ],
       builder: (BuildContext context, SearchController controller) {
         return IconButton(
-          style: IconButton.styleFrom(visualDensity: .comfortable),
+          style: IconButton.styleFrom(visualDensity: .compact),
           icon: const Icon(
             LucideIcons.search,
             size: LayoutConstants.smallIcon,
