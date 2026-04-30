@@ -118,7 +118,7 @@ class DownloadQueueItem extends ConsumerWidget {
                   .read(downloadManagerProvider.notifier)
                   .cancel(chapterId);
             },
-            icon: const Icon(LucideIcons.trash2),
+            icon: const Icon(LucideIcons.x),
           ),
         );
       },
