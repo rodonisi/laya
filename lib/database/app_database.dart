@@ -75,12 +75,26 @@ class AppDatabase extends _$AppDatabase {
   Future<void> clearDb() {
     log.i('Clearing database');
     return transaction(() async {
+      await delete(libraries).go();
       await delete(chapters).go();
       await delete(volumes).go();
       await delete(series).go();
-      await delete(libraries).go();
       await delete(seriesMetadata).go();
+      await delete(wantToRead).go();
+      await delete(readingProgress).go();
+      await delete(bookChaptersTable).go();
+      await delete(people).go();
+      await delete(genres).go();
+      await delete(tags).go();
+      await clearDownloads();
       await clearCovers();
+    });
+  }
+
+  Future<void> clearDownloads() {
+    log.i('Clearing downloads from database');
+    return transaction(() async {
+      await delete(downloadedPages).go();
     });
   }
 
@@ -93,7 +107,7 @@ class AppDatabase extends _$AppDatabase {
     });
   }
 
-  Future<void> defragment() async {
+  Future<void> vacuum() async {
     await customStatement('VACUUM');
   }
 

@@ -23,7 +23,7 @@ class DataManagementSettings extends ConsumerWidget {
           asyncValue: settings,
           data: (data) => Column(
             mainAxisSize: .min,
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             spacing: LayoutConstants.largePadding,
             children: [
               Text(
@@ -31,10 +31,10 @@ class DataManagementSettings extends ConsumerWidget {
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
               BooleanOption(
-                title: 'Automatically Download Covers',
+                title: 'Download All Covers',
                 description:
-                    'If disabled, covers will only be downloaded together with chapters.\n'
-                    'Covers will still be fetched from the server if not downloaded and a connection is available.',
+                    'If disabled, covers will only be downloaded together with chapters. '
+                    'Covers will still be fetched from the server on demand when not downloaded and a connection is available.',
                 icon: LucideIcons.imageDownDir,
                 value: data.downloadCovers,
                 onChanged: (value) async {
@@ -57,11 +57,134 @@ class DataManagementSettings extends ConsumerWidget {
                       .setConcurrentDownloads(value.round());
                 },
               ),
-              const DatabaseSize(),
+              Wrap(
+                spacing: LayoutConstants.mediumPadding,
+                runSpacing: LayoutConstants.mediumPadding,
+                alignment: .center,
+                children: [
+                  DatabaseClearOperationButton(
+                    asyncValue: ref.watch(reclaimSpaceProvider),
+                    startText: 'Reclaim Space',
+                    startIcon: const Icon(LucideIcons.databaseZap),
+                    onStart: () async {
+                      await ref
+                          .read(reclaimSpaceProvider.notifier)
+                          .reclaimSpace();
+                    },
+                  ),
+                  DatabaseClearOperationButton(
+                    asyncValue: ref.watch(clearDownloadsProvider),
+                    startText: 'Clear Downloads',
+                    startIcon: const Icon(Icons.file_download_off),
+                    onStart: () async {
+                      await ref
+                          .read(clearDownloadsProvider.notifier)
+                          .clearDownloads();
+                    },
+                  ),
+                  DatabaseClearOperationButton(
+                    asyncValue: ref.watch(clearCoversProvider),
+                    startText: 'Clear Covers',
+                    startIcon: const Icon(LucideIcons.imageOff),
+                    onStart: () async {
+                      await ref
+                          .read(clearCoversProvider.notifier)
+                          .clearCovers();
+                    },
+                  ),
+                  DatabaseClearOperationButton(
+                    asyncValue: ref.watch(clearDatabaseProvider),
+                    startText: 'Clear Database',
+                    startIcon: const Icon(LucideIcons.trash),
+                    onStart: () async {
+                      await ref
+                          .read(clearDatabaseProvider.notifier)
+                          .clearDatabase();
+                    },
+                  ),
+                ],
+              ),
+              const Row(
+                mainAxisAlignment: .start,
+                children: [
+                  DatabaseSize(),
+                ],
+              ),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+class DatabaseClearOperationButton extends ConsumerWidget {
+  final AsyncValue<ClearOperationStatus> asyncValue;
+  final String startText;
+  final Icon? startIcon;
+  final VoidCallback onStart;
+
+  const DatabaseClearOperationButton({
+    super.key,
+    required this.asyncValue,
+    required this.startText,
+    required this.onStart,
+    this.startIcon,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Async(
+      asyncValue: asyncValue,
+      data: (status) {
+        return switch (status) {
+          .idle => FilledButton.icon(
+            onPressed: () {
+              onStart();
+            },
+            icon: startIcon,
+            label: Text(startText),
+          ),
+          .busy => Tooltip(
+            message: 'Database busy...',
+            triggerMode: .tap,
+            child: FilledButton.icon(
+              onPressed: null,
+              icon: const SizedBox.square(
+                dimension: LayoutConstants.smallIcon,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+              label: Text(startText),
+            ),
+          ),
+          .inProgress => FilledButton.icon(
+            onPressed: null,
+            icon: const SizedBox.square(
+              dimension: LayoutConstants.smallIcon,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            label: const Text('Executing'),
+          ),
+          .reclaimingSpace => FilledButton.icon(
+            onPressed: null,
+            icon: const SizedBox.square(
+              dimension: LayoutConstants.smallIcon,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            label: const Text('Reclaiming Space'),
+          ),
+          .error => FilledButton.icon(
+            onPressed: () async {
+              onStart();
+            },
+            icon: Icon(
+              LucideIcons.circleX,
+              color: Theme.of(context).colorScheme.error,
+            ),
+            label: const Text('Retry'),
+          ),
+        };
+      },
     );
   }
 }

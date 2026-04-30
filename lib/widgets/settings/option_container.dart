@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:kover/utils/layout_constants.dart';
 
 class OptionContainer extends StatelessWidget {
@@ -44,6 +45,10 @@ class OptionContainer extends StatelessWidget {
                     Tooltip(
                       message: description!,
                       triggerMode: .tap,
+                      showDuration: 60.minutes,
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: LayoutConstants.largePadding,
+                      ),
                       child: const IconButton(
                         icon: Icon(
                           Icons.info_outline,
