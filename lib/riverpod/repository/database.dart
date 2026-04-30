@@ -126,6 +126,32 @@ class ClearCovers extends _$ClearCovers {
   }
 }
 
+@riverpod
+class ReclaimSpace extends _$ReclaimSpace {
+  @override
+  Future<ClearOperationStatus> build() async {
+    final state = await ref.watch(clearOperationProvider.future);
+
+    if (state.type == .reclaimSpace) {
+      return state.status;
+    }
+
+    if (state.status != .idle) {
+      return .busy;
+    }
+
+    return .idle;
+  }
+
+  Future<void> reclaimSpace() async {
+    await ref
+        .read(clearOperationProvider.notifier)
+        .performOperation(
+          type: .reclaimSpace,
+        );
+  }
+}
+
 enum ClearOperationStatus {
   idle,
   busy,
@@ -139,6 +165,7 @@ enum ClearOperationType {
   clearDatabase,
   clearDownloads,
   clearCovers,
+  reclaimSpace,
 }
 
 @freezed
@@ -170,7 +197,7 @@ class ClearOperation extends _$ClearOperation {
 
   Future<void> performOperation({
     required ClearOperationType type,
-    required Future<void> Function() operation,
+    Future<void> Function()? operation,
   }) async {
     final current = await future;
     if (current.status != .idle) return;
@@ -180,9 +207,11 @@ class ClearOperation extends _$ClearOperation {
       type: type,
     );
 
-    state = AsyncData(newState);
     try {
-      await operation();
+      if (operation != null) {
+        state = AsyncData(newState);
+        await operation();
+      }
       state = AsyncData(newState.copyWith(status: .reclaimingSpace));
       await ref.read(databaseProvider).defragment();
       state = AsyncData(newState.copyWith(status: .idle, type: .none));

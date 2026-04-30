@@ -63,34 +63,44 @@ class DataManagementSettings extends ConsumerWidget {
                 alignment: .center,
                 children: [
                   DatabaseClearOperationButton(
+                    asyncValue: ref.watch(reclaimSpaceProvider),
+                    startText: 'Reclaim Space',
+                    startIcon: const Icon(LucideIcons.databaseZap),
+                    onStart: () async {
+                      await ref
+                          .read(reclaimSpaceProvider.notifier)
+                          .reclaimSpace();
+                    },
+                  ),
+                  DatabaseClearOperationButton(
                     asyncValue: ref.watch(clearDownloadsProvider),
                     startText: 'Clear Downloads',
+                    startIcon: const Icon(Icons.file_download_off),
                     onStart: () async {
                       await ref
                           .read(clearDownloadsProvider.notifier)
                           .clearDownloads();
                     },
-                    startIcon: const Icon(Icons.file_download_off),
                   ),
                   DatabaseClearOperationButton(
                     asyncValue: ref.watch(clearCoversProvider),
                     startText: 'Clear Covers',
+                    startIcon: const Icon(LucideIcons.imageOff),
                     onStart: () async {
                       await ref
                           .read(clearCoversProvider.notifier)
                           .clearCovers();
                     },
-                    startIcon: const Icon(LucideIcons.imageOff),
                   ),
                   DatabaseClearOperationButton(
                     asyncValue: ref.watch(clearDatabaseProvider),
                     startText: 'Clear Database',
+                    startIcon: const Icon(LucideIcons.trash),
                     onStart: () async {
                       await ref
                           .read(clearDatabaseProvider.notifier)
                           .clearDatabase();
                     },
-                    startIcon: const Icon(LucideIcons.trash),
                   ),
                 ],
               ),
@@ -153,7 +163,7 @@ class DatabaseClearOperationButton extends ConsumerWidget {
               dimension: LayoutConstants.smallIcon,
               child: CircularProgressIndicator(strokeWidth: 2),
             ),
-            label: const Text('Executing...'),
+            label: const Text('Executing'),
           ),
           .reclaimingSpace => FilledButton.icon(
             onPressed: null,
@@ -161,7 +171,7 @@ class DatabaseClearOperationButton extends ConsumerWidget {
               dimension: LayoutConstants.smallIcon,
               child: CircularProgressIndicator(strokeWidth: 2),
             ),
-            label: const Text('Reclaiming Space...'),
+            label: const Text('Reclaiming Space'),
           ),
           .error => FilledButton.icon(
             onPressed: () async {
