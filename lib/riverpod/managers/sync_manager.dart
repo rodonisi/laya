@@ -188,7 +188,6 @@ class SyncManager extends _$SyncManager {
       _hasUser = next.hasValue;
       if (next.hasError) return;
       if (prev != null && next.hasValue && prev.value != next.value) {
-        await ref.read(databaseProvider).clearDb();
         await fullSync();
       }
     });
