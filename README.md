@@ -3,7 +3,7 @@
 
 # Kover
 
-An unofficial cross-platform Kavita client.
+An unofficial cross-platform [Kavita](https://www.kavitareader.com/) client.
 
 </div>
 
