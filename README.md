@@ -28,7 +28,10 @@ The app is currently available in open beta on TestFlight, which can be joined [
 
 #### Android
 
-The app is currently on a closed beta on the Play Store. A public beta and join link may be setup in the future.
+The app is currently on a closed beta on the Play Store. To join:
+
+1. Join the [Kover Testers Google Group](https://groups.google.com/g/kover-testers) with the same email used for the Play Store account
+2. Visit the Play Store listing either through the [Android Link](https://play.google.com/store/apps/details?id=com.rodonisi.kover) or the [Web Link](https://play.google.com/apps/testing/com.rodonisi.kover)
 
 An APK build is also available in the [releases](https://github.com/rodonisi/kover/releases/latest) section of this repository.
 
