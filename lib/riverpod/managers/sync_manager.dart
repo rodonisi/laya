@@ -6,7 +6,6 @@ import 'package:kover/riverpod/providers/series.dart';
 import 'package:kover/riverpod/providers/settings/download_settings.dart';
 import 'package:kover/riverpod/repository/book_repository.dart';
 import 'package:kover/riverpod/repository/chapters_repository.dart';
-import 'package:kover/riverpod/repository/database.dart';
 import 'package:kover/riverpod/repository/libraries_repository.dart';
 import 'package:kover/riverpod/repository/reader_repository.dart';
 import 'package:kover/riverpod/repository/series_repository.dart';
@@ -188,7 +187,6 @@ class SyncManager extends _$SyncManager {
       _hasUser = next.hasValue;
       if (next.hasError) return;
       if (prev != null && next.hasValue && prev.value != next.value) {
-        await ref.read(databaseProvider).clearDb();
         await fullSync();
       }
     });

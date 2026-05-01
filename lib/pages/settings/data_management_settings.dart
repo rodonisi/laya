@@ -3,6 +3,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:kover/riverpod/providers/settings/download_settings.dart';
 import 'package:kover/riverpod/repository/database.dart';
 import 'package:kover/utils/layout_constants.dart';
+import 'package:kover/utils/safe_platform.dart';
 import 'package:kover/widgets/async_value.dart';
 import 'package:kover/widgets/settings/boolean_option.dart';
 import 'package:kover/widgets/settings/numeric_option.dart';
@@ -148,12 +149,13 @@ class DataManagementSettings extends ConsumerWidget {
                   ),
                 ],
               ),
-              const Row(
-                mainAxisAlignment: .start,
-                children: [
-                  DatabaseSize(),
-                ],
-              ),
+              if (!SafePlatform.isWeb)
+                const Row(
+                  mainAxisAlignment: .start,
+                  children: [
+                    DatabaseSize(),
+                  ],
+                ),
             ],
           ),
         ),
@@ -257,7 +259,7 @@ class DatabaseSize extends ConsumerWidget {
           asyncValue: ref.watch(databaseSizeProvider),
           data: (size) {
             return Text(
-              _formatSize(size),
+              _formatSize(size ?? 0),
               style: Theme.of(context).textTheme.labelMedium,
             );
           },
