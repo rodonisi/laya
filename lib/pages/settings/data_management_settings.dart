@@ -77,16 +77,6 @@ class DataManagementSettings extends ConsumerWidget {
                           },
                         ),
                         DatabaseClearOperationButton(
-                          asyncValue: ref.watch(clearCoversProvider),
-                          text: 'Clear Covers',
-                          icon: const Icon(LucideIcons.imageOff),
-                          onPressed: () async {
-                            await ref
-                                .read(clearCoversProvider.notifier)
-                                .clearCovers();
-                          },
-                        ),
-                        DatabaseClearOperationButton(
                           asyncValue: ref.watch(clearDownloadsProvider),
                           text: 'Clear Downloads',
                           icon: const Icon(Icons.file_download_off),
@@ -94,6 +84,16 @@ class DataManagementSettings extends ConsumerWidget {
                             await ref
                                 .read(clearDownloadsProvider.notifier)
                                 .clearDownloads();
+                          },
+                        ),
+                        DatabaseClearOperationButton(
+                          asyncValue: ref.watch(clearCoversProvider),
+                          text: 'Clear Covers',
+                          icon: const Icon(LucideIcons.imageOff),
+                          onPressed: () async {
+                            await ref
+                                .read(clearCoversProvider.notifier)
+                                .clearCovers();
                           },
                         ),
                         DatabaseClearOperationButton(
