@@ -4,6 +4,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:kover/riverpod/managers/download_manager.dart';
 import 'package:kover/riverpod/managers/sync_manager.dart';
+import 'package:kover/utils/safe_platform.dart';
 import 'package:path/path.dart' as p;
 import 'package:kover/database/app_database.dart';
 import 'package:path_provider/path_provider.dart';
@@ -22,10 +23,14 @@ AppDatabase database(Ref ref) {
 }
 
 @riverpod
-Future<int> databaseSize(Ref ref) async {
+Future<int?> databaseSize(Ref ref) async {
   ref.listen(clearOperationProvider, (_, _) => ref.invalidateSelf());
   ref.listen(syncManagerProvider, (_, _) => ref.invalidateSelf());
   ref.listen(downloadManagerProvider, (_, _) => ref.invalidateSelf());
+
+  if (SafePlatform.isWeb) {
+    return null;
+  }
 
   final applicationSubbportDir = await getApplicationSupportDirectory();
   final dbFile = File(
