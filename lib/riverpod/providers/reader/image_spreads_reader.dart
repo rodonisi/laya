@@ -2,7 +2,6 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:kover/riverpod/providers/reader/reader.dart';
 import 'package:kover/riverpod/providers/reader/reader_navigation.dart';
 import 'package:kover/riverpod/providers/settings/image_reader_settings.dart';
-import 'package:kover/utils/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'image_spreads_reader.freezed.dart';
@@ -151,11 +150,6 @@ class ImageSpreadsReaderNavigation extends _$ImageSpreadsReaderNavigation {
       next.whenData((spreadsState) {
         final current = state.value;
         if (current == null) return;
-
-        log.d(
-          'Spreads updated, checking if current page is still valid ${spreadsState.spreads}',
-        );
-        log.d('Checked pages: ${spreadsState.checkedPages}');
 
         final readerNavigation = ref.read(
           readerNavigationProvider(
