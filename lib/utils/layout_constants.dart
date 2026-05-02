@@ -35,7 +35,7 @@ sealed class LayoutConstants {
   static const double largerBorderRadius = 64.0;
 }
 
-sealed class Breakpoints {
+sealed class LayoutBreakpoints {
   static const double compact = 600.0;
   static const double medium = 840.0;
   static const double expanded = 1200.0;

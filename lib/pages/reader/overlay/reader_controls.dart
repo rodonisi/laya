@@ -85,7 +85,7 @@ class ReaderSettingsButton extends StatelessWidget {
           useSafeArea: true,
           constraints: BoxConstraints(
             maxHeight: MediaQuery.sizeOf(context).height * 0.85,
-            maxWidth: Breakpoints.medium,
+            maxWidth: LayoutBreakpoints.medium,
           ),
           builder: (context) => child,
         );

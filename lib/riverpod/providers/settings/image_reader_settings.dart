@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/experimental/persist.dart';
 import 'package:kover/models/read_direction.dart';
+import 'package:kover/riverpod/providers/breakpoints.dart';
 import 'package:kover/riverpod/repository/storage_repository.dart';
 import 'package:riverpod_annotation/experimental/json_persist.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -39,6 +40,7 @@ sealed class ImageReaderSettingsState with _$ImageReaderSettingsState {
     @Default(ImageScaleType.fitWidth) ImageScaleType scaleType,
     @Default(ReadDirection.leftToRight) ReadDirection readDirection,
     @Default(ReaderMode.horizontal) ReaderMode readerMode,
+    @Default(false) bool hadSpread,
     @Default(0.0) double verticalReaderGap,
     @Default(0.0) double verticalReaderPadding,
     @Default(0.0) double spreadReaderGap,
@@ -76,6 +78,21 @@ class ImageReaderSettings extends _$ImageReaderSettings {
       options: const StorageOptions(cacheTime: StorageCacheTime.unsafe_forever),
     ).future;
     final defaults = await ref.watch(defaultImageReaderSettingsProvider.future);
+    ref.listen(breakpointsProvider, (prev, next) {
+      final current = state.value;
+      if (current == null) return;
+
+      if (next == .compact && current.readerMode == .spread) {
+        state = AsyncData(
+          current.copyWith(readerMode: .horizontal),
+        );
+      } else if (next != .compact && current.hadSpread) {
+        state = AsyncData(
+          current.copyWith(readerMode: .spread),
+        );
+      }
+    });
+
     return state.value ?? defaults;
   }
 
@@ -105,6 +122,7 @@ class ImageReaderSettings extends _$ImageReaderSettings {
     state = AsyncData(
       current.copyWith(
         readerMode: mode,
+        hadSpread: mode == .spread,
       ),
     );
   }

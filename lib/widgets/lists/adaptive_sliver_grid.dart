@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kover/utils/layout_constants.dart';
 
-class AdaptiveSliverGrid extends StatelessWidget {
+class AdaptiveSliverGrid extends ConsumerWidget {
   final int itemCount;
   final int? rowCount;
   final NullableIndexedWidgetBuilder builder;
@@ -14,14 +15,14 @@ class AdaptiveSliverGrid extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return SliverLayoutBuilder(
       builder: (context, constraints) {
         final crossAxisCount = switch (constraints.crossAxisExtent) {
-          final width when width >= Breakpoints.large => 10,
-          final width when width >= Breakpoints.expanded => 8,
-          final width when width >= Breakpoints.medium => 6,
-          final width when width >= Breakpoints.compact => 4,
+          final width when width >= LayoutBreakpoints.large => 10,
+          final width when width >= LayoutBreakpoints.expanded => 8,
+          final width when width >= LayoutBreakpoints.medium => 6,
+          final width when width >= LayoutBreakpoints.compact => 4,
           _ => 3,
         };
 

@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:kover/models/read_direction.dart';
+import 'package:kover/riverpod/providers/breakpoints.dart';
 import 'package:kover/riverpod/providers/settings/image_reader_settings.dart';
 import 'package:kover/utils/layout_constants.dart';
-import 'package:kover/widgets/async_value.dart';
 import 'package:kover/widgets/settings/boolean_option.dart';
 import 'package:kover/widgets/settings/choice_option.dart';
 import 'package:kover/widgets/settings/numeric_option.dart';
+import 'package:kover/widgets/util/async_value.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class ImageReaderSettingsBottomSheet extends ConsumerWidget {
@@ -17,6 +18,7 @@ class ImageReaderSettingsBottomSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final provider = imageReaderSettingsProvider(seriesId: seriesId);
+    final breakpoint = ref.watch(breakpointsProvider);
     return Async(
       asyncValue: ref.watch(provider),
       data: (settings) {
@@ -72,22 +74,23 @@ class ImageReaderSettingsBottomSheet extends ConsumerWidget {
                           .vertical => LucideIcons.moveVertical,
                           .spread => LucideIcons.columns2,
                         },
-                        options: const [
-                          ChoiceOptionEntry(
+                        options: [
+                          const ChoiceOptionEntry(
                             value: .horizontal,
                             label: 'Horizontal',
                             icon: LucideIcons.moveHorizontal,
                           ),
-                          ChoiceOptionEntry(
+                          const ChoiceOptionEntry(
                             value: .vertical,
                             label: 'Vertical',
                             icon: LucideIcons.moveVertical,
                           ),
-                          ChoiceOptionEntry(
-                            value: .spread,
-                            label: 'Two Page',
-                            icon: LucideIcons.columns2,
-                          ),
+                          if (breakpoint != .compact)
+                            const ChoiceOptionEntry(
+                              value: .spread,
+                              label: 'Two Page',
+                              icon: LucideIcons.columns2,
+                            ),
                         ],
                         value: settings.readerMode,
                         onChanged: (newValue) async {
