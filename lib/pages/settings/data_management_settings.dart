@@ -129,7 +129,7 @@ class DataManagementSettings extends ConsumerWidget {
                                         context,
                                       ).pop(true),
                                       child: const Text(
-                                        'Delete',
+                                        'Clear Database',
                                       ),
                                     ),
                                   ],
