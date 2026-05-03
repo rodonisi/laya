@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:kover/database/app_database.dart';
+import 'package:kover/database/dao/series_dao.dart';
 import 'package:kover/database/tables/series_metadata.dart';
 import 'package:stream_transform/stream_transform.dart';
 
@@ -99,6 +100,16 @@ class SeriesMetadataDao extends DatabaseAccessor<AppDatabase>
       batch.insertAllOnConflictUpdate(seriesPeopleRoles, prs);
       batch.insertAllOnConflictUpdate(seriesGenres, sgs);
       batch.insertAllOnConflictUpdate(seriesTags, sts);
+    });
+  }
+
+  Future<void> upsertMetadataAndDetails({
+    required SeriesMetadataCompanions metadata,
+    required SeriesDetailCompanions details,
+  }) async {
+    await transaction(() async {
+      await upsertMetadataBatch([metadata]);
+      await attachedDatabase.seriesDao.mergeSeriesDetails(details);
     });
   }
 }

@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_context_menu/flutter_context_menu.dart';
+import 'package:kover/utils/extensions/iterable.dart';
 import 'package:kover/widgets/context_menu/context_menu_button.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class ActionsContextMenu extends StatelessWidget {
-  final void Function()? onMarkRead;
-  final void Function()? onMarkUnread;
-  final void Function()? onAddWantToRead;
-  final void Function()? onRemoveWantToRead;
-  final void Function()? onDownload;
-  final void Function()? onRemoveDownload;
+  final VoidCallback? onMarkRead;
+  final VoidCallback? onMarkUnread;
+  final VoidCallback? onAddWantToRead;
+  final VoidCallback? onRemoveWantToRead;
+  final VoidCallback? onDownload;
+  final VoidCallback? onRemoveDownload;
+  final VoidCallback? onRefreshMetadata;
   final VoidCallback? onRefreshCovers;
   final Widget child;
 
@@ -21,6 +23,7 @@ class ActionsContextMenu extends StatelessWidget {
     this.onRemoveWantToRead,
     this.onDownload,
     this.onRemoveDownload,
+    this.onRefreshMetadata,
     this.onRefreshCovers,
     required this.child,
   });
@@ -35,6 +38,7 @@ class ActionsContextMenu extends StatelessWidget {
         onRemoveWantToRead: onRemoveWantToRead,
         onDownload: onDownload,
         onRemoveDownload: onRemoveDownload,
+        onRefreshMetadata: onRefreshMetadata,
         onRefreshCovers: onRefreshCovers,
       ),
       child: child,
@@ -47,6 +51,7 @@ class ActionsMenuButton extends StatelessWidget {
   final void Function()? onMarkUnread;
   final void Function()? onDownload;
   final void Function()? onRemoveDownload;
+  final void Function()? onRefreshMetadata;
   final VoidCallback? onRefreshCovers;
   final Widget child;
 
@@ -56,6 +61,7 @@ class ActionsMenuButton extends StatelessWidget {
     this.onMarkUnread,
     this.onDownload,
     this.onRemoveDownload,
+    this.onRefreshMetadata,
     this.onRefreshCovers,
     required this.child,
   });
@@ -68,6 +74,7 @@ class ActionsMenuButton extends StatelessWidget {
         onMarkUnread: onMarkUnread,
         onDownload: onDownload,
         onRemoveDownload: onRemoveDownload,
+        onRefreshMetadata: onRefreshMetadata,
         onRefreshCovers: onRefreshCovers,
       ),
       icon: child,
@@ -100,6 +107,7 @@ ContextMenu _getContextMenu({
   VoidCallback? onRemoveWantToRead,
   VoidCallback? onDownload,
   VoidCallback? onRemoveDownload,
+  VoidCallback? onRefreshMetadata,
   VoidCallback? onRefreshCovers,
 }) {
   final wantToReadEntries = _wantToReadEntries(
@@ -115,6 +123,7 @@ ContextMenu _getContextMenu({
     onRemoveDownload: onRemoveDownload,
   );
   final refreshEntries = _refreshEntries(
+    onRefreshMetadata: onRefreshMetadata,
     onRefreshCovers: onRefreshCovers,
   );
   return ContextMenu(
@@ -131,14 +140,10 @@ ContextMenu _getContextMenu({
 
 List<ContextMenuEntry> _withDividers(List<List<ContextMenuEntry>> entries) {
   final nonEmptyEntries = entries.where((e) => e.isNotEmpty).toList();
-  final result = <ContextMenuEntry>[];
-  for (var i = 0; i < nonEmptyEntries.length; i++) {
-    result.addAll(nonEmptyEntries[i]);
-    if (i < nonEmptyEntries.length - 1) {
-      result.add(const MenuDivider());
-    }
-  }
-  return result;
+  return nonEmptyEntries
+      .interleave([const MenuDivider()])
+      .expand((e) => e)
+      .toList();
 }
 
 List<ContextMenuEntry> _wantToReadEntries({
@@ -202,9 +207,16 @@ List<ContextMenuEntry> _downloadEntries({
 }
 
 List<ContextMenuEntry> _refreshEntries({
+  VoidCallback? onRefreshMetadata,
   VoidCallback? onRefreshCovers,
 }) {
   return [
+    if (onRefreshMetadata != null)
+      MenuItem(
+        label: const Text('Refresh Metadata'),
+        icon: const Icon(LucideIcons.fileBracesCorner),
+        onSelected: (_) => onRefreshMetadata(),
+      ),
     if (onRefreshCovers != null)
       MenuItem(
         label: const Text('Refresh Covers'),

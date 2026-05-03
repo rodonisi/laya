@@ -142,6 +142,7 @@ String _phaseLabel(SyncPhase phase) {
     libraries: () => 'Syncing libraries',
     progress: () => 'Syncing progress',
     covers: () => 'Syncing covers',
+    refreshMetadata: (seriesId) => 'Refreshing metadata for series $seriesId',
     refreshCovers: (seriesId) => 'Refreshing covers for series $seriesId',
   );
 }
