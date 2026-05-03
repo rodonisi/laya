@@ -227,6 +227,15 @@ class SeriesRepository {
     await _db.seriesMetadataDao.upsertMetadataBatch(metadata);
   }
 
+  Future<void> refreshMetadataAndDetails({required int seriesId}) async {
+    final metadata = await _client.getSeriesMetadata(seriesId);
+    final details = await _client.getSeriesDetail(seriesId);
+    await _db.seriesMetadataDao.upsertMetadataAndDetails(
+      metadata: metadata,
+      details: details,
+    );
+  }
+
   /// Refresh recently added series.
   Future<void> refreshRecentlyAdded() async {
     final series = await _client.getRecentlyAdded();

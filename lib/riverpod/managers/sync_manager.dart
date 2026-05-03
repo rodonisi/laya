@@ -31,6 +31,8 @@ sealed class SyncPhase with _$SyncPhase {
   const factory SyncPhase.libraries() = Libraries;
   const factory SyncPhase.progress() = Progress;
   const factory SyncPhase.covers() = Covers;
+  const factory SyncPhase.refreshMetadata({required int seriesId}) =
+      RefreshMetadata;
   const factory SyncPhase.refreshCovers({required int seriesId}) =
       RefreshCovers;
 
@@ -145,6 +147,12 @@ class SyncManager extends _$SyncManager {
   Future<void> _syncCovers() async {
     await _runPhase(const .covers(), () async {
       await _engine.syncCovers();
+    });
+  }
+
+  Future<void> refreshMetadataAndDetails({required int seriesId}) async {
+    await _runPhase(.refreshMetadata(seriesId: seriesId), () async {
+      await _engine.refreshMetadataAndDetails(seriesId: seriesId);
     });
   }
 

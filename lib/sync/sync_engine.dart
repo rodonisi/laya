@@ -61,6 +61,10 @@ class SyncEngine {
     ]);
   }
 
+  Future<void> refreshMetadataAndDetails({required int seriesId}) async {
+    await seriesRepo.refreshMetadataAndDetails(seriesId: seriesId);
+  }
+
   Future<void> refreshCovers({required int seriesId}) async {
     await seriesRepo.refreshCovers(seriesId: seriesId);
   }
