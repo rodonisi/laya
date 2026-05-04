@@ -28,7 +28,9 @@ class SearchButton extends HookConsumerWidget {
       headerHeight: 45.0,
       headerTextStyle: Theme.of(context).textTheme.bodyLarge,
       viewLeading: IconButton(
-        style: IconButton.styleFrom(visualDensity: .compact),
+        style: IconButton.styleFrom(
+          visualDensity: .compact,
+        ),
         icon: const Icon(
           LucideIcons.chevronLeft,
           size: LayoutConstants.mediumIcon,
@@ -47,7 +49,11 @@ class SearchButton extends HookConsumerWidget {
       ],
       builder: (BuildContext context, SearchController controller) {
         return IconButton(
-          style: IconButton.styleFrom(visualDensity: .compact),
+          padding: EdgeInsets.zero,
+          style: IconButton.styleFrom(
+            tapTargetSize: .shrinkWrap,
+            visualDensity: .compact,
+          ),
           icon: const Icon(
             LucideIcons.search,
             size: LayoutConstants.smallIcon,
