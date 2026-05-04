@@ -236,9 +236,8 @@ class EpubNavigation extends _$EpubNavigation {
     ref.listen(epubReaderSettingsProvider(seriesId: seriesId), (
       prev,
       next,
-    ) {
-      final current = state.value;
-      if (current == null) return;
+    ) async {
+      final current = await future;
 
       _resumed = false;
       state = AsyncData(
@@ -282,9 +281,8 @@ class EpubNavigation extends _$EpubNavigation {
         seriesId: seriesId,
         chapterId: chapterId,
       ).select((state) => state.currentPage),
-      (prev, next) {
-        final current = state.value;
-        if (current == null) return;
+      (prev, next) async {
+        final current = await future;
 
         if (prev != null && (next - prev).abs() > 1) {
           _fromLastSubpage = false;
@@ -321,9 +319,8 @@ class EpubNavigation extends _$EpubNavigation {
         page: page,
       ),
       (prev, next) {
-        next.whenData((data) {
-          final current = state.value;
-          if (current == null) return;
+        next.whenData((data) async {
+          final current = await future;
 
           if (_fromLastSubpage) {
             if (data.status == .done) {
