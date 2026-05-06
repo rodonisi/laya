@@ -46,11 +46,9 @@ class ReaderPage extends HookConsumerWidget {
                   seriesId: data.series.id,
                   chapterId: data.chapter.id,
                 ),
-                .pdf => Scaffold(
-                  body: PdfReader(
-                    seriesId: data.series.id,
-                    chapterId: data.chapter.id,
-                  ),
+                .pdf => PdfReader(
+                  seriesId: data.series.id,
+                  chapterId: data.chapter.id,
                 ),
                 _ => Center(
                   child: Column(
