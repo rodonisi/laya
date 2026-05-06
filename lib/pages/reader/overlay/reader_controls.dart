@@ -12,11 +12,14 @@ class ReaderControls extends HookConsumerWidget {
   final int seriesId;
   final int? chapterId;
   final void Function(int page)? onJumpToPage;
+  final Widget? extraControls;
+
   const ReaderControls({
     super.key,
     required this.seriesId,
     this.chapterId,
     this.onJumpToPage,
+    this.extraControls,
   });
 
   @override
@@ -35,6 +38,7 @@ class ReaderControls extends HookConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: .end,
           children: [
+            ?extraControls,
             Row(
               children: [
                 Expanded(

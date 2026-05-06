@@ -6,7 +6,9 @@ import 'package:kover/pages/reader/pdf_reader/pdf_toc_drawer.dart';
 import 'package:kover/riverpod/providers/book.dart';
 import 'package:kover/riverpod/providers/reader/reader.dart';
 import 'package:kover/riverpod/providers/reader/reader_navigation.dart';
+import 'package:kover/utils/layout_constants.dart';
 import 'package:kover/widgets/util/async_value.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:pdfrx/pdfrx.dart';
 
 class PdfControllerHook extends Hook<PdfViewerController> {
@@ -42,6 +44,7 @@ class PdfReader extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final controller = usePdfViewerController();
     final toc = useState<List<PdfOutlineNode>>([]);
+    final defaultZoom = useState(1.0);
 
     final navProvider = readerNavigationProvider(
       seriesId: seriesId,
@@ -79,6 +82,10 @@ class PdfReader extends HookConsumerWidget {
                   toc: toc.value,
                 )
               : null,
+          extraControls: _PdfExtraControls(
+            controller: controller,
+            defaultZoom: defaultZoom,
+          ),
           child: Async(
             asyncValue: pdf,
             data: (data) {
@@ -90,6 +97,7 @@ class PdfReader extends HookConsumerWidget {
                 params: PdfViewerParams(
                   onViewerReady: (document, controller) async {
                     toc.value = await document.loadOutline();
+                    defaultZoom.value = controller.currentZoom;
                   },
                   onPageChanged: (page) {
                     if (page == null) return;
@@ -104,6 +112,52 @@ class PdfReader extends HookConsumerWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _PdfExtraControls extends StatelessWidget {
+  const _PdfExtraControls({
+    required this.controller,
+    required this.defaultZoom,
+  });
+
+  final PdfViewerController controller;
+  final ValueNotifier<double> defaultZoom;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: LayoutConstants.smallPadding,
+      ),
+      child: Row(
+        mainAxisAlignment: .end,
+        spacing: LayoutConstants.mediumPadding,
+        children: [
+          IconButton(
+            onPressed: () {
+              controller.zoomUp();
+            },
+            icon: const Icon(LucideIcons.zoomIn),
+          ),
+          IconButton(
+            onPressed: () {
+              controller.zoomDown();
+            },
+            icon: const Icon(LucideIcons.zoomOut),
+          ),
+          IconButton(
+            onPressed: () {
+              controller.setZoom(
+                controller.centerPosition,
+                defaultZoom.value,
+              );
+            },
+            icon: const Icon(LucideIcons.scan),
+          ),
+        ],
+      ),
     );
   }
 }

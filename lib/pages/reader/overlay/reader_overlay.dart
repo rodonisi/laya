@@ -40,6 +40,7 @@ class ReaderOverlay extends HookConsumerWidget {
   final int chapterId;
   final Widget child;
   final Widget? endDrawer;
+  final Widget? extraControls;
 
   const ReaderOverlay({
     super.key,
@@ -48,6 +49,7 @@ class ReaderOverlay extends HookConsumerWidget {
     this.onJumpToPage,
     this.isLastPage,
     this.endDrawer,
+    this.extraControls,
     required this.chapterId,
     required this.seriesId,
     required this.child,
@@ -258,6 +260,7 @@ class ReaderOverlay extends HookConsumerWidget {
                               chapterId: chapterId,
                               seriesId: seriesId,
                               onJumpToPage: onJumpToPage,
+                              extraControls: extraControls,
                             )
                             .animate(target: uiVisible.value ? 1.0 : 0.0)
                             .show(duration: 10.ms, maintain: false)
