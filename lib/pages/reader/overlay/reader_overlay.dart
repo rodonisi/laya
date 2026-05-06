@@ -39,6 +39,7 @@ class ReaderOverlay extends HookConsumerWidget {
   final int seriesId;
   final int chapterId;
   final Widget child;
+  final Widget? endDrawer;
 
   const ReaderOverlay({
     super.key,
@@ -46,6 +47,7 @@ class ReaderOverlay extends HookConsumerWidget {
     this.onPreviousPage,
     this.onJumpToPage,
     this.isLastPage,
+    this.endDrawer,
     required this.chapterId,
     required this.seriesId,
     required this.child,
@@ -101,10 +103,12 @@ class ReaderOverlay extends HookConsumerWidget {
 
           return Scaffold(
             endDrawerEnableOpenDragGesture: true,
-            endDrawer: TocDrawer(
-              seriesId: seriesId,
-              chapterId: chapterId,
-            ),
+            endDrawer:
+                endDrawer ??
+                TocDrawer(
+                  seriesId: seriesId,
+                  chapterId: chapterId,
+                ),
             body: FocusableActionDetector(
               autofocus: true,
               shortcuts: const {
@@ -181,6 +185,7 @@ class ReaderOverlay extends HookConsumerWidget {
                         ReaderHeader(
                               seriesId: seriesId,
                               chapterId: chapterId,
+                              hasDrawer: endDrawer != null,
                             )
                             .animate(target: uiVisible.value ? 1.0 : 0.0)
                             .show(duration: 10.ms, maintain: false)

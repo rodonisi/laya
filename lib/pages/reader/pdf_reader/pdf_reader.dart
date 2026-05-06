@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:kover/pages/reader/overlay/reader_overlay.dart';
+import 'package:kover/pages/reader/pdf_reader/pdf_toc_drawer.dart';
 import 'package:kover/riverpod/providers/book.dart';
 import 'package:kover/riverpod/providers/reader/reader.dart';
 import 'package:kover/riverpod/providers/reader/reader_navigation.dart';
@@ -40,6 +41,7 @@ class PdfReader extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final controller = usePdfViewerController();
+    final toc = useState<List<PdfOutlineNode>>([]);
 
     final navProvider = readerNavigationProvider(
       seriesId: seriesId,
@@ -69,6 +71,14 @@ class PdfReader extends HookConsumerWidget {
           onPreviousPage: () => ref.read(navProvider.notifier).previousPage(),
           onJumpToPage: (page) =>
               ref.read(navProvider.notifier).jumpToPage(page),
+          endDrawer: toc.value.isNotEmpty
+              ? PdfTocDrawer(
+                  seriesId: seriesId,
+                  chapterId: chapterId,
+                  controller: controller,
+                  toc: toc.value,
+                )
+              : null,
           child: Async(
             asyncValue: pdf,
             data: (data) {
@@ -78,6 +88,9 @@ class PdfReader extends HookConsumerWidget {
                 sourceName: chapterId.toString(),
                 initialPageNumber: readerState.initialPage,
                 params: PdfViewerParams(
+                  onViewerReady: (document, controller) async {
+                    toc.value = await document.loadOutline();
+                  },
                   onPageChanged: (page) {
                     if (page == null) return;
 

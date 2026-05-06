@@ -8,11 +8,13 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 class ReaderHeader extends ConsumerWidget {
   final int seriesId;
   final int? chapterId;
+  final bool hasDrawer;
 
   const ReaderHeader({
     super.key,
     required this.seriesId,
     this.chapterId,
+    this.hasDrawer = false,
   });
 
   @override
@@ -61,7 +63,7 @@ class ReaderHeader extends ConsumerWidget {
                 ],
               ),
             ),
-            if (reader?.series.format == .epub)
+            if (hasDrawer || reader?.series.format == .epub)
               IconButton(
                 icon: const Icon(LucideIcons.tableOfContents),
                 onPressed: () => Scaffold.of(context).openEndDrawer(),
