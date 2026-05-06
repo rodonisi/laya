@@ -16,6 +16,7 @@ sealed class ReaderNavigationState with _$ReaderNavigationState {
 
 @riverpod
 class ReaderNavigation extends _$ReaderNavigation {
+  bool _jumping = false;
   @override
   ReaderNavigationState build({
     required int seriesId,
@@ -39,6 +40,14 @@ class ReaderNavigation extends _$ReaderNavigation {
   }
 
   void jumpToPage(int page, {bool fromObserver = false}) {
+    if (!fromObserver) {
+      _jumping = true;
+    } else if (fromObserver && page == state.currentPage) {
+      _jumping = false;
+    }
+
+    if (fromObserver && _jumping) return;
+
     state = state.copyWith(
       currentPage: page.clamp(0, state.totalPages - 1),
       fromObserver: fromObserver,

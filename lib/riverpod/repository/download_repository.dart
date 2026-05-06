@@ -75,8 +75,11 @@ class DownloadRepository {
   ///   downloads can be resumed.
   Future<void> downloadChapter({required int chapterId}) async {
     final chapter = await _db.chaptersDao.chapter(chapterId).getSingle();
-    final totalPages = chapter.pages;
     final format = chapter.format;
+    final totalPages = switch (format) {
+      .pdf => 1,
+      _ => chapter.pages,
+    };
 
     if (totalPages == 0) {
       throw Exception('Chapter $chapterId has no pages to download');
@@ -95,6 +98,7 @@ class DownloadRepository {
           chapterId: chapterId,
           page: page,
         ),
+        .pdf => await _bookClient.getPdf(chapterId: chapterId),
         _ => throw Exception('unsupported format'),
       };
 

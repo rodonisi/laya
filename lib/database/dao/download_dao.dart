@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:kover/database/app_database.dart';
 import 'package:kover/database/tables/chapters.dart';
 import 'package:kover/database/tables/download.dart';
+import 'package:kover/models/enums/format.dart';
 import 'package:rxdart/rxdart.dart';
 
 part 'download_dao.g.dart';
@@ -52,13 +53,18 @@ class DownloadDao extends DatabaseAccessor<AppDatabase>
               chapters.id.equalsExp(downloadedPages.chapterId),
             ),
           ])
-          ..addColumns([countColumn, chapters.pages])
+          ..addColumns([countColumn, chapters.pages, chapters.format])
           ..where(downloadedPages.chapterId.equals(chapterId));
 
     return query.map((row) {
       final downloaded = row.read(countColumn) ?? 0;
       final total = row.read(chapters.pages) ?? 0;
-      return total > 0 ? downloaded / total : 0.0;
+      final format = row.readWithConverter(chapters.format);
+
+      return switch (format) {
+        .pdf => downloaded > 0 ? 1.0 : 0.0,
+        _ => total > 0 ? downloaded / total : 0.0,
+      };
     });
   }
 
@@ -113,8 +119,17 @@ class DownloadDao extends DatabaseAccessor<AppDatabase>
 
   /// Reactively emits the percentage of downloaded pages for [volumeId]
   Stream<double> watchDownloadedProgressByVolume({required int volumeId}) {
+    final formatQuery = selectOnly(chapters)
+      ..addColumns([chapters.format])
+      ..where(chapters.volumeId.equals(volumeId))
+      ..limit(1);
+
     final totalPagesQuery = selectOnly(chapters)
       ..addColumns([chapters.pages.sum()])
+      ..where(chapters.volumeId.equals(volumeId));
+
+    final totalVolumesQuerty = selectOnly(chapters)
+      ..addColumns([chapters.id.count()])
       ..where(chapters.volumeId.equals(volumeId));
 
     final downloadedCountQuery = selectOnly(downloadedPages)
@@ -124,15 +139,24 @@ class DownloadDao extends DatabaseAccessor<AppDatabase>
       ])
       ..where(chapters.volumeId.equals(volumeId));
 
-    return Rx.combineLatest2<int?, int?, double>(
+    return Rx.combineLatest4<Format?, int?, int?, int?, double>(
+      formatQuery.watchSingle().map(
+        (row) => row.readWithConverter(chapters.format),
+      ),
       totalPagesQuery.watchSingle().map(
         (row) => row.read(chapters.pages.sum()),
+      ),
+      totalVolumesQuerty.watchSingle().map(
+        (row) => row.read(chapters.id.count()),
       ),
       downloadedCountQuery.watchSingle().map(
         (row) => row.read(downloadedPages.chapterId.count()),
       ),
-      (total, downloaded) {
-        final totalVal = total ?? 0;
+      (format, total, totalVolumes, downloaded) {
+        final totalVal = switch (format) {
+          .pdf => totalVolumes ?? 0,
+          _ => total ?? 0,
+        };
         final downloadedVal = downloaded ?? 0;
         if (totalVal == 0) return 0.0;
         return (downloadedVal / totalVal).clamp(0.0, 1.0);
@@ -142,8 +166,17 @@ class DownloadDao extends DatabaseAccessor<AppDatabase>
 
   /// Reactively emits the percentage of downloaded pages for [seriesId]
   Stream<double> watchDownloadedProgressBySeries({required int seriesId}) {
+    final formatQuery = selectOnly(series)
+      ..addColumns([series.format])
+      ..where(series.id.equals(seriesId))
+      ..limit(1);
+
     final totalPagesQuery = selectOnly(chapters)
       ..addColumns([chapters.pages.sum()])
+      ..where(chapters.seriesId.equals(seriesId));
+
+    final totalChaptersQuery = selectOnly(chapters)
+      ..addColumns([chapters.id.count()])
       ..where(chapters.seriesId.equals(seriesId));
 
     final downloadedCountQuery = selectOnly(downloadedPages)
@@ -153,15 +186,24 @@ class DownloadDao extends DatabaseAccessor<AppDatabase>
       ])
       ..where(chapters.seriesId.equals(seriesId));
 
-    return Rx.combineLatest2<int?, int?, double>(
+    return Rx.combineLatest4<Format?, int?, int?, int?, double>(
+      formatQuery.watchSingle().map(
+        (row) => row.readWithConverter(series.format),
+      ),
       totalPagesQuery.watchSingle().map(
         (row) => row.read(chapters.pages.sum()),
+      ),
+      totalChaptersQuery.watchSingle().map(
+        (row) => row.read(chapters.id.count()),
       ),
       downloadedCountQuery.watchSingle().map(
         (row) => row.read(downloadedPages.chapterId.count()),
       ),
-      (total, downloaded) {
-        final totalVal = total ?? 0;
+      (format, total, chapters, downloaded) {
+        final totalVal = switch (format) {
+          .pdf => chapters ?? 0,
+          _ => total ?? 0,
+        };
         final downloadedVal = downloaded ?? 0;
         if (totalVal == 0) return 0.0;
         return (downloadedVal / totalVal).clamp(0.0, 1.0);

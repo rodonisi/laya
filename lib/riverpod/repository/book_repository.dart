@@ -3,6 +3,7 @@ import 'package:kover/database/converters/page_content_converter.dart';
 import 'package:kover/models/book_chapter_model.dart';
 import 'package:kover/models/image_model.dart';
 import 'package:kover/models/page_content.dart';
+import 'package:kover/models/pdf_model.dart';
 import 'package:kover/riverpod/providers/client.dart';
 import 'package:kover/riverpod/providers/settings/credentials.dart';
 import 'package:kover/riverpod/repository/database.dart';
@@ -72,6 +73,25 @@ class BookRepository {
 
     return ImageModel(
       data: await _client.getImagePage(chapterId: chapterId, page: page),
+    );
+  }
+
+  Future<PdfModel> getPdf({
+    required int chapterId,
+  }) async {
+    if (await _db.downloadDao
+        .isChapterDownloaded(chapterId: chapterId)
+        .getSingle()) {
+      log.d('using downloaded PDF for chapter $chapterId');
+      final p = await _db.downloadDao
+          .getPage(chapterId: chapterId, page: 0)
+          .getSingle();
+
+      return PdfModel(data: p.data);
+    }
+
+    return PdfModel(
+      data: await _client.getPdf(chapterId: chapterId),
     );
   }
 

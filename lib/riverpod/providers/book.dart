@@ -1,6 +1,7 @@
 import 'package:kover/models/book_chapter_model.dart';
 import 'package:kover/models/image_model.dart';
 import 'package:kover/models/page_content.dart';
+import 'package:kover/models/pdf_model.dart';
 import 'package:kover/riverpod/providers/theme.dart';
 import 'package:kover/riverpod/repository/book_repository.dart';
 import 'package:kover/utils/extensions/color.dart';
@@ -39,6 +40,12 @@ Future<ImageModel> imagePage(
 }) async {
   final repo = ref.watch(bookRepositoryProvider);
   return repo.getImagePage(chapterId: chapterId, page: page);
+}
+
+@riverpod
+Future<PdfModel> pdf(Ref ref, {required int chapterId}) async {
+  final repo = ref.watch(bookRepositoryProvider);
+  return repo.getPdf(chapterId: chapterId);
 }
 
 @riverpod
