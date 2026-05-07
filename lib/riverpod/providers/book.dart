@@ -4,7 +4,7 @@ import 'package:kover/models/page_content.dart';
 import 'package:kover/models/pdf_model.dart';
 import 'package:kover/riverpod/providers/theme.dart';
 import 'package:kover/riverpod/repository/book_repository.dart';
-import 'package:kover/riverpod/repository/epub_page_processor.dart';
+import 'package:kover/utils/epub_page_preprocessor.dart';
 import 'package:kover/utils/extensions/color.dart';
 import 'package:kover/utils/html_constants.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';

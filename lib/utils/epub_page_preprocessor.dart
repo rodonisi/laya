@@ -85,7 +85,6 @@ class EpubPagePreprocessor {
         final matches = _frag.querySelectorAll(selector);
 
         for (final element in matches) {
-          // Add this style to the element's list in our cache
           _elementStyles.putIfAbsent(element, () => []).add(style);
         }
       } catch (e) {
@@ -155,44 +154,6 @@ class _CssToMapVisitor extends Visitor {
     for (final selector in currentSelectors) {
       resultMap.putIfAbsent(selector, () => {});
     }
-
-    // // Iterate through every selector in the comma-separated list
-    // for (var selector in selectorGroup.selectors) {
-    //   final sequences = selector.simpleSelectorSequences;
-    //   if (sequences.isEmpty) continue;
-    //
-    //   // Collect any trailing pseudo-element suffix (e.g. "::first-letter").
-    //   // These appear as the last sequence(s) with no combinator.
-    //   final pseudoSuffix = StringBuffer();
-    //   var baseIndex = sequences.length - 1;
-    //   while (baseIndex >= 0 &&
-    //       sequences[baseIndex].simpleSelector is PseudoElementSelector) {
-    //     final pseudo =
-    //         sequences[baseIndex].simpleSelector as PseudoElementSelector;
-    //     // Prepend so multiple pseudos come out in source order
-    //     pseudoSuffix.write('::${pseudo.name}');
-    //     baseIndex--;
-    //   }
-    //
-    //   if (baseIndex < 0) continue;
-    //
-    //   // The base is the rightmost non-pseudo-element selector.
-    //   // We ignore ancestor/combinator parts (flat, specificity-free).
-    //   final baseSimple = sequences[baseIndex].simpleSelector;
-    //   String? base;
-    //
-    //   if (baseSimple is ClassSelector) {
-    //     base = '.${baseSimple.name}';
-    //   } else if (baseSimple is ElementSelector) {
-    //     base = baseSimple.name;
-    //   }
-    //
-    //   if (base != null) {
-    //     final name = '$base$pseudoSuffix';
-    //     currentSelectors.add(name);
-    //     resultMap.putIfAbsent(name, () => {});
-    //   }
-    // }
 
     super.visitRuleSet(node);
   }

@@ -326,28 +326,4 @@ class _RenderContent extends ConsumerWidget {
       ),
     );
   }
-
-  //   (int, int, int) _computeSpecificity(String selector) {
-  //     final group = css.parseSelectorGroup(selector);
-  //
-  //     var a = 0, b = 0, c = 0;
-  //
-  //     for (var seq in group?.selectors ?? []) {
-  //       for (var simple in seq.simpleSelectorSequences) {
-  //         final s = simple.simpleSelector;
-  //
-  //         if (s is IdSelector) {
-  //           a++;
-  //         } else if (s is ClassSelector ||
-  //             s is AttributeSelector ||
-  //             s is PseudoClassSelector) {
-  //           b++;
-  //         } else if (s is ElementSelector || s is PseudoElementSelector) {
-  //           c++;
-  //         }
-  //       }
-  //     }
-  //
-  //     return (a, b, c);
-  //   }
 }

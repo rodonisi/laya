@@ -49,6 +49,7 @@ class BookSyncOperations {
     return res.bodyBytes;
   }
 
+  /// Get PDF for [chapterId]
   Future<Uint8List> getPdf({required int chapterId}) async {
     final res = await _client.apiReaderPdfGet(
       chapterId: chapterId,
@@ -62,7 +63,7 @@ class BookSyncOperations {
     return res.bodyBytes;
   }
 
-  /// Get preprocessed epub page [page] for [chapterId]
+  /// Get preprocessed epub page [page] for [chapterId] with all remote content (images, fonts) embedded as base64 data URIs. Also extracts font information from styles and returns it in a structured format.
   Future<PageContent> getPageContent({
     required int chapterId,
     required int page,
