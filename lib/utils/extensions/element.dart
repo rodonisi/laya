@@ -61,4 +61,15 @@ extension ScrollIdExtension on Element {
     }
     return '//$pathString';
   }
+
+  bool matchesSelector(String selector) {
+    var root = this;
+    while (root.parent != null) {
+      root = root.parent!;
+    }
+
+    var matches = root.querySelectorAll(selector);
+
+    return matches.contains(this);
+  }
 }
