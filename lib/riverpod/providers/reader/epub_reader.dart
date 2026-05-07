@@ -8,6 +8,7 @@ import 'package:kover/riverpod/providers/reader//reader.dart';
 import 'package:kover/riverpod/providers/reader/reader_navigation.dart';
 import 'package:kover/riverpod/providers/settings/epub_reader_settings.dart';
 import 'package:kover/utils/extensions/document_fragment.dart';
+import 'package:kover/utils/extensions/string.dart';
 import 'package:kover/utils/html_constants.dart';
 import 'package:kover/utils/logging.dart';
 import 'package:kover/utils/node_cursor.dart';
@@ -165,25 +166,29 @@ class EpubReflow extends _$EpubReflow {
       );
 
       if (current.scrollId != null) {
-        final resumePoint = fragment.querySelector(
-          '[${HtmlConstants.scrollIdAttribute}="${current.scrollId}"]',
-        );
-        if (resumePoint != null && resumePoint.hasChildNodes()) {
-          log.d(
-            'found resume point with scrollId: ${current.scrollId}',
+        try {
+          final resumePoint = fragment.querySelector(
+            '[${HtmlConstants.scrollIdAttribute}="${current.scrollId!.cssEscaped}"]',
           );
+          if (resumePoint != null && resumePoint.hasChildNodes()) {
+            log.d(
+              'found resume point with scrollId: ${current.scrollId}',
+            );
 
-          final settings = await ref.read(
-            epubReaderSettingsProvider(seriesId: seriesId).future,
-          );
-          if (settings.highlightResumePoint) {
-            resumePoint.classes.add(HtmlConstants.resumeParagraphClass);
+            final settings = await ref.read(
+              epubReaderSettingsProvider(seriesId: seriesId).future,
+            );
+            if (settings.highlightResumePoint) {
+              resumePoint.classes.add(HtmlConstants.resumeParagraphClass);
+            }
+
+            newState = newState.copyWith(
+              scrollId: null,
+              resumeSubpage: newSubpages.length - 1,
+            );
           }
-
-          newState = newState.copyWith(
-            scrollId: null,
-            resumeSubpage: newSubpages.length - 1,
-          );
+        } catch (e) {
+          log.e('failed to find resume point in new subpage', error: e);
         }
       }
 

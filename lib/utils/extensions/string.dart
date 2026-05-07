@@ -14,4 +14,8 @@ extension StringExtensions on String {
     buffer.write(replaceFirst('#', ''));
     return Color(int.parse(buffer.toString(), radix: 16));
   }
+
+  String get cssEscaped {
+    return replaceAll('"', '\'');
+  }
 }

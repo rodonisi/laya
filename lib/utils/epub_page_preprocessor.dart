@@ -96,7 +96,7 @@ class EpubPagePreprocessor {
   }
 
   void _walk(Element element) {
-    element.attributes[HtmlConstants.scrollIdAttribute] = element.scrollId;
+    element.attributes[HtmlConstants.scrollIdAttribute] = element.xPath();
     _inlineStyles(element);
 
     for (final child in element.children) {

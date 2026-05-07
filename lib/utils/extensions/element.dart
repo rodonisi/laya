@@ -1,64 +1,52 @@
 import 'package:html/dom.dart';
-import 'package:kover/utils/html_constants.dart';
+import 'package:kover/utils/extensions/string.dart';
 
 extension ScrollIdExtension on Element {
   /// Computes the XPath of this element relative to the root of the document.
-  String get scrollId {
-    final cached = attributes[HtmlConstants.scrollIdAttribute];
-    if (cached != null) {
-      return cached;
+  String xPath({bool pureXPath = false}) {
+    var xpath = _getXPath(this, pureXPath: pureXPath);
+    if (!xpath.startsWith('//') && !xpath.startsWith('id(')) {
+      xpath = '//$xpath';
     }
 
-    final List<String> paths = [];
-    Element? current = this;
+    return xpath;
+  }
 
-    Element? idParent;
-    while (current != null && current.localName != null) {
-      final String tagName = current.localName!;
+  static String _getXPath(Element? element, {bool pureXPath = false}) {
+    if (element == null || element.localName == null) {
+      return '';
+    }
 
-      // If it's the root html element, just add it and break
-      if (tagName.toLowerCase() == 'html') {
+    // Handle shortcuts (unless pureXPath is requested)
+    if (!pureXPath && element.id.isNotEmpty) {
+      return 'id("${element.id}")'.cssEscaped;
+    }
+
+    if (element.localName == 'body') {
+      return 'body';
+    }
+
+    final parent = element.parent;
+    if (parent == null) {
+      return element.localName!.toLowerCase();
+    }
+
+    // Count same-tag siblings
+    int siblingIndex = 1;
+    final tagName = element.localName;
+
+    for (var sibling in parent.children) {
+      if (sibling == element) {
         break;
       }
-
-      // Skip wrapper div with class " "
-      if (tagName.toLowerCase() == 'div' &&
-          current.attributes['class'] == ' ') {
-        current = current.parent;
-        continue;
+      if (sibling.localName == tagName) {
+        siblingIndex++;
       }
-
-      // Stop at parent with id
-      final String? parentId = current.attributes['id'];
-      if (parentId != null && parentId.isNotEmpty) {
-        idParent = current;
-        break;
-      }
-
-      // Calculate index among siblings with the same tag name
-      int index = 1;
-      Element? sibling = current.previousElementSibling;
-      while (sibling != null) {
-        if (sibling.localName == tagName) {
-          index++;
-        }
-        sibling = sibling.previousElementSibling;
-      }
-
-      // Always include index for consistency
-      if (tagName.toLowerCase() == 'body' && index == 1) {
-        paths.add(tagName);
-      } else {
-        paths.add('$tagName[$index]');
-      }
-
-      current = current.parent;
     }
 
-    final pathString = paths.reversed.join('/');
-    if (idParent != null) {
-      return 'id(${idParent.attributes['id']!})/$pathString';
-    }
-    return '//$pathString';
+    final currentPath = '${element.localName!.toLowerCase()}[$siblingIndex]';
+    final parentPath = _getXPath(parent, pureXPath: pureXPath);
+
+    return parentPath.isNotEmpty ? '$parentPath/$currentPath' : currentPath;
   }
 }
