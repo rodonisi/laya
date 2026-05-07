@@ -1,5 +1,3 @@
-import 'package:csslib/parser.dart' as css;
-import 'package:csslib/visitor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -10,8 +8,6 @@ import 'package:kover/pages/reader/overlay/reader_overlay.dart';
 import 'package:kover/riverpod/providers/reader/epub_reader.dart';
 import 'package:kover/riverpod/providers/settings/epub_reader_settings.dart';
 import 'package:kover/utils/cached_image_factory.dart';
-import 'package:kover/utils/extensions/element.dart';
-import 'package:kover/utils/logging.dart';
 import 'package:kover/widgets/util/async_value.dart';
 
 class EpubReader extends HookConsumerWidget {
@@ -298,8 +294,6 @@ class _RenderContent extends ConsumerWidget {
       epubReaderSettingsProvider(seriesId: seriesId),
     );
 
-    final inlineStyles = _inlineStyles(html);
-
     return Async(
       asyncValue: epubSettings,
       data: (epubSettings) => SafeArea(
@@ -311,32 +305,15 @@ class _RenderContent extends ConsumerWidget {
             enableCaching: true,
             factoryBuilder: () => imageCache ?? CachedImageFactory(),
             customStylesBuilder: (element) {
-              var matched = <(String, (int, int, int))>[];
-              for (final selector in styles.keys) {
-                if (element.matchesSelector(selector)) {
-                  matched.add((selector, specificities[selector]!));
-                }
-              }
-
-              log.i(
-                'Element ${element.localName} matches selectors: ${matched.map((e) => e.$1).join(', ')}',
+              final s = Map<String, String>.from(
+                styles[element.localName] ?? {},
               );
 
-              matched.sort((a, b) {
-                final specA = a.$2;
-                final specB = b.$2;
-
-                if (specA.$1 != specB.$1) return specA.$1.compareTo(specB.$1);
-                if (specA.$2 != specB.$2) return specA.$2.compareTo(specB.$2);
-                return specA.$3.compareTo(specB.$3);
-              });
-
-              final result = <String, String>{};
-              for (final (selector, _) in matched) {
-                result.addAll(styles[selector]!);
+              for (final className in element.classes) {
+                s.addAll(styles['.$className'] ?? {});
               }
 
-              return result;
+              return s;
             },
             textStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
               fontSize: epubSettings.fontSize,
@@ -350,58 +327,27 @@ class _RenderContent extends ConsumerWidget {
     );
   }
 
-  (int, int, int) _computeSpecificity(String selector) {
-    final group = css.parseSelectorGroup(selector);
-
-    var a = 0, b = 0, c = 0;
-
-    for (var seq in group?.selectors ?? []) {
-      for (var simple in seq.simpleSelectorSequences) {
-        final s = simple.simpleSelector;
-
-        if (s is IdSelector) {
-          a++;
-        } else if (s is ClassSelector ||
-            s is AttributeSelector ||
-            s is PseudoClassSelector) {
-          b++;
-        } else if (s is ElementSelector || s is PseudoElementSelector) {
-          c++;
-        }
-      }
-    }
-
-    return (a, b, c);
-  }
-
-  String _inlineStyles(String html) {
-    final specificities = Map.fromEntries(
-      styles.keys.map((selector) {
-        return MapEntry(selector, _computeSpecificity(selector));
-      }),
-    );
-
-    final document = DocumentFragment.html(html);
-
-    void applyStyles(Element element) {
-      for (final selector in styles.keys) {
-        if (element.matchesSelector(selector)) {
-          final style = styles[selector]!;
-          final existingStyle = element.attributes['style'] ?? '';
-          final newStyle = [
-            existingStyle,
-            ...style.entries.map((e) => '${e.key}: ${e.value};'),
-          ].where((s) => s.isNotEmpty).join(' ');
-
-          element.attributes['style'] = newStyle;
-        }
-      }
-
-      for (final child in element.children) {
-        applyStyles(child);
-      }
-    }
-
-    return '';
-  }
+  //   (int, int, int) _computeSpecificity(String selector) {
+  //     final group = css.parseSelectorGroup(selector);
+  //
+  //     var a = 0, b = 0, c = 0;
+  //
+  //     for (var seq in group?.selectors ?? []) {
+  //       for (var simple in seq.simpleSelectorSequences) {
+  //         final s = simple.simpleSelector;
+  //
+  //         if (s is IdSelector) {
+  //           a++;
+  //         } else if (s is ClassSelector ||
+  //             s is AttributeSelector ||
+  //             s is PseudoClassSelector) {
+  //           b++;
+  //         } else if (s is ElementSelector || s is PseudoElementSelector) {
+  //           c++;
+  //         }
+  //       }
+  //     }
+  //
+  //     return (a, b, c);
+  //   }
 }
