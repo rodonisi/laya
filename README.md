@@ -13,7 +13,7 @@ An unofficial cross-platform [Kavita](https://www.kavitareader.com/) client.
 
 - Dedicated Kavita client, directly integrating with the Kavita API.
 - Library synchronization with support for both streaming chapters, or downloading them for offline reading.
-- Epub and image readers with support for various reading modes, navigation options and customizations.
+- ePub, image and PDF readers with support for various reading modes, navigation options and customizations.
 - Reading progress stored locally and automatically synchronized with the server when a connection is available.
 - Library browsing with support for filtering, sorting and searching.
 - Built with Flutter with the goal of keeping all platforms supported, i.e. mobile, desktop and (because why not) web

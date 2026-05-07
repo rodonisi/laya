@@ -46,7 +46,9 @@ class BookDao extends DatabaseAccessor<AppDatabase> with _$BookDaoMixin {
       await (delete(
         bookChaptersTable,
       )..where((row) => row.chapterId.equals(chapterId))).go();
-      await batch((b) => b.insertAll(bookChaptersTable, entries));
+      await batch(
+        (b) => b.insertAllOnConflictUpdate(bookChaptersTable, entries),
+      );
     });
   }
 }

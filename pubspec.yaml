@@ -54,6 +54,7 @@ dependencies:
   csslib: ^1.0.2
   flutter_markdown_plus: ^1.0.7
   path: ^1.9.1
+  pdfrx: ^2.3.0
 
 dev_dependencies:
   flutter_test:

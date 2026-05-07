@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:kover/pages/reader/epub_reader/epub_reader.dart';
 import 'package:kover/pages/reader/image_reader/image_reader.dart';
+import 'package:kover/pages/reader/pdf_reader/pdf_reader.dart';
 import 'package:kover/riverpod/managers/sync_manager.dart';
 import 'package:kover/riverpod/providers/reader//reader.dart';
 import 'package:kover/utils/layout_constants.dart';
@@ -42,6 +43,10 @@ class ReaderPage extends HookConsumerWidget {
                   chapterId: data.chapter.id,
                 ),
                 .epub => EpubReader(
+                  seriesId: data.series.id,
+                  chapterId: data.chapter.id,
+                ),
+                .pdf => PdfReader(
                   seriesId: data.series.id,
                   chapterId: data.chapter.id,
                 ),

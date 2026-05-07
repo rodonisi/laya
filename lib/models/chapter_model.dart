@@ -48,7 +48,9 @@ sealed class ChapterModel with _$ChapterModel {
         RegExp(
           '^(Chapter|Book) ${DataConstants.singleVolumeChapterMinNumber.toInt()}',
         ).hasMatch(table.title!)) {
-      return table.titleName ?? 'Single Volume';
+      return table.titleName != null && table.titleName!.isNotEmpty
+          ? table.titleName!
+          : 'Single Volume';
     }
 
     final titles = {

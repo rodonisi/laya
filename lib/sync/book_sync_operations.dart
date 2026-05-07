@@ -51,6 +51,19 @@ class BookSyncOperations {
     return res.bodyBytes;
   }
 
+  Future<Uint8List> getPdf({required int chapterId}) async {
+    final res = await _client.apiReaderPdfGet(
+      chapterId: chapterId,
+      apiKey: _apiKey,
+    );
+
+    if (!res.isSuccessful) {
+      throw Exception('Failed to load PDF: ${res.error}');
+    }
+
+    return res.bodyBytes;
+  }
+
   /// Get preprocessed epub page [page] for [chapterId]
   Future<PageContent> getPageContent({
     required int chapterId,
