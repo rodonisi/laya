@@ -20,8 +20,8 @@ class RecentlyUpdatedPage extends StatelessWidget {
             final series = ref.watch(recentlyUpdatedProvider);
             return Async(
               asyncValue: series,
-              data: (data) =>
-                  SeriesListPage(title: l.recentlyUpdated, series: data),
+              data: (data) => Placeholder(),
+              // SeriesListPage(title: l.recentlyUpdated, series: data),
             );
           },
         ),

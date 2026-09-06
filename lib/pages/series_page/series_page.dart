@@ -1,3 +1,5 @@
+import 'package:kover/riverpod/repository/series_repository.dart';
+import 'package:kover/widgets/cards/series_card.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_context_menu/flutter_context_menu.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -102,29 +104,18 @@ class SeriesPage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final sortOption = useState(SeriesSortOption.name);
+    final orderBy = useState(SeriesOrderByColumn.name);
     final sortDirection = useState(SortDirection.ascending);
+    final hideRead = useState(false);
     final controller = useTextEditingController();
 
-    final allSeries = ref.watch(
-      allSeriesProvider(
-        libraryId: libraryId,
-        collectionId: collectionId,
-        orderByName: sortOption.value == .name,
-        orderByRecentlyAdded: sortOption.value == .dateAdded,
-        orderByRecentlyUpdated: sortOption.value == .lastModified,
-        ascending: sortDirection.value == .ascending,
-      ),
-    );
     final query = ref.watch(
       filterSeriesProvider(
         controller.text,
         libraryId: libraryId,
         collectionId: collectionId,
-        orderByName: sortOption.value == .name,
-        orderByRecentlyAdded: sortOption.value == .dateAdded,
-        orderByRecentlyUpdated: sortOption.value == .lastModified,
-        ascending: sortDirection.value == .ascending,
+        orderBy: orderBy.value,
+        direction: sortDirection.value,
       ),
     );
 
@@ -133,96 +124,125 @@ class SeriesPage extends HookConsumerWidget {
     return Scaffold(
       extendBody: true,
       extendBodyBehindAppBar: true,
-      body: SliverPageShell(
+      body: EntitiesPage(
         title: title,
         filterController: controller,
         appBarActions: [
-          ContextMenuButton(
-            icon: Icon(
-              sortDirection.value == .ascending
-                  ? LucideIcons.arrowDownNarrowWide
-                  : LucideIcons.arrowDownWideNarrow,
-            ),
-            menu: _menu(
-              sortOption: sortOption,
-              sortDirection: sortDirection,
-              context: context,
-            ),
+          SeriesSortOptionsMenu(
+            sortDirection: sortDirection.value,
+            onSortDirectionChanged: (onSort) => sortDirection.value = onSort,
+            orderBy: orderBy.value,
+            onOrderByChanged: (onOrder) => orderBy.value = onOrder,
+            hideRead: hideRead.value,
+            onHideReadChanged: (onHideRead) => hideRead.value = onHideRead,
           ),
+          // ContextMenuButton(
+          //   icon: Icon(
+          //     sortDirection.value == .ascending
+          //         ? LucideIcons.arrowDownNarrowWide
+          //         : LucideIcons.arrowDownWideNarrow,
+          //   ),
+          //   menu: _menu(
+          //     sortOption: sortOption,
+          //     sortDirection: sortDirection,
+          //     context: context,
+          //   ),
+          // ),
         ],
-        slivers: [
-          AsyncSliver(
-            asyncValue: allSeries,
-            data: (data) {
-              return AsyncSliver(
-                asyncValue: query,
-                data: (search) {
-                  final filteredData = controller.text.isEmpty ? data : search;
-                  return SliverPadding(
-                    padding: LayoutConstants.smallEdgeInsets,
-                    sliver: SeriesSliverGrid(
-                      series: filteredData,
-                    ),
-                  );
-                },
-              );
-            },
-          ),
-        ],
+        sliver: AsyncSliver(
+          asyncValue: query,
+          data: (items) {
+            return SliverSeriesPageBody(series: items);
+          },
+        ),
       ),
+      // body: SliverPageShell(
+      //   title: title,
+      //   filterController: controller,
+      //   appBarActions: [
+      //     ContextMenuButton(
+      //       icon: Icon(
+      //         sortDirection.value == .ascending
+      //             ? LucideIcons.arrowDownNarrowWide
+      //             : LucideIcons.arrowDownWideNarrow,
+      //       ),
+      //       menu: _menu(
+      //         sortOption: sortOption,
+      //         sortDirection: sortDirection,
+      //         context: context,
+      //       ),
+      //     ),
+      //   ],
+      //   slivers: [
+      //     AsyncSliver(
+      //           asyncValue: query,
+      //           data: (search) {
+      //             final filteredData = controller.text.isEmpty ? data : search;
+      //             return SliverPadding(
+      //               padding: LayoutConstants.smallEdgeInsets,
+      //               sliver: SeriesSliverGrid(
+      //                 series: filteredData,
+      //               ),
+      //             );
+      //           },
+      //         );
+      //       },
+      //     ),
+      //   ],
+      // ),
     );
   }
 
-  ContextMenu _menu({
-    required ValueNotifier<SeriesSortOption> sortOption,
-    required ValueNotifier<SortDirection> sortDirection,
-    required BuildContext context,
-  }) {
-    final l = AppLocalizations.of(context);
-    return ContextMenu(
-      entries: <ContextMenuEntry>[
-        MenuHeader(text: l.sortBy),
-        MenuItem(
-          label: Text(l.name),
-          icon: _getItemIcon(sortOption.value == .name),
-          onSelected: (_) {
-            sortOption.value = .name;
-          },
-        ),
-        MenuItem(
-          label: Text(l.dateAdded),
-          icon: _getItemIcon(sortOption.value == .dateAdded),
-          onSelected: (_) {
-            sortOption.value = .dateAdded;
-          },
-        ),
-        MenuItem(
-          label: Text(l.lastModified),
-          icon: _getItemIcon(sortOption.value == .lastModified),
-          onSelected: (_) {
-            sortOption.value = .lastModified;
-          },
-        ),
-        MenuHeader(text: l.sortDirection),
-        MenuItem(
-          label: Text(l.ascending),
-          icon: _getItemIcon(sortDirection.value == .ascending),
-          onSelected: (_) {
-            sortDirection.value = .ascending;
-          },
-        ),
-        MenuItem(
-          label: Text(l.descending),
-          icon: _getItemIcon(sortDirection.value == .descending),
-          onSelected: (_) {
-            sortDirection.value = .descending;
-          },
-        ),
-      ],
-    );
-  }
+  // ContextMenu _menu({
+  //   required ValueNotifier<SeriesSortOption> sortOption,
+  //   required ValueNotifier<SortDirection> sortDirection,
+  //   required BuildContext context,
+  // }) {
+  //   final l = AppLocalizations.of(context);
+  //   return ContextMenu(
+  //     entries: <ContextMenuEntry>[
+  //       MenuHeader(text: l.sortBy),
+  //       MenuItem(
+  //         label: Text(l.name),
+  //         icon: _getItemIcon(sortOption.value == .name),
+  //         onSelected: (_) {
+  //           sortOption.value = .name;
+  //         },
+  //       ),
+  //       MenuItem(
+  //         label: Text(l.dateAdded),
+  //         icon: _getItemIcon(sortOption.value == .dateAdded),
+  //         onSelected: (_) {
+  //           sortOption.value = .dateAdded;
+  //         },
+  //       ),
+  //       MenuItem(
+  //         label: Text(l.lastModified),
+  //         icon: _getItemIcon(sortOption.value == .lastModified),
+  //         onSelected: (_) {
+  //           sortOption.value = .lastModified;
+  //         },
+  //       ),
+  //       MenuHeader(text: l.sortDirection),
+  //       MenuItem(
+  //         label: Text(l.ascending),
+  //         icon: _getItemIcon(sortDirection.value == .ascending),
+  //         onSelected: (_) {
+  //           sortDirection.value = .ascending;
+  //         },
+  //       ),
+  //       MenuItem(
+  //         label: Text(l.descending),
+  //         icon: _getItemIcon(sortDirection.value == .descending),
+  //         onSelected: (_) {
+  //           sortDirection.value = .descending;
+  //         },
+  //       ),
+  //     ],
+  //   );
+  // }
 
-  Icon? _getItemIcon(bool selected) {
-    return selected ? const Icon(LucideIcons.check) : null;
-  }
+  // Icon? _getItemIcon(bool selected) {
+  //   return selected ? const Icon(LucideIcons.check) : null;
+  // }
 }

@@ -11,6 +11,9 @@ import 'package:kover/database/tables/server_settings.dart';
 import 'package:kover/database/tables/series_metadata.dart';
 import 'package:kover/database/tables/volumes.dart';
 import 'package:kover/database/tables/want_to_read.dart';
+import 'package:kover/mapping/enums/sort_direction.dart';
+import 'package:kover/models/enums/sort_direction.dart';
+import 'package:kover/riverpod/repository/series_repository.dart';
 import 'package:kover/utils/chunked_operation.dart';
 import 'package:kover/utils/data_constants.dart';
 import 'package:rxdart/rxdart.dart';
@@ -67,27 +70,29 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
     String query, {
     int? libraryId,
     int? collectionId,
-    bool orderByName = false,
-    bool orderByRecentlyAdded = false,
-    bool orderByRecentlyUpdated = false,
-    bool ascending = true,
+    SeriesOrderByColumn orderBy = .name,
+    SortDirection direction = .ascending,
   }) async {
-    final q = select(series)
-      ..where(
-        (table) =>
-            table.name.contains(query) |
-            table.sortName.contains(query) |
-            table.localizedName.contains(query) |
-            table.originalName.contains(query),
-      );
+    final q =
+        (select(series).join([
+          leftOuterJoin(
+            readingProgress,
+            readingProgress.seriesId.equalsExp(series.id),
+          ),
+        ]))..where(
+          series.name.contains(query) |
+              series.sortName.contains(query) |
+              series.localizedName.contains(query) |
+              series.originalName.contains(query),
+        );
 
     if (libraryId != null) {
-      q.where((table) => table.libraryId.equals(libraryId));
+      q.where(series.libraryId.equals(libraryId));
     }
 
     if (collectionId != null) {
       q.where(
-        (table) => table.id.isInQuery(
+        series.id.isInQuery(
           selectOnly(db.collectionSeries)
             ..addColumns([db.collectionSeries.seriesId])
             ..where(db.collectionSeries.collectionId.equals(collectionId)),
@@ -95,27 +100,30 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
       );
     }
 
+    final mode = direction.toOrderingMode();
+
     q.orderBy([
-      if (orderByName)
-        (table) => OrderingTerm(
+      switch (orderBy) {
+        .name => OrderingTerm(
           expression: series.sortName,
-          mode: ascending ? .asc : .desc,
+          mode: mode,
         ),
-
-      if (orderByRecentlyAdded)
-        (table) => OrderingTerm(
+        .progress => OrderingTerm(
+          expression: readingProgress.pagesRead.sum(),
+          mode: mode,
+        ),
+        .dateAdded => OrderingTerm(
           expression: series.created,
-          mode: ascending ? .asc : .desc,
+          mode: mode,
         ),
-
-      if (orderByRecentlyUpdated)
-        (table) => OrderingTerm(
+        .dateUpdated => OrderingTerm(
           expression: series.lastChapterAdded,
-          mode: ascending ? .asc : .desc,
+          mode: mode,
         ),
+      },
     ]);
 
-    return await q.get();
+    return await q.map((result) => result.readTable(series)).get();
   }
 
   /// Watch series for chapter [chapterId]. Emits null when the chapter does not exist
@@ -213,20 +221,23 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
   MultiSelectable<SeriesData> allSeries({
     int? libraryId,
     int? collectionId,
-    bool orderByName = false,
-    bool orderByRecentlyAdded = false,
-    bool orderByRecentlyUpdated = false,
-    bool ascending = true,
+    SeriesOrderByColumn orderBy = .name,
+    SortDirection direction = .ascending,
   }) {
-    final query = select(series);
+    final query = select(series).join([
+      leftOuterJoin(
+        readingProgress,
+        readingProgress.seriesId.equalsExp(series.id),
+      ),
+    ]);
 
     if (libraryId != null) {
-      query.where((table) => table.libraryId.equals(libraryId));
+      query.where(series.libraryId.equals(libraryId));
     }
 
     if (collectionId != null) {
       query.where(
-        (table) => table.id.isInQuery(
+        series.id.isInQuery(
           selectOnly(db.collectionSeries)
             ..addColumns([db.collectionSeries.seriesId])
             ..where(db.collectionSeries.collectionId.equals(collectionId)),
@@ -234,27 +245,30 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
       );
     }
 
+    final orderMode = direction.toOrderingMode();
+
     query.orderBy([
-      if (orderByName)
-        (table) => OrderingTerm(
-          expression: table.sortName,
-          mode: ascending ? OrderingMode.asc : OrderingMode.desc,
+      switch (orderBy) {
+        .name => OrderingTerm(
+          expression: series.sortName,
+          mode: orderMode,
         ),
-
-      if (orderByRecentlyAdded)
-        (table) => OrderingTerm(
-          expression: table.created,
-          mode: ascending ? OrderingMode.asc : OrderingMode.desc,
+        .progress => OrderingTerm(
+          expression: readingProgress.pagesRead.sum(),
+          mode: orderMode,
         ),
-
-      if (orderByRecentlyUpdated)
-        (table) => OrderingTerm(
-          expression: table.lastChapterAdded,
-          mode: ascending ? OrderingMode.asc : OrderingMode.desc,
+        .dateAdded => OrderingTerm(
+          expression: series.created,
+          mode: orderMode,
         ),
+        .dateUpdated => OrderingTerm(
+          expression: series.lastChapterAdded,
+          mode: orderMode,
+        ),
+      },
     ]);
 
-    return query;
+    return query.map((row) => row.readTable(series));
   }
 
   /// Get all chapters for series [seriesId]
@@ -397,8 +411,7 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
         });
   }
 
-  /// Get series on deck.
-  Future<List<SeriesData>> getOnDeck() async {
+  Future<JoinedSelectStatement> _getOnDeckQueryWithSettings() async {
     final setting = await managers.serverSettings
         .filter((f) => f.key.equals(DataConstants.serverSettingsKey))
         .getSingleOrNull();
@@ -408,10 +421,63 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
     final updateDays =
         setting?.onDeckUpdateDays ?? DataConstants.onDeckUpdateDays;
 
-    return await _buildOnDeckQuery(
-          progressDays: progressDays,
-          updateDays: updateDays,
+    return _buildOnDeckQuery(
+      progressDays: progressDays,
+      updateDays: updateDays,
+    );
+  }
+
+  /// Get series on deck.
+  Future<List<SeriesData>> getOnDeck() async {
+    final query = await _getOnDeckQueryWithSettings();
+    return await query
+        .map(
+          (row) => row.readTable(series),
         )
+        .get();
+  }
+
+  Future<List<SeriesData>> filterOnDeck({
+    required String query,
+    SeriesOrderByColumn orderBy = .progress,
+    SortDirection direction = .ascending,
+  }) async {
+    final q = await _getOnDeckQueryWithSettings();
+
+    q.where(
+      series.name.contains(query) |
+          series.sortName.contains(query) |
+          series.localizedName.contains(query) |
+          series.originalName.contains(query),
+    );
+
+    final OrderingMode orderingMode = switch (direction) {
+      .ascending => .asc,
+      .descending => .desc,
+    };
+
+    q.orderBy([
+      switch (orderBy) {
+        .name => OrderingTerm(
+          expression: series.sortName,
+          mode: orderingMode,
+        ),
+        .progress => OrderingTerm(
+          expression: readingProgress.pagesRead.sum(),
+          mode: orderingMode,
+        ),
+        .dateAdded => OrderingTerm(
+          expression: series.created,
+          mode: orderingMode,
+        ),
+        .dateUpdated => OrderingTerm(
+          expression: series.lastChapterAdded,
+          mode: orderingMode,
+        ),
+      },
+    ]);
+
+    return q
         .map(
           (row) => row.readTable(series),
         )

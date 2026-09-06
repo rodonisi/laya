@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:kover/database/app_database.dart';
 import 'package:kover/database/dao/series_metadata_dao.dart';
+import 'package:kover/models/enums/sort_direction.dart';
 import 'package:kover/models/image_model.dart';
 import 'package:kover/models/series_model.dart';
 import 'package:kover/riverpod/providers/client.dart';
@@ -14,6 +15,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:rxdart/rxdart.dart';
 
 part 'series_repository.g.dart';
+
+enum SeriesOrderByColumn { name, progress, dateAdded, dateUpdated }
 
 @Riverpod(keepAlive: true)
 SeriesRepository seriesRepository(Ref ref) {
@@ -62,10 +65,8 @@ class const SeriesRepository({
     String query, {
     int? libraryId,
     int? collectionId,
-    bool orderByName = false,
-    bool orderByRecentlyAdded = false,
-    bool orderByRecentlyUpdated = false,
-    bool ascending = true,
+    SeriesOrderByColumn orderBy = .name,
+    SortDirection direction = .ascending,
   }) async {
     if (query.isEmpty) {
       return [];
@@ -75,10 +76,22 @@ class const SeriesRepository({
       query,
       libraryId: libraryId,
       collectionId: collectionId,
-      orderByName: orderByName,
-      orderByRecentlyAdded: orderByRecentlyAdded,
-      orderByRecentlyUpdated: orderByRecentlyUpdated,
-      ascending: ascending,
+      orderBy: orderBy,
+      direction: direction,
+    );
+
+    return result.map(SeriesModel.fromDatabaseModel).toList();
+  }
+
+  Future<List<SeriesModel>> filterOnDeck(
+    String query, {
+    SeriesOrderByColumn orderBy = .progress,
+    SortDirection direction = .ascending,
+  }) async {
+    final result = await _db.seriesDao.filterOnDeck(
+      query: query,
+      orderBy: orderBy,
+      direction: direction,
     );
 
     return result.map(SeriesModel.fromDatabaseModel).toList();
@@ -152,19 +165,15 @@ class const SeriesRepository({
   Stream<List<SeriesModel>> watchAllSeries({
     int? libraryId,
     int? collectionId,
-    bool orderByName = false,
-    bool orderByRecentlyAdded = false,
-    bool orderByRecentlyUpdated = false,
-    bool ascending = true,
+    SeriesOrderByColumn orderBy = .name,
+    SortDirection direction = .ascending,
   }) {
     return _db.seriesDao
         .allSeries(
           libraryId: libraryId,
           collectionId: collectionId,
-          orderByName: orderByName,
-          orderByRecentlyAdded: orderByRecentlyAdded,
-          orderByRecentlyUpdated: orderByRecentlyUpdated,
-          ascending: ascending,
+          orderBy: orderBy,
+          direction: direction,
         )
         .watch()
         .distinct()

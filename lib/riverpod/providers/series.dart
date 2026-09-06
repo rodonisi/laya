@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:kover/models/enums/sort_direction.dart';
 import 'package:kover/models/image_model.dart';
 import 'package:kover/models/series_model.dart';
 import 'package:kover/riverpod/repository/series_repository.dart';
@@ -25,20 +26,29 @@ Future<List<SeriesModel>> filterSeries(
   String query, {
   int? libraryId,
   int? collectionId,
-  bool orderByName = false,
-  bool orderByRecentlyAdded = false,
-  bool orderByRecentlyUpdated = false,
-  bool ascending = true,
-}) {
+  SeriesOrderByColumn orderBy = .name,
+  SortDirection direction = .ascending,
+}) async {
   final repo = ref.watch(seriesRepositoryProvider);
+  final allSeries = await ref.watch(
+    allSeriesProvider(
+      libraryId: libraryId,
+      collectionId: collectionId,
+      orderBy: orderBy,
+      direction: direction,
+    ).future,
+  );
+
+  if (query.isEmpty) {
+    return allSeries;
+  }
+
   return repo.filterSeries(
     query,
     libraryId: libraryId,
     collectionId: collectionId,
-    orderByName: orderByName,
-    orderByRecentlyAdded: orderByRecentlyAdded,
-    orderByRecentlyUpdated: orderByRecentlyUpdated,
-    ascending: ascending,
+    orderBy: orderBy,
+    direction: direction,
   );
 }
 
@@ -68,10 +78,8 @@ Stream<List<SeriesModel>> allSeries(
   Ref ref, {
   int? libraryId,
   int? collectionId,
-  bool orderByName = false,
-  bool orderByRecentlyAdded = false,
-  bool orderByRecentlyUpdated = false,
-  bool ascending = true,
+  SeriesOrderByColumn orderBy = .name,
+  SortDirection direction = .ascending,
 }) {
   final repo = ref.watch(seriesRepositoryProvider);
 
@@ -79,10 +87,8 @@ Stream<List<SeriesModel>> allSeries(
       .watchAllSeries(
         libraryId: libraryId,
         collectionId: collectionId,
-        orderByName: orderByName,
-        orderByRecentlyAdded: orderByRecentlyAdded,
-        orderByRecentlyUpdated: orderByRecentlyUpdated,
-        ascending: ascending,
+        orderBy: orderBy,
+        direction: direction,
       )
       .distinct();
 }

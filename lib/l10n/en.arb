@@ -216,6 +216,10 @@
     "@lastModified": {
         "description": "Label for sorting by last modified option"
     },
+    "progress": "Progress",
+    "@progress": {
+        "description": "Label for sorting by progress option"
+    },
     "sortDirection": "Sort Direction",
     "@sortDirection": {
         "description": "Label for the sort direction option in list"

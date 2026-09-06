@@ -36,27 +36,28 @@ class ReadingListsListPage extends HookConsumerWidget {
       data: filteredData,
       direction: sortDirection.value,
     );
+    return Placeholder();
 
-    return SliverPageShell(
-      title: title,
-      filterController: controller,
-      appBarActions: [
-        ContextMenuButton(
-          icon: Icon(
-            sortDirection.value == .ascending
-                ? KoverIcons.ascending
-                : KoverIcons.descending,
-          ),
-          menu: _menu(sortDirection: sortDirection, context: context),
-        ),
-      ],
-      slivers: [
-        SliverPadding(
-          padding: LayoutConstants.smallEdgeInsets,
-          sliver: ReadingListsSliverGrid(readingLists: sortedData),
-        ),
-      ],
-    );
+    // return SliverPageShell(
+    //   title: title,
+    //   filterController: controller,
+    //   appBarActions: [
+    //     ContextMenuButton(
+    //       icon: Icon(
+    //         sortDirection.value == .ascending
+    //             ? KoverIcons.ascending
+    //             : KoverIcons.descending,
+    //       ),
+    //       menu: _menu(sortDirection: sortDirection, context: context),
+    //     ),
+    //   ],
+    //   slivers: [
+    //     SliverPadding(
+    //       padding: LayoutConstants.smallEdgeInsets,
+    //       sliver: ReadingListsSliverGrid(readingLists: sortedData),
+    //     ),
+    //   ],
+    // );
   }
 
   List<ReadingListModel> _filteredReadingLists({
