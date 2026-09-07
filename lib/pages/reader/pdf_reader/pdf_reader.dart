@@ -160,6 +160,10 @@ class PdfReader extends HookConsumerWidget {
                 initialPageNumber: readerState.initialPage + 1,
                 params: PdfViewerParams(
                   scrollPhysics: scrollPhysics,
+                  panAxis: settings.lockHorizontalPan &&
+                          settings.readerMode == .vertical
+                      ? PanAxis.vertical
+                      : PanAxis.free,
                   textSelectionParams: PdfTextSelectionParams(
                     onTextSelectionChange: (selection) {
                       if (selection.hasSelectedText != hasSelection.value) {
