@@ -62,7 +62,6 @@ sealed class EpubReaderSettingsState with _$EpubReaderSettingsState {
     @Default(EpubReaderMode.horizontal) EpubReaderMode mode,
     @Default(false) bool removeParagraphIndent,
     @Default(EpubTextAlignment.left) EpubTextAlignment textAlignment,
-    @Default(false) bool lockHorizontalPan,
   }) = _EpubReaderSettingsState;
 
   factory EpubReaderSettingsState.fromJson(Map<String, Object?> json) =>
@@ -285,16 +284,6 @@ class EpubReaderSettings extends _$EpubReaderSettings {
     log.info(
       'set text alignment',
       attributes: {'value': alignment, 'reader': 'epub'},
-    );
-  }
-
-  Future<void> setLockHorizontalPan(bool value) async {
-    final current = await future;
-
-    state = AsyncData(current.copyWith(lockHorizontalPan: value));
-    log.info(
-      'set lock horizontal pan',
-      attributes: {'value': value, 'reader': 'epub'},
     );
   }
 

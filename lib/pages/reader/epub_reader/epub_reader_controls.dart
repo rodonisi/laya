@@ -82,15 +82,6 @@ class EpubReaderSettingsBottomSheet extends ConsumerWidget {
                               .setMode(newValue);
                         },
                       ),
-                      if (settings.mode == .vertical)
-                        BooleanOption(
-                          title: l.lockHorizontalPan,
-                          icon: LucideIcons.lockKeyhole,
-                          value: settings.lockHorizontalPan,
-                          onChanged: (newValue) async => await ref
-                              .read(epubSettings.notifier)
-                              .setLockHorizontalPan(newValue),
-                        ),
                       FontSelectOption(seriesId: seriesId),
                       NumericOption(
                         icon: KoverIcons.fontSize,

@@ -4,7 +4,6 @@ import 'package:kover/generated/l10n/app_localizations.dart';
 import 'package:kover/riverpod/providers/settings/common_reader_settings.dart';
 import 'package:kover/riverpod/providers/settings/pdf_reader_settings.dart';
 import 'package:kover/utils/constants/kover_icons.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:kover/utils/layout_constants.dart';
 import 'package:kover/utils/safe_platform.dart';
 import 'package:kover/widgets/settings/boolean_option.dart';
@@ -78,7 +77,7 @@ class PdfReaderSettingsBottomSheet extends ConsumerWidget {
                       if (settings.readerMode == .vertical)
                         BooleanOption(
                           title: l.lockHorizontalPan,
-                          icon: LucideIcons.lockKeyhole,
+                          icon: KoverIcons.horizontalPan,
                           value: settings.lockHorizontalPan,
                           onChanged: (newValue) async => await ref
                               .read(pdfSettings.notifier)

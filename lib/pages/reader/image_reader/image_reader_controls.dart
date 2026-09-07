@@ -144,7 +144,7 @@ class ImageReaderSettingsBottomSheet extends ConsumerWidget {
                         ),
                         BooleanOption(
                           title: l.lockHorizontalPan,
-                          icon: LucideIcons.lockKeyhole,
+                          icon: KoverIcons.horizontalPan,
                           value: settings.lockHorizontalPan,
                           onChanged: (newValue) async => await ref
                               .read(imageSettings.notifier)
