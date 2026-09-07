@@ -1,3 +1,5 @@
+import 'package:kover/models/enums/order_by_option.dart';
+import 'package:kover/models/enums/sort_direction.dart';
 import 'package:kover/models/image_model.dart';
 import 'package:kover/models/volume_model.dart';
 import 'package:kover/riverpod/repository/volumes_repository.dart';
@@ -5,6 +7,27 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:rxdart/rxdart.dart';
 
 part 'volume.g.dart';
+
+@riverpod
+Stream<List<VolumeModel>> volumes(
+  Ref ref, {
+  required int seriesId,
+  bool hideRead = false,
+  String query = '',
+  OrderedSortOption orderBy = .sortOrder,
+  SortDirection direction = .ascending,
+}) {
+  final repo = ref.watch(volumesRepositoryProvider);
+  return repo
+      .watchVolumes(
+        seriesId: seriesId,
+        hideRead: hideRead,
+        query: query,
+        orderBy: orderBy,
+        direction: direction,
+      )
+      .distinct();
+}
 
 @riverpod
 Stream<VolumeModel> volume(Ref ref, {required int volumeId}) {

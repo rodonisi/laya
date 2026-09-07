@@ -6,6 +6,9 @@ import 'package:kover/database/tables/libraries.dart';
 import 'package:kover/database/tables/progress.dart';
 import 'package:kover/database/tables/series.dart';
 import 'package:kover/database/tables/volumes.dart';
+import 'package:kover/mapping/enums/sort_direction.dart';
+import 'package:kover/models/enums/order_by_option.dart';
+import 'package:kover/models/enums/sort_direction.dart';
 
 part 'volumes_dao.g.dart';
 
@@ -76,6 +79,58 @@ class VolumesDao extends DatabaseAccessor<AppDatabase> with _$VolumesDaoMixin {
       ..groupBy([readingProgress.volumeId]);
 
     return query.watchSingleOrNull().map((row) => row?.read(pagesReadSum));
+  }
+
+  /// Watch volumes for series [seriesId], optionally filtering by [query]
+  /// (volume name) and excluding fully read volumes when [hideRead] is true.
+  MultiSelectable<Volume> watchVolumes({
+    required int seriesId,
+    bool hideRead = false,
+    String query = '',
+    OrderedSortOption orderBy = .sortOrder,
+    SortDirection direction = .ascending,
+  }) {
+    final pagesReadSum = readingProgress.pagesRead.sum();
+    final totalPages = chapters.pages.sum();
+    final progressRatio =
+        pagesReadSum.cast<double>() / totalPages.cast<double>();
+
+    final q = select(volumes).join([
+      leftOuterJoin(chapters, chapters.volumeId.equalsExp(volumes.id)),
+      leftOuterJoin(
+        readingProgress,
+        readingProgress.chapterId.equalsExp(chapters.id),
+      ),
+    ]);
+
+    q.where(volumes.seriesId.equals(seriesId));
+
+    if (query.isNotEmpty) {
+      q.where(volumes.name.contains(query));
+    }
+
+    q
+      ..orderBy([
+        OrderingTerm(
+          expression: switch (orderBy) {
+            .sortOrder => volumes.minNumber,
+            .name => volumes.name,
+            .progress => progressRatio,
+            .lastRead => readingProgress.lastModified.max(),
+            .dateAdded => volumes.created,
+            .dateUpdated => volumes.lastModified,
+          },
+          mode: direction.toOrderingMode(),
+        ),
+      ])
+      ..groupBy(
+        [volumes.id],
+        having: hideRead
+            ? pagesReadSum.isNull() | pagesReadSum.isSmallerThan(totalPages)
+            : null,
+      );
+
+    return q.map((row) => row.readTable(volumes));
   }
 
   /// Get [SingleOrNullSelectable] cover for volume [volumeId]. If no cover is present, returns null.

@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:kover/models/enums/sort_direction.dart';
 import 'package:kover/models/image_model.dart';
 import 'package:kover/models/series_model.dart';
+import 'package:kover/models/enums/order_by_option.dart';
 import 'package:kover/riverpod/repository/series_repository.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:rxdart/rxdart.dart';
@@ -26,8 +27,9 @@ Future<List<SeriesModel>> filterSeries(
   String query, {
   int? libraryId,
   int? collectionId,
-  SeriesOrderByColumn orderBy = .name,
+  UnorderedSortOption orderBy = .name,
   SortDirection direction = .ascending,
+  bool hideRead = false,
 }) async {
   final repo = ref.watch(seriesRepositoryProvider);
   final allSeries = await ref.watch(
@@ -36,6 +38,7 @@ Future<List<SeriesModel>> filterSeries(
       collectionId: collectionId,
       orderBy: orderBy,
       direction: direction,
+      hideRead: hideRead,
     ).future,
   );
 
@@ -49,6 +52,7 @@ Future<List<SeriesModel>> filterSeries(
     collectionId: collectionId,
     orderBy: orderBy,
     direction: direction,
+    hideRead: hideRead,
   );
 }
 
@@ -78,8 +82,9 @@ Stream<List<SeriesModel>> allSeries(
   Ref ref, {
   int? libraryId,
   int? collectionId,
-  SeriesOrderByColumn orderBy = .name,
+  UnorderedSortOption orderBy = .name,
   SortDirection direction = .ascending,
+  bool hideRead = false,
 }) {
   final repo = ref.watch(seriesRepositoryProvider);
 
@@ -89,6 +94,7 @@ Stream<List<SeriesModel>> allSeries(
         collectionId: collectionId,
         orderBy: orderBy,
         direction: direction,
+        hideRead: hideRead,
       )
       .distinct();
 }
@@ -112,19 +118,51 @@ Stream<SeriesMetadataModel> seriesMetadata(
 }
 
 @riverpod
-Stream<List<SeriesModel>> onDeck(Ref ref) {
+Stream<List<SeriesModel>> onDeck(
+  Ref ref, {
+  UnorderedSortOption orderBy = .lastRead,
+  SortDirection direction = .descending,
+}) {
   final repo = ref.watch(seriesRepositoryProvider);
-  return repo.watchOnDeck().distinct(listEquals);
+  return repo
+      .watchOnDeck(orderBy: orderBy, direction: direction)
+      .distinct(listEquals);
 }
 
 @riverpod
-Stream<List<SeriesModel>> recentlyUpdated(Ref ref) {
+Stream<List<SeriesModel>> recentlyUpdated(
+  Ref ref, {
+  String query = '',
+  UnorderedSortOption orderBy = .dateUpdated,
+  SortDirection direction = .descending,
+  bool hideRead = false,
+}) {
   final repo = ref.watch(seriesRepositoryProvider);
-  return repo.watchRecentlyUpdated().distinct(listEquals);
+  return repo
+      .watchRecentlyUpdated(
+        query: query,
+        direction: direction,
+        orderBy: orderBy,
+        hideRead: hideRead,
+      )
+      .distinct(listEquals);
 }
 
 @riverpod
-Stream<List<SeriesModel>> recentlyAdded(Ref ref) {
+Stream<List<SeriesModel>> recentlyAdded(
+  Ref ref, {
+  String query = '',
+  UnorderedSortOption orderBy = .dateAdded,
+  SortDirection direction = .descending,
+  bool hideRead = false,
+}) {
   final repo = ref.watch(seriesRepositoryProvider);
-  return repo.watchRecentlyAdded().distinct(listEquals);
+  return repo
+      .watchRecentlyAdded(
+        query: query,
+        orderBy: orderBy,
+        direction: direction,
+        hideRead: hideRead,
+      )
+      .distinct(listEquals);
 }

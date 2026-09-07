@@ -1,42 +1,30 @@
-import 'package:kover/riverpod/repository/series_repository.dart';
-import 'package:kover/widgets/cards/series_card.dart';
-import 'package:material_ui/material_ui.dart';
-import 'package:flutter_context_menu/flutter_context_menu.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:kover/generated/l10n/app_localizations.dart';
-import 'package:kover/models/enums/series_sort_option.dart';
 import 'package:kover/models/enums/sort_direction.dart';
 import 'package:kover/riverpod/providers/collections.dart';
 import 'package:kover/riverpod/providers/library.dart';
 import 'package:kover/riverpod/providers/series.dart';
-import 'package:kover/utils/layout_constants.dart';
-import 'package:kover/widgets/context_menu/context_menu_button.dart';
-import 'package:kover/widgets/lists/series_sliver_grid.dart';
+import 'package:kover/models/enums/order_by_option.dart';
+import 'package:kover/widgets/sliver_list_page/series_sort_options_menu.dart';
 import 'package:kover/widgets/sliver_list_page/sliver_page_shell.dart';
+import 'package:kover/widgets/sliver_list_page/sliver_series_page_body.dart';
 import 'package:kover/widgets/util/async_value.dart';
 import 'package:kover/widgets/util/login_guard.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart' show LucideIcons;
+import 'package:material_ui/material_ui.dart';
 
 class AllSeriesPage extends StatelessWidget {
   const AllSeriesPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      extendBody: true,
-      body: LoginGuard(child: AllSeriesPageContent()),
-    );
-  }
-}
-
-class AllSeriesPageContent extends StatelessWidget {
-  const AllSeriesPageContent({super.key});
-
-  @override
-  Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
-    return SeriesPage(title: l.allSeries);
+    return Scaffold(
+      extendBody: true,
+      body: LoginGuard(
+        child: SeriesPage(title: l.allSeries),
+      ),
+    );
   }
 }
 
@@ -104,7 +92,7 @@ class SeriesPage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final orderBy = useState(SeriesOrderByColumn.name);
+    final orderBy = useState(UnorderedSortOption.name);
     final sortDirection = useState(SortDirection.ascending);
     final hideRead = useState(false);
     final controller = useTextEditingController();
@@ -116,6 +104,7 @@ class SeriesPage extends HookConsumerWidget {
         collectionId: collectionId,
         orderBy: orderBy.value,
         direction: sortDirection.value,
+        hideRead: hideRead.value,
       ),
     );
 
@@ -136,18 +125,6 @@ class SeriesPage extends HookConsumerWidget {
             hideRead: hideRead.value,
             onHideReadChanged: (onHideRead) => hideRead.value = onHideRead,
           ),
-          // ContextMenuButton(
-          //   icon: Icon(
-          //     sortDirection.value == .ascending
-          //         ? LucideIcons.arrowDownNarrowWide
-          //         : LucideIcons.arrowDownWideNarrow,
-          //   ),
-          //   menu: _menu(
-          //     sortOption: sortOption,
-          //     sortDirection: sortDirection,
-          //     context: context,
-          //   ),
-          // ),
         ],
         sliver: AsyncSliver(
           asyncValue: query,
@@ -156,93 +133,6 @@ class SeriesPage extends HookConsumerWidget {
           },
         ),
       ),
-      // body: SliverPageShell(
-      //   title: title,
-      //   filterController: controller,
-      //   appBarActions: [
-      //     ContextMenuButton(
-      //       icon: Icon(
-      //         sortDirection.value == .ascending
-      //             ? LucideIcons.arrowDownNarrowWide
-      //             : LucideIcons.arrowDownWideNarrow,
-      //       ),
-      //       menu: _menu(
-      //         sortOption: sortOption,
-      //         sortDirection: sortDirection,
-      //         context: context,
-      //       ),
-      //     ),
-      //   ],
-      //   slivers: [
-      //     AsyncSliver(
-      //           asyncValue: query,
-      //           data: (search) {
-      //             final filteredData = controller.text.isEmpty ? data : search;
-      //             return SliverPadding(
-      //               padding: LayoutConstants.smallEdgeInsets,
-      //               sliver: SeriesSliverGrid(
-      //                 series: filteredData,
-      //               ),
-      //             );
-      //           },
-      //         );
-      //       },
-      //     ),
-      //   ],
-      // ),
     );
   }
-
-  // ContextMenu _menu({
-  //   required ValueNotifier<SeriesSortOption> sortOption,
-  //   required ValueNotifier<SortDirection> sortDirection,
-  //   required BuildContext context,
-  // }) {
-  //   final l = AppLocalizations.of(context);
-  //   return ContextMenu(
-  //     entries: <ContextMenuEntry>[
-  //       MenuHeader(text: l.sortBy),
-  //       MenuItem(
-  //         label: Text(l.name),
-  //         icon: _getItemIcon(sortOption.value == .name),
-  //         onSelected: (_) {
-  //           sortOption.value = .name;
-  //         },
-  //       ),
-  //       MenuItem(
-  //         label: Text(l.dateAdded),
-  //         icon: _getItemIcon(sortOption.value == .dateAdded),
-  //         onSelected: (_) {
-  //           sortOption.value = .dateAdded;
-  //         },
-  //       ),
-  //       MenuItem(
-  //         label: Text(l.lastModified),
-  //         icon: _getItemIcon(sortOption.value == .lastModified),
-  //         onSelected: (_) {
-  //           sortOption.value = .lastModified;
-  //         },
-  //       ),
-  //       MenuHeader(text: l.sortDirection),
-  //       MenuItem(
-  //         label: Text(l.ascending),
-  //         icon: _getItemIcon(sortDirection.value == .ascending),
-  //         onSelected: (_) {
-  //           sortDirection.value = .ascending;
-  //         },
-  //       ),
-  //       MenuItem(
-  //         label: Text(l.descending),
-  //         icon: _getItemIcon(sortDirection.value == .descending),
-  //         onSelected: (_) {
-  //           sortDirection.value = .descending;
-  //         },
-  //       ),
-  //     ],
-  //   );
-  // }
-
-  // Icon? _getItemIcon(bool selected) {
-  //   return selected ? const Icon(LucideIcons.check) : null;
-  // }
 }

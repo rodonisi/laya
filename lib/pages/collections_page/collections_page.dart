@@ -1,21 +1,16 @@
-import 'package:material_ui/material_ui.dart';
-import 'package:flutter_context_menu/flutter_context_menu.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:kover/generated/l10n/app_localizations.dart';
-import 'package:kover/models/collection_model.dart';
+import 'package:kover/models/enums/order_by_option.dart';
 import 'package:kover/models/enums/sort_direction.dart';
 import 'package:kover/riverpod/managers/sync_manager/sync_manager.dart';
 import 'package:kover/riverpod/providers/collections.dart';
-import 'package:kover/utils/constants/kover_icons.dart';
-import 'package:kover/utils/layout_constants.dart';
-import 'package:kover/widgets/context_menu/context_menu_button.dart';
-import 'package:kover/widgets/details/filter_input_field.dart';
-import 'package:kover/widgets/lists/collections_sliver_grid.dart';
+import 'package:kover/widgets/sliver_list_page/series_sort_options_menu.dart';
+import 'package:kover/widgets/sliver_list_page/sliver_collections_page_body.dart';
+import 'package:kover/widgets/sliver_list_page/sliver_page_shell.dart';
 import 'package:kover/widgets/util/async_value.dart';
 import 'package:kover/widgets/util/login_guard.dart';
-import 'package:kover/widgets/util/sliver_bottom_padding.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart';
 
 class CollectionsPage extends StatelessWidget {
   const CollectionsPage({super.key});
@@ -35,9 +30,16 @@ class CollectionsPageContent extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
+    final orderBy = useState(UnorderedSortOption.name);
     final sortDirection = useState(SortDirection.ascending);
     final controller = useTextEditingController();
-    final collections = ref.watch(collectionsProvider);
+    final collections = ref.watch(
+      collectionsProvider(
+        query: controller.text,
+        orderBy: orderBy.value,
+        direction: sortDirection.value,
+      ),
+    );
 
     useListenable(controller);
 
@@ -45,127 +47,27 @@ class CollectionsPageContent extends HookConsumerWidget {
       ref.read(syncManagerProvider.notifier).syncCollections();
     });
 
-    return CustomScrollView(
-      keyboardDismissBehavior: .onDrag,
-      slivers: [
-        SliverAppBar.large(
-          title: Text(l.collections),
-          actionsPadding: const EdgeInsets.symmetric(
-            horizontal: LayoutConstants.smallPadding,
-          ),
-          actions: [
-            ContextMenuButton(
-              icon: Icon(
-                sortDirection.value == .ascending
-                    ? KoverIcons.ascending
-                    : KoverIcons.descending,
-              ),
-              menu: _menu(sortDirection: sortDirection, context: context),
-            ),
-          ],
-        ),
-        SliverSafeArea(
-          top: false,
-          bottom: false,
-          sliver: SliverMainAxisGroup(
-            slivers: [
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: LayoutConstants.mediumPadding,
-                ),
-                sliver: SliverToBoxAdapter(
-                  child: FilterInputField(controller: controller),
-                ),
-              ),
-              AsyncSliver(
-                asyncValue: collections,
-                data: (data) {
-                  final filteredData = _filteredCollections(
-                    data: data,
-                    query: controller.text,
-                  );
-                  final sortedData = _sortedCollections(
-                    data: filteredData,
-                    direction: sortDirection.value,
-                  );
-
-                  return SliverPadding(
-                    padding: LayoutConstants.smallEdgeInsets,
-                    sliver: CollectionsSliverGrid(collections: sortedData),
-                  );
-                },
-              ),
-            ],
-          ),
-        ),
-        const SliverBottomPadding(),
-      ],
-    );
-  }
-
-  List<CollectionModel> _filteredCollections({
-    required List<CollectionModel> data,
-    required String query,
-  }) {
-    final q = query.trim().toLowerCase();
-    if (q.isEmpty) {
-      return data;
-    }
-
-    return data.where((collection) {
-      final title = collection.title.toLowerCase();
-      final summary = collection.summary?.toLowerCase();
-      return title.contains(q) || (summary?.contains(q) ?? false);
-    }).toList();
-  }
-
-  List<CollectionModel> _sortedCollections({
-    required List<CollectionModel> data,
-    required SortDirection direction,
-  }) {
-    final sorted = [...data];
-    sorted.sort(
-      (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
-    );
-
-    if (direction == SortDirection.descending) {
-      return sorted.reversed.toList();
-    }
-
-    return sorted;
-  }
-
-  ContextMenu _menu({
-    required ValueNotifier<SortDirection> sortDirection,
-    required BuildContext context,
-  }) {
-    final l = AppLocalizations.of(context);
-    return ContextMenu(
-      entries: <ContextMenuEntry>[
-        MenuHeader(text: l.sortDirection),
-        MenuItem(
-          label: Text(l.ascending),
-          icon: _getItemIcon(
-            sortDirection.value == .ascending,
-          ),
-          onSelected: (_) {
-            sortDirection.value = .ascending;
+    return EntitiesPage(
+      title: l.collections,
+      filterController: controller,
+      appBarActions: [
+        SeriesSortOptionsMenu(
+          sortDirection: sortDirection.value,
+          onSortDirectionChanged: (SortDirection newDirection) {
+            sortDirection.value = newDirection;
           },
-        ),
-        MenuItem(
-          label: Text(l.descending),
-          icon: _getItemIcon(
-            sortDirection.value == .descending,
-          ),
-          onSelected: (_) {
-            sortDirection.value = .descending;
+          orderBy: orderBy.value,
+          onOrderByChanged: (UnorderedSortOption newOrderBy) {
+            orderBy.value = newOrderBy;
           },
         ),
       ],
+      sliver: AsyncSliver(
+        asyncValue: collections,
+        data: (data) {
+          return SliverCollectionsPageBody(collections: data);
+        },
+      ),
     );
-  }
-
-  Icon? _getItemIcon(bool selected) {
-    return selected ? const Icon(LucideIcons.check) : null;
   }
 }

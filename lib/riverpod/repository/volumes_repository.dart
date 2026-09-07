@@ -1,4 +1,7 @@
 import 'package:kover/database/app_database.dart';
+import 'package:kover/database/dao/volumes_dao.dart';
+import 'package:kover/models/enums/order_by_option.dart';
+import 'package:kover/models/enums/sort_direction.dart';
 import 'package:kover/models/image_model.dart';
 import 'package:kover/models/volume_model.dart';
 import 'package:kover/riverpod/providers/client.dart';
@@ -50,6 +53,38 @@ class const VolumesRepository({
   /// Watch total number of pages read for volume [volumeId]
   Stream<int> watchPagesRead({required int volumeId}) {
     return _db.volumesDao.watchPagesRead(volumeId: volumeId).map((n) => n ?? 0);
+  }
+
+  /// Watch volumes for series [seriesId], optionally filtering by [query]
+  /// and excluding fully read volumes when [hideRead] is true.
+  ///
+  /// Returned models carry an empty chapter list — list views never need
+  /// chapters, and cards re-fetch their own data.
+  Stream<List<VolumeModel>> watchVolumes({
+    required int seriesId,
+    bool hideRead = false,
+    String query = '',
+    OrderedSortOption orderBy = .sortOrder,
+    SortDirection direction = .ascending,
+  }) {
+    return _db.volumesDao
+        .watchVolumes(
+          seriesId: seriesId,
+          hideRead: hideRead,
+          query: query,
+          orderBy: orderBy,
+          direction: direction,
+        )
+        .watch()
+        .map(
+          (volumes) => volumes
+              .map(
+                (v) => VolumeModel.fromDatabaseModel(
+                  VolumeWithRelations(volume: v, chapters: const []),
+                ),
+              )
+              .toList(),
+        );
   }
 
   /// Watch cover for volume [volumeId]

@@ -12,7 +12,7 @@ class SliverRecentlyAdded extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
-    final series = ref.watch(recentlyAddedProvider);
+    final series = ref.watch(recentlyAddedProvider());
 
     return AsyncSliver(
       asyncValue: series,

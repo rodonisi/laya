@@ -2,6 +2,9 @@ import 'package:drift/drift.dart';
 import 'package:kover/database/app_database.dart';
 import 'package:kover/database/tables/progress.dart';
 import 'package:kover/database/tables/reading_lists.dart';
+import 'package:kover/mapping/enums/sort_direction.dart';
+import 'package:kover/models/enums/order_by_option.dart';
+import 'package:kover/models/enums/sort_direction.dart';
 import 'package:rxdart/rxdart.dart';
 
 part 'reading_lists_dao.g.dart';
@@ -26,9 +29,56 @@ class ReadingListsDao extends DatabaseAccessor<AppDatabase>
         .whereNotNull();
   }
 
-  /// Get all reading lists, ordered by title.
-  Selectable<ReadingList> allReadingLists() {
-    return managers.readingLists.orderBy((o) => o.title.asc());
+  /// Get all reading lists, optionally filtered by [query] and ordered by
+  /// [orderBy] in [direction].
+  MultiSelectable<ReadingList> allReadingLists({
+    String query = '',
+    UnorderedSortOption orderBy = .name,
+    SortDirection direction = .ascending,
+  }) {
+    final pagesReadSum = readingProgress.pagesRead.sum();
+    final totalPages = chapters.pages.sum();
+    final progressRatio = pagesReadSum.cast<double>() /
+        totalPages.cast<double>();
+
+    final q = select(readingLists).join([
+      leftOuterJoin(
+        readingListsChapters,
+        readingListsChapters.readingListId.equalsExp(readingLists.id),
+      ),
+      leftOuterJoin(
+        chapters,
+        chapters.id.equalsExp(readingListsChapters.chapterId),
+      ),
+      leftOuterJoin(
+        readingProgress,
+        readingProgress.chapterId.equalsExp(chapters.id),
+      ),
+    ]);
+
+    if (query.isNotEmpty) {
+      q.where(
+        readingLists.title.contains(query) |
+            readingLists.summary.contains(query),
+      );
+    }
+
+    q
+      ..orderBy([
+        OrderingTerm(
+          expression: switch (orderBy) {
+            .name => readingLists.title,
+            .progress => progressRatio,
+            .lastRead => readingProgress.lastModified.max(),
+            .dateAdded => readingLists.created,
+            .dateUpdated => readingLists.lastModified,
+          },
+          mode: direction.toOrderingMode(),
+        ),
+      ])
+      ..groupBy([readingLists.id]);
+
+    return q.map((row) => row.readTable(readingLists));
   }
 
   /// Get all chapters for a reading list by [readingListId].

@@ -1,5 +1,7 @@
 import 'package:kover/database/app_database.dart';
 import 'package:kover/models/chapter_model.dart';
+import 'package:kover/models/enums/order_by_option.dart';
+import 'package:kover/models/enums/sort_direction.dart';
 import 'package:kover/models/image_model.dart';
 import 'package:kover/models/reading_list_model.dart';
 import 'package:kover/riverpod/providers/client.dart';
@@ -23,13 +25,25 @@ class const ReadingListsRepository({
   required final AppDatabase _db,
   required final ReadingListSyncOperations _client,
 }) {
-  /// Watch all reading lists.
-  Stream<List<ReadingListModel>> watchReadingLists() {
-    return _db.readingListsDao.allReadingLists().watch().map(
-      (lists) => lists
-          .map((list) => ReadingListModel.fromDatabaseModel(list))
-          .toList(),
-    );
+  /// Watch all reading lists, optionally filtered by [query] and ordered by
+  /// [orderBy] in [direction].
+  Stream<List<ReadingListModel>> watchReadingLists({
+    String query = '',
+    UnorderedSortOption orderBy = .name,
+    SortDirection direction = .ascending,
+  }) {
+    return _db.readingListsDao
+        .allReadingLists(
+          query: query,
+          orderBy: orderBy,
+          direction: direction,
+        )
+        .watch()
+        .map(
+          (lists) => lists
+              .map((list) => ReadingListModel.fromDatabaseModel(list))
+              .toList(),
+        );
   }
 
   /// Watch a single reading list by [readingListId].

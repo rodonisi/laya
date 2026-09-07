@@ -13,7 +13,7 @@ class SliverOnDeck extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
-    final onDeck = ref.watch(onDeckProvider);
+    final onDeck = ref.watch(onDeckProvider());
 
     return AsyncSliver(
       asyncValue: onDeck,

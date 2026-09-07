@@ -13,7 +13,7 @@ import 'package:kover/database/tables/volumes.dart';
 import 'package:kover/database/tables/want_to_read.dart';
 import 'package:kover/mapping/enums/sort_direction.dart';
 import 'package:kover/models/enums/sort_direction.dart';
-import 'package:kover/riverpod/repository/series_repository.dart';
+import 'package:kover/models/enums/order_by_option.dart';
 import 'package:kover/utils/chunked_operation.dart';
 import 'package:kover/utils/data_constants.dart';
 import 'package:rxdart/rxdart.dart';
@@ -41,6 +41,39 @@ part 'series_dao.g.dart';
 )
 class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
   SeriesDao(super.attachedDatabase);
+
+  Expression<bool> get _hasUnreadProgress =>
+      readingProgress.pagesRead.sum().isNull() |
+      readingProgress.pagesRead.sum().isSmallerThan(series.pages);
+
+  Expression<double> get _progressRatio =>
+      readingProgress.pagesRead.sum().cast<double>() /
+      series.pages.cast<double>();
+
+  OrderingTerm _orderingTerm(UnorderedSortOption column, OrderingMode mode) {
+    return switch (column) {
+      .name => OrderingTerm(
+        expression: series.sortName,
+        mode: mode,
+      ),
+      .progress => OrderingTerm(
+        expression: _progressRatio,
+        mode: mode,
+      ),
+      .lastRead => OrderingTerm(
+        expression: readingProgress.lastModified.max(),
+        mode: mode,
+      ),
+      .dateAdded => OrderingTerm(
+        expression: series.created,
+        mode: mode,
+      ),
+      .dateUpdated => OrderingTerm(
+        expression: series.lastChapterAdded,
+        mode: mode,
+      ),
+    };
+  }
 
   /// Watch series [seriesId]
   Stream<SeriesData?> watchSeries(int seriesId) {
@@ -70,8 +103,9 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
     String query, {
     int? libraryId,
     int? collectionId,
-    SeriesOrderByColumn orderBy = .name,
+    UnorderedSortOption orderBy = .name,
     SortDirection direction = .ascending,
+    bool hideRead = false,
   }) async {
     final q =
         (select(series).join([
@@ -102,26 +136,12 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
 
     final mode = direction.toOrderingMode();
 
-    q.orderBy([
-      switch (orderBy) {
-        .name => OrderingTerm(
-          expression: series.sortName,
-          mode: mode,
-        ),
-        .progress => OrderingTerm(
-          expression: readingProgress.pagesRead.sum(),
-          mode: mode,
-        ),
-        .dateAdded => OrderingTerm(
-          expression: series.created,
-          mode: mode,
-        ),
-        .dateUpdated => OrderingTerm(
-          expression: series.lastChapterAdded,
-          mode: mode,
-        ),
-      },
-    ]);
+    q
+      ..orderBy([_orderingTerm(orderBy, mode)])
+      ..groupBy(
+        [series.id],
+        having: hideRead ? _hasUnreadProgress : null,
+      );
 
     return await q.map((result) => result.readTable(series)).get();
   }
@@ -181,26 +201,16 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
         .filter((f) => f.isStoryline.equals(true))
         .watch();
 
-    final unreadChaptersStream = unreadChapters(
-      seriesId: seriesId,
-    ).watch();
-
-    final unreadVolumesStream = unreadVolumes(seriesId: seriesId).watch();
-
-    return Rx.combineLatest6(
+    return Rx.combineLatest4(
       volumesStream,
       chaptersStream,
       specialsStream,
       storylineStream,
-      unreadChaptersStream,
-      unreadVolumesStream,
-      (vList, cList, sList, slList, uList, uvList) => SeriesDetailWithRelations(
+      (vList, cList, sList, slList) => SeriesDetailWithRelations(
         volumes: vList,
         chapters: cList,
         storylineChapters: slList,
         specials: sList,
-        unreadChapters: uList,
-        unreadVolumes: uvList,
       ),
     );
   }
@@ -221,8 +231,9 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
   MultiSelectable<SeriesData> allSeries({
     int? libraryId,
     int? collectionId,
-    SeriesOrderByColumn orderBy = .name,
+    UnorderedSortOption orderBy = .name,
     SortDirection direction = .ascending,
+    bool hideRead = false,
   }) {
     final query = select(series).join([
       leftOuterJoin(
@@ -247,26 +258,12 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
 
     final orderMode = direction.toOrderingMode();
 
-    query.orderBy([
-      switch (orderBy) {
-        .name => OrderingTerm(
-          expression: series.sortName,
-          mode: orderMode,
-        ),
-        .progress => OrderingTerm(
-          expression: readingProgress.pagesRead.sum(),
-          mode: orderMode,
-        ),
-        .dateAdded => OrderingTerm(
-          expression: series.created,
-          mode: orderMode,
-        ),
-        .dateUpdated => OrderingTerm(
-          expression: series.lastChapterAdded,
-          mode: orderMode,
-        ),
-      },
-    ]);
+    query
+      ..orderBy([_orderingTerm(orderBy, orderMode)])
+      ..groupBy(
+        [series.id],
+        having: hideRead ? _hasUnreadProgress : null,
+      );
 
     return query.map((row) => row.readTable(series));
   }
@@ -276,64 +273,6 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
     return managers.chapters
         .filter((f) => f.seriesId.id(seriesId))
         .orderBy((o) => o.sortOrder.asc());
-  }
-
-  /// Get all unread chapters for series [seriesId].
-  /// Unread chapters are all chapters with either no progress, or not completely read
-  MultiSelectable<Chapter> unreadChapters({required int seriesId}) {
-    final query =
-        select(chapters).join([
-            leftOuterJoin(
-              readingProgress,
-              readingProgress.chapterId.equalsExp(chapters.id),
-            ),
-          ])
-          ..where(
-            chapters.minNumber.isBiggerThanValue(
-                  DataConstants.singleVolumeChapterMinNumber,
-                ) &
-                chapters.seriesId.equals(seriesId) &
-                (readingProgress.chapterId.isNull() |
-                    readingProgress.pagesRead.isSmallerThan(chapters.pages)),
-          )
-          ..orderBy([OrderingTerm.asc(chapters.sortOrder)]);
-
-    return query.map((res) => res.readTable(chapters));
-  }
-
-  /// Get all unread volumes for series [seriesId].
-  /// Unread volumes are volumes with at least one chapter with either no progress,
-  /// or not completely read
-  MultiSelectable<VolumeWithRelations> unreadVolumes({required int seriesId}) {
-    final query =
-        select(volumes).join([
-            innerJoin(chapters, chapters.volumeId.equalsExp(volumes.id)),
-            leftOuterJoin(
-              readingProgress,
-              readingProgress.chapterId.equalsExp(chapters.id),
-            ),
-          ])
-          ..where(
-            volumes.seriesId.equals(seriesId) &
-                (readingProgress.chapterId.isNull() |
-                    readingProgress.pagesRead.isSmallerThan(chapters.pages)),
-          )
-          ..groupBy([volumes.id])
-          ..orderBy([OrderingTerm.asc(volumes.minNumber)]);
-
-    return query
-        .map((res) => res.readTable(volumes))
-        .asyncMap(
-          (v) async => VolumeWithRelations(
-            volume: v,
-            chapters: await managers.chapters
-                .filter(
-                  (f) => f.volumeId.id(v.id),
-                )
-                .orderBy((o) => o.sortOrder.asc())
-                .get(),
-          ),
-        );
   }
 
   /// A series is on deck when:
@@ -391,7 +330,10 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
   }
 
   /// Watch series on deck.
-  Stream<List<SeriesData>> watchOnDeck() {
+  Stream<List<SeriesData>> watchOnDeck({
+    UnorderedSortOption orderBy = .lastRead,
+    SortDirection direction = .descending,
+  }) {
     return managers.serverSettings
         .filter((f) => f.key.equals(DataConstants.serverSettingsKey))
         .watchSingleOrNull()
@@ -402,10 +344,16 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
           final updateDays =
               setting?.onDeckUpdateDays ?? DataConstants.onDeckUpdateDays;
 
-          return _buildOnDeckQuery(
+          final q = _buildOnDeckQuery(
             progressDays: progressDays,
             updateDays: updateDays,
-          ).watch().map(
+          );
+
+          q.orderBy([
+            _orderingTerm(orderBy, direction.toOrderingMode()),
+          ]);
+
+          return q.watch().map(
             (rows) => rows.map((row) => row.readTable(series)).toList(),
           );
         });
@@ -439,7 +387,7 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
 
   Future<List<SeriesData>> filterOnDeck({
     required String query,
-    SeriesOrderByColumn orderBy = .progress,
+    UnorderedSortOption orderBy = .progress,
     SortDirection direction = .ascending,
   }) async {
     final q = await _getOnDeckQueryWithSettings();
@@ -451,31 +399,7 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
           series.originalName.contains(query),
     );
 
-    final OrderingMode orderingMode = switch (direction) {
-      .ascending => .asc,
-      .descending => .desc,
-    };
-
-    q.orderBy([
-      switch (orderBy) {
-        .name => OrderingTerm(
-          expression: series.sortName,
-          mode: orderingMode,
-        ),
-        .progress => OrderingTerm(
-          expression: readingProgress.pagesRead.sum(),
-          mode: orderingMode,
-        ),
-        .dateAdded => OrderingTerm(
-          expression: series.created,
-          mode: orderingMode,
-        ),
-        .dateUpdated => OrderingTerm(
-          expression: series.lastChapterAdded,
-          mode: orderingMode,
-        ),
-      },
-    ]);
+    q.orderBy([_orderingTerm(orderBy, direction.toOrderingMode())]);
 
     return q
         .map(
@@ -485,19 +409,72 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
   }
 
   /// Watch recently updated series
-  Stream<List<SeriesData>> watchRecentlyUpdated() {
-    return managers.series
-        .filter((f) => f.isRecentlyUpdated(true))
-        .orderBy((o) => o.lastChapterAdded.desc())
-        .watch();
+  Stream<List<SeriesData>> watchRecentlyUpdated({
+    String query = '',
+    UnorderedSortOption orderBy = .dateUpdated,
+    SortDirection direction = .descending,
+    bool hideRead = false,
+  }) {
+    final q =
+        select(series).join([
+            leftOuterJoin(
+              readingProgress,
+              readingProgress.seriesId.equalsExp(series.id),
+            ),
+          ])
+          ..where(series.isRecentlyUpdated)
+          ..groupBy(
+            [series.id],
+            having: hideRead ? _hasUnreadProgress : null,
+          );
+
+    if (query.isNotEmpty) {
+      q.where(
+        series.name.contains(query) |
+            series.sortName.contains(query) |
+            series.localizedName.contains(query) |
+            series.originalName.contains(query),
+      );
+    }
+
+    q.orderBy([_orderingTerm(orderBy, direction.toOrderingMode())]);
+
+    return q.map((row) => row.readTable(series)).watch();
   }
 
   /// Watch recently added series
-  Stream<List<SeriesData>> watchRecentlyAdded() {
-    return managers.series
-        .filter((f) => f.isRecentlyAdded(true))
-        .orderBy((o) => o.created.desc())
-        .watch();
+  Stream<List<SeriesData>> watchRecentlyAdded({
+    String query = '',
+    UnorderedSortOption orderBy = .dateAdded,
+    SortDirection direction = .descending,
+    bool hideRead = false,
+    bo,
+  }) {
+    final q =
+        select(series).join([
+            leftOuterJoin(
+              readingProgress,
+              readingProgress.seriesId.equalsExp(series.id),
+            ),
+          ])
+          ..where(series.isRecentlyAdded)
+          ..groupBy(
+            [series.id],
+            having: hideRead ? _hasUnreadProgress : null,
+          );
+
+    if (query.isNotEmpty) {
+      q.where(
+        series.name.contains(query) |
+            series.sortName.contains(query) |
+            series.localizedName.contains(query) |
+            series.originalName.contains(query),
+      );
+    }
+
+    q.orderBy([_orderingTerm(orderBy, direction.toOrderingMode())]);
+
+    return q.map((row) => row.readTable(series)).watch();
   }
 
   /// Watch whether [seriesId] is want-to-read
@@ -837,16 +814,12 @@ class SeriesDetailWithRelations {
   final List<Chapter> specials;
   final List<Chapter> chapters;
   final List<Chapter> storylineChapters;
-  final List<Chapter> unreadChapters;
-  final List<VolumeWithRelations> unreadVolumes;
 
   const SeriesDetailWithRelations({
     required this.volumes,
     required this.specials,
     required this.chapters,
     required this.storylineChapters,
-    required this.unreadChapters,
-    required this.unreadVolumes,
   });
 }
 

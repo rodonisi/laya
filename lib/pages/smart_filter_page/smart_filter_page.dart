@@ -1,7 +1,13 @@
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:kover/pages/reading_lists_page/reading_lists_list_page.dart';
-import 'package:kover/widgets/sliver_list_page/series_list_page.dart';
+import 'package:kover/models/enums/order_by_option.dart';
+import 'package:kover/models/enums/sort_direction.dart';
 import 'package:kover/riverpod/providers/smart_filter.dart';
+import 'package:kover/widgets/sliver_list_page/series_sort_options_menu.dart';
+import 'package:kover/widgets/sliver_list_page/sliver_page_shell.dart';
+import 'package:kover/widgets/sliver_list_page/sliver_reading_lists_page_body.dart';
+import 'package:kover/widgets/sliver_list_page/sliver_series_page_body.dart';
+import 'package:kover/widgets/sliver_list_page/sort_direction_menu.dart';
 import 'package:kover/widgets/util/async_value.dart';
 import 'package:kover/widgets/util/login_guard.dart';
 import 'package:material_ui/material_ui.dart';
@@ -24,33 +30,113 @@ class SmartFilterPage extends HookConsumerWidget {
         child: Async(
           asyncValue: filter,
           data: (data) => switch (data.type) {
-            .series => Async(
-              asyncValue: ref.watch(
-                smartFilterSeriesProvider(smartFilterId: smartFilterId),
-              ),
-              data: (series) {
-                return Placeholder();
-                // return SeriesListPage(
-                //   title: data.name,
-                //   series: series,
-                //   defaultSortDirection: .ascending,
-                // );
-              },
+            .series => _SmartFilterSeriesContent(
+              smartFilterId: smartFilterId,
+              title: data.name,
             ),
-            .readingList => Async(
-              asyncValue: ref.watch(
-                smartFilterReadingListsProvider(smartFilterId: smartFilterId),
-              ),
-              data: (readingLists) {
-                return ReadingListsListPage(
-                  title: data.name,
-                  readingLists: readingLists,
-                );
-              },
+            .readingList => _SmartFilterReadingListsContent(
+              smartFilterId: smartFilterId,
+              title: data.name,
             ),
             _ => const SizedBox.shrink(),
           },
         ),
+      ),
+    );
+  }
+}
+
+class _SmartFilterReadingListsContent extends HookConsumerWidget {
+  final int smartFilterId;
+  final String title;
+
+  const new({
+    required this.smartFilterId,
+    required this.title,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final controller = useTextEditingController();
+    final sortDirection = useState(SortDirection.ascending);
+
+    final readingLists = ref.watch(
+      smartFilterReadingListsProvider(
+        smartFilterId: smartFilterId,
+        query: controller.text,
+        direction: sortDirection.value,
+      ),
+    );
+
+    useListenable(controller);
+
+    return EntitiesPage(
+      title: title,
+      filterController: controller,
+      appBarActions: [
+        SortDirectionMenu(
+          sortDirection: sortDirection.value,
+          onSortDirectionChanged: (newDirection) =>
+              sortDirection.value = newDirection,
+        ),
+      ],
+      sliver: AsyncSliver(
+        asyncValue: readingLists,
+        data: (data) {
+          return SliverReadingListsPageBody(readingLists: data);
+        },
+      ),
+    );
+  }
+}
+
+class _SmartFilterSeriesContent extends HookConsumerWidget {
+  final int smartFilterId;
+  final String title;
+
+  const new({
+    required this.smartFilterId,
+    required this.title,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final orderBy = useState(UnorderedSortOption.name);
+    final sortDirection = useState(SortDirection.ascending);
+    final hideRead = useState(false);
+    final controller = useTextEditingController();
+
+    useListenable(controller);
+
+    final series = ref.watch(
+      smartFilterSeriesProvider(
+        smartFilterId: smartFilterId,
+        query: controller.text,
+        orderBy: orderBy.value,
+        direction: sortDirection.value,
+        hideRead: hideRead.value,
+      ),
+    );
+
+    return EntitiesPage(
+      title: title,
+      filterController: controller,
+      appBarActions: [
+        SeriesSortOptionsMenu(
+          orderBy: orderBy.value,
+          onOrderByChanged: (newOrderBy) => orderBy.value = newOrderBy,
+          sortDirection: sortDirection.value,
+          onSortDirectionChanged: (newDirection) =>
+              sortDirection.value = newDirection,
+          hideRead: hideRead.value,
+          onHideReadChanged: (newHideRead) => hideRead.value = newHideRead,
+        ),
+      ],
+      sliver: AsyncSliver(
+        asyncValue: series,
+        data: (data) {
+          return SliverSeriesPageBody(series: data);
+        },
       ),
     );
   }

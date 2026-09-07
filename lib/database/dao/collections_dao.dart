@@ -1,10 +1,25 @@
 import 'package:drift/drift.dart';
 import 'package:kover/database/app_database.dart';
+import 'package:kover/database/tables/chapters.dart';
 import 'package:kover/database/tables/collections.dart';
+import 'package:kover/database/tables/progress.dart';
+import 'package:kover/database/tables/series.dart';
+import 'package:kover/mapping/enums/sort_direction.dart';
+import 'package:kover/models/enums/order_by_option.dart';
+import 'package:kover/models/enums/sort_direction.dart';
 
 part 'collections_dao.g.dart';
 
-@DriftAccessor(tables: [Collections, CollectionSeries, CollectionCovers])
+@DriftAccessor(
+  tables: [
+    Collections,
+    CollectionSeries,
+    CollectionCovers,
+    Chapters,
+    Series,
+    ReadingProgress,
+  ],
+)
 class CollectionsDao extends DatabaseAccessor<AppDatabase>
     with _$CollectionsDaoMixin {
   CollectionsDao(super.attachedDatabase);
@@ -23,9 +38,51 @@ class CollectionsDao extends DatabaseAccessor<AppDatabase>
     );
   }
 
-  /// Get [Selectable] for all collections.
-  Selectable<Collection> allCollections() {
-    return managers.collections.orderBy((o) => o.title.asc());
+  /// Get all collections, optionally filtered by [query] and ordered by
+  /// [orderBy] in [direction].
+  MultiSelectable<Collection> allCollections({
+    String query = '',
+    UnorderedSortOption orderBy = .name,
+    SortDirection direction = .ascending,
+  }) {
+    final pagesReadSum = readingProgress.pagesRead.sum();
+    final totalPages = chapters.pages.sum();
+    final progressRatio = pagesReadSum.cast<double>() /
+        totalPages.cast<double>();
+
+    final q = select(collections).join([
+      leftOuterJoin(
+        collectionSeries,
+        collectionSeries.collectionId.equalsExp(collections.id),
+      ),
+      leftOuterJoin(series, series.id.equalsExp(collectionSeries.seriesId)),
+      leftOuterJoin(chapters, chapters.seriesId.equalsExp(series.id)),
+      leftOuterJoin(
+        readingProgress,
+        readingProgress.chapterId.equalsExp(chapters.id),
+      ),
+    ]);
+
+    if (query.isNotEmpty) {
+      q.where(collections.title.contains(query) | collections.summary.contains(query));
+    }
+
+    q
+      ..orderBy([
+        OrderingTerm(
+          expression: switch (orderBy) {
+            .name => collections.title,
+            .progress => progressRatio,
+            .lastRead => readingProgress.lastModified.max(),
+            .dateAdded => collections.created,
+            .dateUpdated => collections.lastModified,
+          },
+          mode: direction.toOrderingMode(),
+        ),
+      ])
+      ..groupBy([collections.id]);
+
+    return q.map((row) => row.readTable(collections));
   }
 
   /// Search collections by [query]

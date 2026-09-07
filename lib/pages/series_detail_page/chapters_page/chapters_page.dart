@@ -1,17 +1,15 @@
-import 'package:material_ui/material_ui.dart';
-import 'package:flutter_context_menu/flutter_context_menu.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:kover/generated/l10n/app_localizations.dart';
 import 'package:kover/models/chapter_model.dart';
+import 'package:kover/models/enums/order_by_option.dart';
 import 'package:kover/models/enums/sort_direction.dart';
-import 'package:kover/riverpod/providers/series.dart';
-import 'package:kover/utils/layout_constants.dart';
-import 'package:kover/widgets/context_menu/context_menu_button.dart';
-import 'package:kover/widgets/details/filter_input_field.dart';
-import 'package:kover/widgets/lists/chapters_grid.dart';
-import 'package:kover/widgets/util/sliver_bottom_padding.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:kover/riverpod/providers/chapter.dart';
+import 'package:kover/widgets/sliver_list_page/series_sort_options_menu.dart';
+import 'package:kover/widgets/sliver_list_page/sliver_chapters_page_body.dart';
+import 'package:kover/widgets/sliver_list_page/sliver_page_shell.dart';
+import 'package:kover/widgets/util/async_value.dart';
+import 'package:material_ui/material_ui.dart';
 
 class ChaptersPage extends HookConsumerWidget {
   final int seriesId;
@@ -23,43 +21,33 @@ class ChaptersPage extends HookConsumerWidget {
     final l = AppLocalizations.of(context);
     final hideRead = useState(false);
     final sortDirection = useState(SortDirection.ascending);
-    final chapters = ref.watch(
-      seriesDetailProvider(
-        seriesId: seriesId,
-      ).select((state) {
-        if (volumeId != null) {
-          return state.value?.volumes
-                  .where((volume) => volume.id == volumeId)
-                  .singleOrNull
-                  ?.chapters ??
-              [];
-        }
-        return (hideRead.value
-                ? state.value?.unreadChapters
-                : state.value?.chapters) ??
-            [];
-      }),
-    );
+    final orderBy = useState(OrderedSortOption.sortOrder);
+    final controller = useTextEditingController();
 
-    final toShow = sortDirection.value == .descending
-        ? chapters.reversed.toList()
-        : chapters;
+    useListenable(controller);
+
+    final chapters = ref.watch(
+      filteredChaptersProvider(
+        seriesId: seriesId,
+        volumeId: volumeId,
+        hideRead: hideRead.value,
+        query: controller.text,
+        direction: sortDirection.value,
+      ),
+    );
 
     return _ChaptersPage(
       title: l.chapters,
-      seriesId: seriesId,
-      chapters: toShow,
-      action: ContextMenuButton(
-        icon: Icon(
-          sortDirection.value == .ascending
-              ? LucideIcons.arrowDownNarrowWide
-              : LucideIcons.arrowDownWideNarrow,
-        ),
-        menu: _getMenu(
-          hideRead: hideRead,
-          sortDirection: sortDirection,
-          context: context,
-        ),
+      chapters: chapters,
+      controller: controller,
+      action: OrderedEntityOrderMenu(
+        sortDirection: sortDirection.value,
+        onSortDirectionChanged: (newDirection) =>
+            sortDirection.value = newDirection,
+        orderBy: orderBy.value,
+        onOrderByChanged: (value) => orderBy.value = value,
+        hideRead: hideRead.value,
+        onHideReadChanged: (newHideRead) => hideRead.value = newHideRead,
       ),
     );
   }
@@ -72,30 +60,35 @@ class StorylinePage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
+    final orderBy = useState(OrderedSortOption.sortOrder);
     final sortDirection = useState(SortDirection.ascending);
-    final chapters = ref.watch(
-      seriesDetailProvider(
-        seriesId: seriesId,
-      ).select((state) {
-        return state.value?.storyline ?? [];
-      }),
-    );
+    final hideRead = useState(false);
+    final controller = useTextEditingController();
 
-    final toShow = sortDirection.value == .descending
-        ? chapters.reversed.toList()
-        : chapters;
+    useListenable(controller);
+
+    final chapters = ref.watch(
+      filteredChaptersProvider(
+        seriesId: seriesId,
+        kind: .storyline,
+        query: controller.text,
+        orderBy: orderBy.value,
+        direction: sortDirection.value,
+        hideRead: hideRead.value,
+      ),
+    );
 
     return _ChaptersPage(
       title: l.storyline,
-      seriesId: seriesId,
-      chapters: toShow,
-      action: ContextMenuButton(
-        icon: Icon(
-          sortDirection.value == .ascending
-              ? LucideIcons.arrowDownNarrowWide
-              : LucideIcons.arrowDownWideNarrow,
-        ),
-        menu: _getMenu(sortDirection: sortDirection, context: context),
+      chapters: chapters,
+      controller: controller,
+      action: OrderedEntityOrderMenu(
+        sortDirection: sortDirection.value,
+        onSortDirectionChanged: (value) => sortDirection.value = value,
+        orderBy: orderBy.value,
+        onOrderByChanged: (value) => orderBy.value = value,
+        hideRead: hideRead.value,
+        onHideReadChanged: (value) => hideRead.value = value,
       ),
     );
   }
@@ -108,30 +101,36 @@ class SpecialsPage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
+    final orderBy = useState(OrderedSortOption.sortOrder);
     final sortDirection = useState(SortDirection.ascending);
-    final chapters = ref.watch(
-      seriesDetailProvider(
-        seriesId: seriesId,
-      ).select((state) {
-        return state.value?.specials ?? [];
-      }),
-    );
+    final hideRead = useState(false);
+    final controller = useTextEditingController();
 
-    final toShow = sortDirection.value == .descending
-        ? chapters.reversed.toList()
-        : chapters;
+    useListenable(controller);
+
+    final chapters = ref.watch(
+      filteredChaptersProvider(
+        seriesId: seriesId,
+        kind: .specials,
+        query: controller.text,
+        orderBy: orderBy.value,
+        direction: sortDirection.value,
+        hideRead: hideRead.value,
+      ),
+    );
 
     return _ChaptersPage(
       title: l.specials,
-      seriesId: seriesId,
-      chapters: toShow,
-      action: ContextMenuButton(
-        icon: Icon(
-          sortDirection.value == .ascending
-              ? LucideIcons.arrowDownNarrowWide
-              : LucideIcons.arrowDownWideNarrow,
-        ),
-        menu: _getMenu(sortDirection: sortDirection, context: context),
+      chapters: chapters,
+      controller: controller,
+      action: OrderedEntityOrderMenu(
+        sortDirection: sortDirection.value,
+        onSortDirectionChanged: (newDirection) =>
+            sortDirection.value = newDirection,
+        orderBy: orderBy.value,
+        onOrderByChanged: (newOrderBy) => orderBy.value = newOrderBy,
+        hideRead: hideRead.value,
+        onHideReadChanged: (newHideRead) => hideRead.value = newHideRead,
       ),
     );
   }
@@ -139,107 +138,31 @@ class SpecialsPage extends HookConsumerWidget {
 
 class _ChaptersPage extends HookConsumerWidget {
   final String title;
-  final int seriesId;
-  final List<ChapterModel> chapters;
+  final AsyncValue<List<ChapterModel>> chapters;
+  final TextEditingController controller;
   final Widget? action;
   const _ChaptersPage({
     required this.title,
-    required this.seriesId,
     required this.chapters,
+    required this.controller,
     this.action,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final controller = useTextEditingController();
-    final filteredChapters = useListenableSelector(controller, () {
-      final filter = controller.text;
-      if (filter.isEmpty) return chapters;
-      return chapters
-          .where(
-            (chapter) =>
-                chapter.title.toLowerCase().contains(filter.toLowerCase()),
-          )
-          .toList();
-    });
-
     return Scaffold(
       extendBody: true,
-      body: CustomScrollView(
-        keyboardDismissBehavior: .onDrag,
-        slivers: [
-          SliverAppBar.large(
-            title: Text(title),
-            actionsPadding: const EdgeInsets.symmetric(
-              horizontal: LayoutConstants.smallPadding,
-            ),
-            actions: [
-              ?action,
-            ],
-          ),
-          SliverSafeArea(
-            top: false,
-            bottom: false,
-            sliver: SliverMainAxisGroup(
-              slivers: [
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: LayoutConstants.mediumPadding,
-                  ),
-                  sliver: SliverToBoxAdapter(
-                    child: FilterInputField(controller: controller),
-                  ),
-                ),
-                SliverPadding(
-                  padding: LayoutConstants.smallEdgeInsets,
-                  sliver: ChaptersGrid(
-                    seriesId: seriesId,
-                    chapters: filteredChapters,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SliverBottomPadding(),
+      body: EntitiesPage(
+        title: title,
+        filterController: controller,
+        appBarActions: [
+          ?action,
         ],
+        sliver: AsyncSliver(
+          asyncValue: chapters,
+          data: (data) => SliverChaptersPageBody(chapters: data),
+        ),
       ),
     );
   }
-}
-
-ContextMenu<dynamic> _getMenu({
-  ValueNotifier<bool>? hideRead,
-  ValueNotifier<SortDirection>? sortDirection,
-  required BuildContext context,
-}) {
-  final l = AppLocalizations.of(context);
-  return ContextMenu(
-    entries: [
-      if (hideRead != null) ...[
-        MenuHeader(text: l.filter),
-        MenuItem(
-          icon: hideRead.value ? const Icon(LucideIcons.check) : null,
-          label: Text(l.hideRead),
-          onSelected: (_) => hideRead.value = !hideRead.value,
-        ),
-      ],
-      if (sortDirection != null) ...[
-        MenuHeader(text: l.sortDirection),
-        MenuItem(
-          icon: sortDirection.value == SortDirection.ascending
-              ? const Icon(LucideIcons.check)
-              : null,
-          label: Text(l.ascending),
-          onSelected: (_) => sortDirection.value = SortDirection.ascending,
-        ),
-        MenuItem(
-          icon: sortDirection.value == SortDirection.descending
-              ? const Icon(LucideIcons.check)
-              : null,
-          label: Text(l.descending),
-          onSelected: (_) => sortDirection.value = SortDirection.descending,
-        ),
-      ],
-    ],
-  );
 }

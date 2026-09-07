@@ -1,10 +1,38 @@
+import 'package:kover/database/dao/chapters_dao.dart';
 import 'package:kover/models/chapter_model.dart';
+import 'package:kover/models/enums/order_by_option.dart';
+import 'package:kover/models/enums/sort_direction.dart';
 import 'package:kover/models/image_model.dart';
 import 'package:kover/riverpod/repository/chapters_repository.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:rxdart/rxdart.dart';
 
 part 'chapter.g.dart';
+
+@riverpod
+Stream<List<ChapterModel>> filteredChapters(
+  Ref ref, {
+  required int seriesId,
+  int? volumeId,
+  ChapterKind kind = .chapters,
+  String query = '',
+  OrderedSortOption orderBy = .sortOrder,
+  SortDirection direction = .ascending,
+  bool hideRead = false,
+}) {
+  final repo = ref.watch(chaptersRepositoryProvider);
+  return repo
+      .watchFilteredChapters(
+        seriesId: seriesId,
+        volumeId: volumeId,
+        kind: kind,
+        query: query,
+        orderBy: orderBy,
+        direction: direction,
+        hideRead: hideRead,
+      )
+      .distinct();
+}
 
 @riverpod
 Stream<ChapterModel> chapter(

@@ -3,9 +3,12 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:kover/generated/l10n/app_localizations.dart';
 import 'package:kover/models/enums/sort_direction.dart';
 import 'package:kover/models/series_model.dart';
+import 'package:kover/models/enums/order_by_option.dart';
 import 'package:kover/riverpod/repository/series_repository.dart';
 import 'package:kover/riverpod/providers/series.dart';
+import 'package:kover/widgets/sliver_list_page/series_sort_options_menu.dart';
 import 'package:kover/widgets/sliver_list_page/sliver_page_shell.dart';
+import 'package:kover/widgets/sliver_list_page/sliver_series_page_body.dart';
 import 'package:kover/widgets/util/async_value.dart';
 import 'package:kover/widgets/util/login_guard.dart';
 import 'package:material_ui/material_ui.dart';
@@ -17,11 +20,13 @@ part 'on_deck_page.g.dart';
 Future<List<SeriesModel>> _filteredOnDeck(
   Ref ref, {
   required String query,
-  SeriesOrderByColumn orderBy = .progress,
-  SortDirection direction = .ascending,
+  UnorderedSortOption orderBy = .lastRead,
+  SortDirection direction = .descending,
 }) async {
   final repo = ref.watch(seriesRepositoryProvider);
-  final onDeck = await ref.watch(onDeckProvider.future);
+  final onDeck = await ref.watch(
+    onDeckProvider(orderBy: orderBy, direction: direction).future,
+  );
 
   if (query.isEmpty) return onDeck;
 
@@ -53,13 +58,19 @@ class _OnDeckPageContent extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
     final controller = useTextEditingController();
-    final sortDirection = useState(SortDirection.ascending);
-    final orderBy = useState(SeriesOrderByColumn.progress);
+    final sortDirection = useState(SortDirection.descending);
+    final orderBy = useState(UnorderedSortOption.lastRead);
 
     final series = ref.watch(
-      _filteredOnDeckProvider(query: controller.text),
+      _filteredOnDeckProvider(
+        query: controller.text,
+        orderBy: orderBy.value,
+        direction: sortDirection.value,
+      ),
     );
+
     useListenable(controller);
+
     return EntitiesPage(
       title: l.onDeck,
       filterController: controller,

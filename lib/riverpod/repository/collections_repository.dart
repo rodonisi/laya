@@ -1,5 +1,7 @@
 import 'package:kover/database/app_database.dart';
 import 'package:kover/models/collection_model.dart';
+import 'package:kover/models/enums/order_by_option.dart';
+import 'package:kover/models/enums/sort_direction.dart';
 import 'package:kover/models/image_model.dart';
 import 'package:kover/riverpod/providers/client.dart';
 import 'package:kover/riverpod/repository/database.dart';
@@ -22,12 +24,24 @@ class const CollectionsRepository({
   required final AppDatabase _db,
   required final CollectionSyncOperations _client,
 }) {
-  /// Watch all collections.
-  Stream<List<CollectionModel>> watchCollections() {
-    return _db.collectionsDao.allCollections().watch().map(
-      (collections) =>
-          collections.map(CollectionModel.fromDatabaseModel).toList(),
-    );
+  /// Watch all collections, optionally filtered by [query] and ordered by
+  /// [orderBy] in [direction].
+  Stream<List<CollectionModel>> watchCollections({
+    String query = '',
+    UnorderedSortOption orderBy = .name,
+    SortDirection direction = .ascending,
+  }) {
+    return _db.collectionsDao
+        .allCollections(
+          query: query,
+          orderBy: orderBy,
+          direction: direction,
+        )
+        .watch()
+        .map(
+          (collections) =>
+              collections.map(CollectionModel.fromDatabaseModel).toList(),
+        );
   }
 
   /// Watch collection by [collectionId].
