@@ -1,5 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:kover/database/app_database.dart';
+import 'package:kover/database/dao/list_query_helpers.dart';
+import 'package:kover/database/tables/chapters.dart';
 import 'package:kover/database/tables/progress.dart';
 import 'package:kover/database/tables/reading_lists.dart';
 import 'package:kover/database/tables/series.dart';
@@ -16,6 +18,8 @@ part 'smart_filters_dao.g.dart';
   tables: [
     Series,
     ReadingLists,
+    ReadingListsChapters,
+    Chapters,
     People,
     SmartFilters,
     SmartFilterSeries,
@@ -28,12 +32,10 @@ class SmartFiltersDao(super.attachedDatabase)
     extends DatabaseAccessor<AppDatabase>
     with _$SmartFiltersDaoMixin {
   Expression<bool> get _hasUnreadProgress =>
-      readingProgress.pagesRead.sum().isNull() |
-      readingProgress.pagesRead.sum().isSmallerThan(series.pages);
+      hasUnreadProgress(readingProgress.pagesRead.sum(), series.pages);
 
   Expression<double> get _progressRatio =>
-      readingProgress.pagesRead.sum().cast<double>() /
-      series.pages.cast<double>();
+      progressRatio(readingProgress.pagesRead.sum(), series.pages);
 
   OrderingTerm _orderingTerm(UnorderedSortOption column, OrderingMode mode) {
     return switch (column) {
@@ -94,10 +96,15 @@ class SmartFiltersDao(super.attachedDatabase)
 
     if (query.isNotEmpty) {
       q.where(
-        series.name.contains(query) |
-            series.sortName.contains(query) |
-            series.localizedName.contains(query) |
-            series.originalName.contains(query),
+        containsAny(
+          query,
+          [
+            series.name,
+            series.sortName,
+            series.localizedName,
+            series.originalName,
+          ],
+        ),
       );
     }
 
@@ -107,29 +114,55 @@ class SmartFiltersDao(super.attachedDatabase)
   }
 
   /// Watches the list of reading lists associated with a specific smart
-  /// filter.
+  /// filter, optionally filtered by [query] and ordered by [orderBy] in
+  /// [direction].
   Stream<List<ReadingList>> watchReadingListsForSmartFilter(
     int smartFilterId, {
     String query = '',
+    UnorderedSortOption orderBy = .name,
     SortDirection direction = .ascending,
   }) {
+    final pagesReadSum = readingProgress.pagesRead.sum();
+    final totalPages = chapters.pages.sum();
+    final progress = progressRatio(pagesReadSum, totalPages);
+
     final q = select(readingLists).join([
       innerJoin(
         smartFilterReadingList,
         smartFilterReadingList.readingListId.equalsExp(readingLists.id),
       ),
+      leftOuterJoin(
+        readingListsChapters,
+        readingListsChapters.readingListId.equalsExp(readingLists.id),
+      ),
+      leftOuterJoin(
+        chapters,
+        chapters.id.equalsExp(readingListsChapters.chapterId),
+      ),
+      leftOuterJoin(
+        readingProgress,
+        readingProgress.chapterId.equalsExp(chapters.id),
+      ),
     ])..where(smartFilterReadingList.smartFilterId.equals(smartFilterId));
 
     if (query.isNotEmpty) {
-      q.where(readingLists.title.contains(query));
+      q.where(containsAny(query, [readingLists.title, readingLists.summary]));
     }
 
-    q.orderBy([
-      OrderingTerm(
-        expression: readingLists.title,
-        mode: direction.toOrderingMode(),
-      ),
-    ]);
+    q
+      ..orderBy([
+        OrderingTerm(
+          expression: switch (orderBy) {
+            .name => readingLists.title,
+            .progress => progress,
+            .lastRead => readingProgress.lastModified.max(),
+            .dateAdded => readingLists.created,
+            .dateUpdated => readingLists.lastModified,
+          },
+          mode: direction.toOrderingMode(),
+        ),
+      ])
+      ..groupBy([readingLists.id]);
 
     return q.watch().map(
       (results) => results.map((row) => row.readTable(readingLists)).toList(),

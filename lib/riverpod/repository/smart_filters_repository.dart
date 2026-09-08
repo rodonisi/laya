@@ -59,12 +59,14 @@ class const SmartFiltersRepository({
   Stream<List<ReadingListModel>> watchReadingLists(
     int smartFilterId, {
     String query = '',
+    UnorderedSortOption orderBy = .name,
     SortDirection direction = .ascending,
   }) {
     return _db.smartFiltersDao
         .watchReadingListsForSmartFilter(
           smartFilterId,
           query: query,
+          orderBy: orderBy,
           direction: direction,
         )
         .map(

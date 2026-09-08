@@ -4,10 +4,8 @@ import 'package:kover/models/enums/order_by_option.dart';
 import 'package:kover/models/enums/sort_direction.dart';
 import 'package:kover/riverpod/providers/smart_filter.dart';
 import 'package:kover/widgets/sliver_list_page/sort_options_menu.dart';
-import 'package:kover/widgets/sliver_list_page/sliver_page_shell.dart';
 import 'package:kover/widgets/sliver_list_page/sliver_reading_lists_page_body.dart';
 import 'package:kover/widgets/sliver_list_page/sliver_series_page_body.dart';
-import 'package:kover/widgets/sliver_list_page/sort_direction_menu.dart';
 import 'package:kover/widgets/util/async_value.dart';
 import 'package:kover/widgets/util/login_guard.dart';
 import 'package:material_ui/material_ui.dart';
@@ -58,34 +56,30 @@ class _SmartFilterReadingListsContent extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final controller = useTextEditingController();
+    final orderBy = useState(UnorderedSortOption.name);
     final sortDirection = useState(SortDirection.ascending);
 
     final readingLists = ref.watch(
       smartFilterReadingListsProvider(
         smartFilterId: smartFilterId,
         query: controller.text,
+        orderBy: orderBy.value,
         direction: sortDirection.value,
       ),
     );
 
     useListenable(controller);
 
-    return EntitiesPage(
+    return ReadingListsListPage(
       title: title,
-      filterController: controller,
-      appBarActions: [
-        SortDirectionMenu(
-          sortDirection: sortDirection.value,
-          onSortDirectionChanged: (newDirection) =>
-              sortDirection.value = newDirection,
-        ),
-      ],
-      sliver: AsyncSliver(
-        asyncValue: readingLists,
-        data: (data) {
-          return SliverReadingListsPageBody(readingLists: data);
-        },
+      controller: controller,
+      sortMenu: UnorderedSortMenu(
+        orderBy: orderBy.value,
+        onOrderByChanged: (value) => orderBy.value = value,
+        sortDirection: sortDirection.value,
+        onSortDirectionChanged: (value) => sortDirection.value = value,
       ),
+      readingLists: readingLists,
     );
   }
 }
@@ -118,26 +112,18 @@ class _SmartFilterSeriesContent extends HookConsumerWidget {
       ),
     );
 
-    return EntitiesPage(
+    return SeriesListPage(
       title: title,
-      filterController: controller,
-      appBarActions: [
-        UnorderedSortMenu(
-          orderBy: orderBy.value,
-          onOrderByChanged: (newOrderBy) => orderBy.value = newOrderBy,
-          sortDirection: sortDirection.value,
-          onSortDirectionChanged: (newDirection) =>
-              sortDirection.value = newDirection,
-          hideRead: hideRead.value,
-          onHideReadChanged: (newHideRead) => hideRead.value = newHideRead,
-        ),
-      ],
-      sliver: AsyncSliver(
-        asyncValue: series,
-        data: (data) {
-          return SliverSeriesPageBody(series: data);
-        },
+      controller: controller,
+      sortMenu: UnorderedSortMenu(
+        orderBy: orderBy.value,
+        onOrderByChanged: (value) => orderBy.value = value,
+        sortDirection: sortDirection.value,
+        onSortDirectionChanged: (value) => sortDirection.value = value,
+        hideRead: hideRead.value,
+        onHideReadChanged: (value) => hideRead.value = value,
       ),
+      series: series,
     );
   }
 }

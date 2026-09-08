@@ -41,6 +41,7 @@ Stream<List<ReadingListModel>> smartFilterReadingLists(
   Ref ref, {
   required int smartFilterId,
   String query = '',
+  UnorderedSortOption orderBy = .name,
   SortDirection direction = .ascending,
 }) {
   final repo = ref.watch(smartFiltersRepositoryProvider);
@@ -48,6 +49,7 @@ Stream<List<ReadingListModel>> smartFilterReadingLists(
       .watchReadingLists(
         smartFilterId,
         query: query,
+        orderBy: orderBy,
         direction: direction,
       )
       .distinct(listEquals);

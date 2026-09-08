@@ -3,15 +3,29 @@ import 'package:kover/widgets/cards/volume_card.dart';
 import 'package:kover/widgets/lists/list_entries/volume_list_entry.dart';
 import 'package:kover/widgets/sliver_list_page/sliver_page_shell.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-class SliverVolumesPageBody extends StatelessWidget {
-  final List<VolumeModel> volumes;
-  const new({super.key, required this.volumes});
+class VolumesListPage extends StatelessWidget {
+  final String title;
+  final TextEditingController controller;
+  final AsyncValue<List<VolumeModel>> volumes;
+  final Widget? sortMenu;
+
+  const new({
+    super.key,
+    required this.title,
+    required this.controller,
+    required this.volumes,
+    this.sortMenu,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return SliverEntitiesPageBody<VolumeModel>(
+    return EntitiesListPage(
+      title: title,
+      filterController: controller,
       items: volumes,
+      sortMenu: sortMenu,
       gridBuilder: (context, volume) =>
           VolumeCard(key: ValueKey(volume.id), volumeId: volume.id),
       listBuilder: (context, volume) =>

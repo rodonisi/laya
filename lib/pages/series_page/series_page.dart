@@ -1,14 +1,13 @@
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:kover/generated/l10n/app_localizations.dart';
+import 'package:kover/models/enums/order_by_option.dart';
 import 'package:kover/models/enums/sort_direction.dart';
 import 'package:kover/riverpod/providers/collections.dart';
 import 'package:kover/riverpod/providers/library.dart';
 import 'package:kover/riverpod/providers/series.dart';
-import 'package:kover/models/enums/order_by_option.dart';
-import 'package:kover/widgets/sliver_list_page/sort_options_menu.dart';
-import 'package:kover/widgets/sliver_list_page/sliver_page_shell.dart';
 import 'package:kover/widgets/sliver_list_page/sliver_series_page_body.dart';
+import 'package:kover/widgets/sliver_list_page/sort_options_menu.dart';
 import 'package:kover/widgets/util/async_value.dart';
 import 'package:kover/widgets/util/login_guard.dart';
 import 'package:material_ui/material_ui.dart';
@@ -113,25 +112,18 @@ class SeriesPage extends HookConsumerWidget {
     return Scaffold(
       extendBody: true,
       extendBodyBehindAppBar: true,
-      body: EntitiesPage(
+      body: SeriesListPage(
         title: title,
-        filterController: controller,
-        appBarActions: [
-          UnorderedSortMenu(
-            sortDirection: sortDirection.value,
-            onSortDirectionChanged: (onSort) => sortDirection.value = onSort,
-            orderBy: orderBy.value,
-            onOrderByChanged: (onOrder) => orderBy.value = onOrder,
-            hideRead: hideRead.value,
-            onHideReadChanged: (onHideRead) => hideRead.value = onHideRead,
-          ),
-        ],
-        sliver: AsyncSliver(
-          asyncValue: query,
-          data: (items) {
-            return SliverSeriesPageBody(series: items);
-          },
+        controller: controller,
+        sortMenu: UnorderedSortMenu(
+          sortDirection: sortDirection.value,
+          onSortDirectionChanged: (onSort) => sortDirection.value = onSort,
+          orderBy: orderBy.value,
+          onOrderByChanged: (onOrder) => orderBy.value = onOrder,
+          hideRead: hideRead.value,
+          onHideReadChanged: (onHideRead) => hideRead.value = onHideRead,
         ),
+        series: query,
       ),
     );
   }

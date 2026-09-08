@@ -3,15 +3,29 @@ import 'package:kover/widgets/cards/reading_list_card.dart';
 import 'package:kover/widgets/lists/list_entries/reading_list_list_entry.dart';
 import 'package:kover/widgets/sliver_list_page/sliver_page_shell.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-class SliverReadingListsPageBody extends StatelessWidget {
-  final List<ReadingListModel> readingLists;
-  const new({super.key, required this.readingLists});
+class ReadingListsListPage extends StatelessWidget {
+  final String title;
+  final TextEditingController controller;
+  final AsyncValue<List<ReadingListModel>> readingLists;
+  final Widget? sortMenu;
+
+  const new({
+    super.key,
+    required this.title,
+    required this.controller,
+    required this.readingLists,
+    this.sortMenu,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return SliverEntitiesPageBody<ReadingListModel>(
+    return EntitiesListPage(
+      title: title,
+      filterController: controller,
       items: readingLists,
+      sortMenu: sortMenu,
       gridBuilder: (context, readingList) => ReadingListCard(
         key: ValueKey(readingList.id),
         readingListId: readingList.id,

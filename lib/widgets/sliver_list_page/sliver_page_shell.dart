@@ -3,22 +3,61 @@ import 'package:kover/utils/constants/kover_icons.dart';
 import 'package:kover/utils/layout_constants.dart';
 import 'package:kover/widgets/details/filter_input_field.dart';
 import 'package:kover/widgets/lists/adaptive_sliver_grid.dart';
+import 'package:kover/widgets/util/async_value.dart';
 import 'package:kover/widgets/util/sliver_adaptive_padding.dart';
 import 'package:kover/widgets/util/sliver_bottom_padding.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-class EntitiesPage extends HookWidget {
+class EntitiesListPage<T> extends HookWidget {
   final String title;
-  final List<Widget> appBarActions;
+  final Widget? sortMenu;
   final TextEditingController filterController;
-  final Widget sliver;
+  final AsyncValue<List<T>> items;
+  final Widget Function(BuildContext context, T item) gridBuilder;
+  final Widget Function(BuildContext context, T item) listBuilder;
 
   const new({
     super.key,
     required this.title,
     required this.filterController,
+    required this.items,
+    required this.gridBuilder,
+    required this.listBuilder,
+    this.sortMenu,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return _EntitiesListPage(
+      title: title,
+      filterController: filterController,
+      sortMenu: sortMenu,
+      sliver: AsyncSliver(
+        asyncValue: items,
+        data: (data) {
+          return _SliverEntitiesListBody<T>(
+            items: data,
+            gridBuilder: gridBuilder,
+            listBuilder: listBuilder,
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _EntitiesListPage extends HookWidget {
+  final String title;
+  final Widget? sortMenu;
+  final TextEditingController filterController;
+  final Widget sliver;
+
+  const new({
+    required this.title,
+    required this.filterController,
     required this.sliver,
-    this.appBarActions = const [],
+    this.sortMenu,
   });
 
   @override
@@ -40,7 +79,7 @@ class EntitiesPage extends HookWidget {
                 isGrid.value = !isGrid.value;
               },
             ),
-            ...appBarActions,
+            ?sortMenu,
           ],
         ),
         SliverSafeArea(
@@ -66,7 +105,7 @@ class EntitiesPage extends HookWidget {
   }
 }
 
-class SliverEntitiesPageBody<T> extends StatelessWidget {
+class _SliverEntitiesListBody<T> extends StatelessWidget {
   final List<T> items;
   final Widget Function(BuildContext context, T item) gridBuilder;
   final Widget Function(BuildContext context, T item) listBuilder;

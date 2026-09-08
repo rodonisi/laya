@@ -4,10 +4,8 @@ import 'package:kover/generated/l10n/app_localizations.dart';
 import 'package:kover/models/enums/order_by_option.dart';
 import 'package:kover/models/enums/sort_direction.dart';
 import 'package:kover/riverpod/providers/volume.dart';
-import 'package:kover/widgets/sliver_list_page/sort_options_menu.dart';
-import 'package:kover/widgets/sliver_list_page/sliver_page_shell.dart';
 import 'package:kover/widgets/sliver_list_page/sliver_volumes_page_body.dart';
-import 'package:kover/widgets/util/async_value.dart';
+import 'package:kover/widgets/sliver_list_page/sort_options_menu.dart';
 import 'package:material_ui/material_ui.dart';
 
 class VolumesPage extends HookConsumerWidget {
@@ -36,23 +34,18 @@ class VolumesPage extends HookConsumerWidget {
 
     return Scaffold(
       extendBody: true,
-      body: EntitiesPage(
+      body: VolumesListPage(
         title: l.volumes,
-        filterController: controller,
-        appBarActions: [
-          OrderedSortMenu(
-            orderBy: orderBy.value,
-            onOrderByChanged: (value) => orderBy.value = value,
-            sortDirection: sortDirection.value,
-            onSortDirectionChanged: (value) => sortDirection.value = value,
-            hideRead: hideRead.value,
-            onHideReadChanged: (value) => hideRead.value = value,
-          ),
-        ],
-        sliver: AsyncSliver(
-          asyncValue: volumes,
-          data: (data) => SliverVolumesPageBody(volumes: data),
+        controller: controller,
+        sortMenu: OrderedSortMenu(
+          orderBy: orderBy.value,
+          onOrderByChanged: (value) => orderBy.value = value,
+          sortDirection: sortDirection.value,
+          onSortDirectionChanged: (value) => sortDirection.value = value,
+          hideRead: hideRead.value,
+          onHideReadChanged: (value) => hideRead.value = value,
         ),
+        volumes: volumes,
       ),
     );
   }
