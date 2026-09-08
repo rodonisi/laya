@@ -28,9 +28,10 @@ class ChaptersPage extends HookConsumerWidget {
       filteredChaptersProvider(
         seriesId: seriesId,
         volumeId: volumeId,
-        hideRead: hideRead.value,
         query: controller.text,
+        orderBy: orderBy.value,
         direction: sortDirection.value,
+        hideRead: hideRead.value,
       ),
     );
 
