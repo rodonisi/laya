@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:kover/database/app_database.dart';
+import 'package:kover/database/dao/list_query_helpers.dart';
 import 'package:kover/database/tables/chapters.dart';
 import 'package:kover/database/tables/collections.dart';
 import 'package:kover/database/tables/progress.dart';
@@ -47,8 +48,7 @@ class CollectionsDao extends DatabaseAccessor<AppDatabase>
   }) {
     final pagesReadSum = readingProgress.pagesRead.sum();
     final totalPages = chapters.pages.sum();
-    final progressRatio = pagesReadSum.cast<double>() /
-        totalPages.cast<double>();
+    final progress = progressRatio(pagesReadSum, totalPages);
 
     final q = select(collections).join([
       leftOuterJoin(
@@ -64,7 +64,7 @@ class CollectionsDao extends DatabaseAccessor<AppDatabase>
     ]);
 
     if (query.isNotEmpty) {
-      q.where(collections.title.contains(query) | collections.summary.contains(query));
+      q.where(containsAny(query, [collections.title, collections.summary]));
     }
 
     q
@@ -72,7 +72,7 @@ class CollectionsDao extends DatabaseAccessor<AppDatabase>
         OrderingTerm(
           expression: switch (orderBy) {
             .name => collections.title,
-            .progress => progressRatio,
+            .progress => progress,
             .lastRead => readingProgress.lastModified.max(),
             .dateAdded => collections.created,
             .dateUpdated => collections.lastModified,
@@ -83,14 +83,6 @@ class CollectionsDao extends DatabaseAccessor<AppDatabase>
       ..groupBy([collections.id]);
 
     return q.map((row) => row.readTable(collections));
-  }
-
-  /// Search collections by [query]
-  Future<List<Collection>> searchCollections(String query) {
-    return managers.collections
-        .filter((f) => f.title.contains(query) | f.summary.contains(query))
-        .orderBy((o) => o.title.asc())
-        .get();
   }
 
   /// Get all collection ids missing covers.

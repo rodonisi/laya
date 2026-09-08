@@ -5,7 +5,7 @@ import 'package:kover/models/enums/order_by_option.dart';
 import 'package:kover/models/enums/sort_direction.dart';
 import 'package:kover/riverpod/managers/sync_manager/sync_manager.dart';
 import 'package:kover/riverpod/providers/reading_lists.dart';
-import 'package:kover/widgets/sliver_list_page/series_sort_options_menu.dart';
+import 'package:kover/widgets/sliver_list_page/sort_options_menu.dart';
 import 'package:kover/widgets/sliver_list_page/sliver_page_shell.dart';
 import 'package:kover/widgets/sliver_list_page/sliver_reading_lists_page_body.dart';
 import 'package:kover/widgets/util/async_value.dart';
@@ -49,7 +49,7 @@ class ReadingListsPageContent extends HookConsumerWidget {
       title: l.readingLists,
       filterController: controller,
       appBarActions: [
-        SeriesSortOptionsMenu(
+        UnorderedSortMenu(
           sortDirection: sortDirection.value,
           onSortDirectionChanged: (direction) =>
               sortDirection.value = direction,

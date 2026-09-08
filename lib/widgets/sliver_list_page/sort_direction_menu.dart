@@ -1,8 +1,8 @@
 import 'package:flutter_context_menu/flutter_context_menu.dart';
 import 'package:kover/generated/l10n/app_localizations.dart';
 import 'package:kover/models/enums/sort_direction.dart';
+import 'package:kover/utils/constants/kover_icons.dart';
 import 'package:kover/widgets/context_menu/context_menu_button.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:material_ui/material_ui.dart';
 
 class SortDirectionMenu extends StatelessWidget {
@@ -21,8 +21,8 @@ class SortDirectionMenu extends StatelessWidget {
     return ContextMenuButton(
       icon: Icon(
         sortDirection == .ascending
-            ? LucideIcons.arrowDownNarrowWide
-            : LucideIcons.arrowDownWideNarrow,
+            ? KoverIcons.ascending
+            : KoverIcons.descending,
       ),
       menu: ContextMenu(
         entries: [
@@ -43,6 +43,6 @@ class SortDirectionMenu extends StatelessWidget {
   }
 
   Icon? _getItemIcon(bool selected) {
-    return selected ? const Icon(LucideIcons.check) : null;
+    return selected ? const Icon(KoverIcons.check) : null;
   }
 }

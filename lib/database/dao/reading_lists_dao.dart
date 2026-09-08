@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:kover/database/app_database.dart';
+import 'package:kover/database/dao/list_query_helpers.dart';
 import 'package:kover/database/tables/progress.dart';
 import 'package:kover/database/tables/reading_lists.dart';
 import 'package:kover/mapping/enums/sort_direction.dart';
@@ -38,8 +39,7 @@ class ReadingListsDao extends DatabaseAccessor<AppDatabase>
   }) {
     final pagesReadSum = readingProgress.pagesRead.sum();
     final totalPages = chapters.pages.sum();
-    final progressRatio = pagesReadSum.cast<double>() /
-        totalPages.cast<double>();
+    final progress = progressRatio(pagesReadSum, totalPages);
 
     final q = select(readingLists).join([
       leftOuterJoin(
@@ -57,10 +57,7 @@ class ReadingListsDao extends DatabaseAccessor<AppDatabase>
     ]);
 
     if (query.isNotEmpty) {
-      q.where(
-        readingLists.title.contains(query) |
-            readingLists.summary.contains(query),
-      );
+      q.where(containsAny(query, [readingLists.title, readingLists.summary]));
     }
 
     q
@@ -68,7 +65,7 @@ class ReadingListsDao extends DatabaseAccessor<AppDatabase>
         OrderingTerm(
           expression: switch (orderBy) {
             .name => readingLists.title,
-            .progress => progressRatio,
+            .progress => progress,
             .lastRead => readingProgress.lastModified.max(),
             .dateAdded => readingLists.created,
             .dateUpdated => readingLists.lastModified,

@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:kover/database/app_database.dart';
 import 'package:kover/database/dao/chapters_dao.dart';
+import 'package:kover/database/dao/list_query_helpers.dart';
 import 'package:kover/database/dao/volumes_dao.dart';
 import 'package:kover/database/tables/chapters.dart';
 import 'package:kover/database/tables/libraries.dart';
@@ -43,12 +44,10 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
   SeriesDao(super.attachedDatabase);
 
   Expression<bool> get _hasUnreadProgress =>
-      readingProgress.pagesRead.sum().isNull() |
-      readingProgress.pagesRead.sum().isSmallerThan(series.pages);
+      hasUnreadProgress(readingProgress.pagesRead.sum(), series.pages);
 
   Expression<double> get _progressRatio =>
-      readingProgress.pagesRead.sum().cast<double>() /
-      series.pages.cast<double>();
+      progressRatio(readingProgress.pagesRead.sum(), series.pages);
 
   OrderingTerm _orderingTerm(UnorderedSortOption column, OrderingMode mode) {
     return switch (column) {
@@ -114,10 +113,15 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
             readingProgress.seriesId.equalsExp(series.id),
           ),
         ]))..where(
-          series.name.contains(query) |
-              series.sortName.contains(query) |
-              series.localizedName.contains(query) |
-              series.originalName.contains(query),
+          containsAny(
+            query,
+            [
+              series.name,
+              series.sortName,
+              series.localizedName,
+              series.originalName,
+            ],
+          ),
         );
 
     if (libraryId != null) {
@@ -331,6 +335,7 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
 
   /// Watch series on deck.
   Stream<List<SeriesData>> watchOnDeck({
+    String query = '',
     UnorderedSortOption orderBy = .lastRead,
     SortDirection direction = .descending,
   }) {
@@ -348,6 +353,20 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
             progressDays: progressDays,
             updateDays: updateDays,
           );
+
+          if (query.isNotEmpty) {
+            q.where(
+              containsAny(
+                query,
+                [
+                  series.name,
+                  series.sortName,
+                  series.localizedName,
+                  series.originalName,
+                ],
+              ),
+            );
+          }
 
           q.orderBy([
             _orderingTerm(orderBy, direction.toOrderingMode()),
@@ -379,29 +398,6 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
   Future<List<SeriesData>> getOnDeck() async {
     final query = await _getOnDeckQueryWithSettings();
     return await query
-        .map(
-          (row) => row.readTable(series),
-        )
-        .get();
-  }
-
-  Future<List<SeriesData>> filterOnDeck({
-    required String query,
-    UnorderedSortOption orderBy = .progress,
-    SortDirection direction = .ascending,
-  }) async {
-    final q = await _getOnDeckQueryWithSettings();
-
-    q.where(
-      series.name.contains(query) |
-          series.sortName.contains(query) |
-          series.localizedName.contains(query) |
-          series.originalName.contains(query),
-    );
-
-    q.orderBy([_orderingTerm(orderBy, direction.toOrderingMode())]);
-
-    return q
         .map(
           (row) => row.readTable(series),
         )
@@ -485,13 +481,45 @@ class SeriesDao extends DatabaseAccessor<AppDatabase> with _$SeriesDaoMixin {
         .map((i) => i != null && i.isWantToRead);
   }
 
-  /// Watch the want-to-read list
-  Stream<List<SeriesData>> watchWantToReadList() {
-    return (select(wantToRead).join([
-          innerJoin(series, series.id.equalsExp(wantToRead.seriesId)),
-        ])..where(wantToRead.isWantToRead.equals(true)))
-        .map((res) => res.readTable(series))
-        .watch();
+  /// Watch the want-to-read list, optionally filtered by [query], ordered by
+  /// [orderBy] in [direction], and excluding fully read series when
+  /// [hideRead] is true.
+  Stream<List<SeriesData>> watchWantToReadList({
+    String query = '',
+    UnorderedSortOption orderBy = .name,
+    SortDirection direction = .ascending,
+    bool hideRead = false,
+  }) {
+    final q = select(series).join([
+      innerJoin(wantToRead, wantToRead.seriesId.equalsExp(series.id)),
+      leftOuterJoin(
+        readingProgress,
+        readingProgress.seriesId.equalsExp(series.id),
+      ),
+    ])..where(wantToRead.isWantToRead.equals(true));
+
+    if (query.isNotEmpty) {
+      q.where(
+        containsAny(
+          query,
+          [
+            series.name,
+            series.sortName,
+            series.localizedName,
+            series.originalName,
+          ],
+        ),
+      );
+    }
+
+    q
+      ..orderBy([_orderingTerm(orderBy, direction.toOrderingMode())])
+      ..groupBy(
+        [series.id],
+        having: hideRead ? _hasUnreadProgress : null,
+      );
+
+    return q.map((res) => res.readTable(series)).watch();
   }
 
   /// Get all locally modified want-to-read entries

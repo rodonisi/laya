@@ -120,12 +120,13 @@ Stream<SeriesMetadataModel> seriesMetadata(
 @riverpod
 Stream<List<SeriesModel>> onDeck(
   Ref ref, {
+  String query = '',
   UnorderedSortOption orderBy = .lastRead,
   SortDirection direction = .descending,
 }) {
   final repo = ref.watch(seriesRepositoryProvider);
   return repo
-      .watchOnDeck(orderBy: orderBy, direction: direction)
+      .watchOnDeck(query: query, orderBy: orderBy, direction: direction)
       .distinct(listEquals);
 }
 

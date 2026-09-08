@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:kover/database/app_database.dart';
+import 'package:kover/database/dao/list_query_helpers.dart';
 import 'package:kover/database/tables/chapters.dart';
 import 'package:kover/database/tables/libraries.dart';
 import 'package:kover/database/tables/progress.dart';
@@ -59,7 +60,7 @@ class ChaptersDao extends DatabaseAccessor<AppDatabase>
     final q = managers.chapters
         .filter((f) => f.seriesId.libraryId.includeInSearch(true))
         .filter(
-          (f) => f.titleName.contains(query) | f.titleName.contains(query),
+          (f) => f.titleName.contains(query),
         );
 
     if (volumeId != null) {
@@ -119,7 +120,7 @@ class ChaptersDao extends DatabaseAccessor<AppDatabase>
     }
 
     if (query.isNotEmpty) {
-      q.where(chapters.title.contains(query));
+      q.where(containsAny(query, [chapters.title]));
     }
 
     q
@@ -139,7 +140,7 @@ class ChaptersDao extends DatabaseAccessor<AppDatabase>
       ..groupBy(
         [chapters.id],
         having: hideRead
-            ? pagesReadSum.isNull() | pagesReadSum.isSmallerThan(chapters.pages)
+            ? hasUnreadProgress(pagesReadSum, chapters.pages)
             : null,
       );
 

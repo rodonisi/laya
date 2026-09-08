@@ -84,20 +84,6 @@ class const SeriesRepository({
     return result.map(SeriesModel.fromDatabaseModel).toList();
   }
 
-  Future<List<SeriesModel>> filterOnDeck(
-    String query, {
-    UnorderedSortOption orderBy = .progress,
-    SortDirection direction = .ascending,
-  }) async {
-    final result = await _db.seriesDao.filterOnDeck(
-      query: query,
-      orderBy: orderBy,
-      direction: direction,
-    );
-
-    return result.map(SeriesModel.fromDatabaseModel).toList();
-  }
-
   Future<List<int>> allChapterIds({required int seriesId}) async {
     final chapters = await _db.seriesDao.allChapters(seriesId: seriesId).get();
 
@@ -187,11 +173,12 @@ class const SeriesRepository({
 
   /// Watch series marked as on deck
   Stream<List<SeriesModel>> watchOnDeck({
+    String query = '',
     UnorderedSortOption orderBy = .lastRead,
     SortDirection direction = .descending,
   }) {
     return _db.seriesDao
-        .watchOnDeck(orderBy: orderBy, direction: direction)
+        .watchOnDeck(query: query, orderBy: orderBy, direction: direction)
         .map(
           (list) => list.map(SeriesModel.fromDatabaseModel).toList(),
         );

@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:kover/database/app_database.dart';
 import 'package:kover/database/dao/chapters_dao.dart';
+import 'package:kover/database/dao/list_query_helpers.dart';
 import 'package:kover/database/tables/chapters.dart';
 import 'package:kover/database/tables/libraries.dart';
 import 'package:kover/database/tables/progress.dart';
@@ -92,8 +93,7 @@ class VolumesDao extends DatabaseAccessor<AppDatabase> with _$VolumesDaoMixin {
   }) {
     final pagesReadSum = readingProgress.pagesRead.sum();
     final totalPages = chapters.pages.sum();
-    final progressRatio =
-        pagesReadSum.cast<double>() / totalPages.cast<double>();
+    final progress = progressRatio(pagesReadSum, totalPages);
 
     final q = select(volumes).join([
       leftOuterJoin(chapters, chapters.volumeId.equalsExp(volumes.id)),
@@ -106,7 +106,7 @@ class VolumesDao extends DatabaseAccessor<AppDatabase> with _$VolumesDaoMixin {
     q.where(volumes.seriesId.equals(seriesId));
 
     if (query.isNotEmpty) {
-      q.where(volumes.name.contains(query));
+      q.where(containsAny(query, [volumes.name]));
     }
 
     q
@@ -115,7 +115,7 @@ class VolumesDao extends DatabaseAccessor<AppDatabase> with _$VolumesDaoMixin {
           expression: switch (orderBy) {
             .sortOrder => volumes.minNumber,
             .name => volumes.name,
-            .progress => progressRatio,
+            .progress => progress,
             .lastRead => readingProgress.lastModified.max(),
             .dateAdded => volumes.created,
             .dateUpdated => volumes.lastModified,
@@ -125,9 +125,7 @@ class VolumesDao extends DatabaseAccessor<AppDatabase> with _$VolumesDaoMixin {
       ])
       ..groupBy(
         [volumes.id],
-        having: hideRead
-            ? pagesReadSum.isNull() | pagesReadSum.isSmallerThan(totalPages)
-            : null,
+        having: hideRead ? hasUnreadProgress(pagesReadSum, totalPages) : null,
       );
 
     return q.map((row) => row.readTable(volumes));
