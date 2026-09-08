@@ -1,7 +1,7 @@
 import 'package:kover/models/reading_list_model.dart';
 import 'package:kover/widgets/cards/reading_list_card.dart';
 import 'package:kover/widgets/lists/list_entries/reading_list_list_entry.dart';
-import 'package:kover/widgets/sliver_list_page/sliver_page_shell.dart';
+import 'package:kover/widgets/sliver_list_page/entities_list_page.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 

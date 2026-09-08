@@ -6,7 +6,7 @@ import 'package:kover/models/enums/sort_direction.dart';
 import 'package:kover/riverpod/providers/collections.dart';
 import 'package:kover/riverpod/providers/library.dart';
 import 'package:kover/riverpod/providers/series.dart';
-import 'package:kover/widgets/sliver_list_page/sliver_series_page_body.dart';
+import 'package:kover/widgets/sliver_list_page/series_list_page.dart';
 import 'package:kover/widgets/sliver_list_page/sort_options_menu.dart';
 import 'package:kover/widgets/util/async_value.dart';
 import 'package:kover/widgets/util/login_guard.dart';

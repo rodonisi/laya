@@ -5,7 +5,7 @@ import 'package:kover/models/enums/order_by_option.dart';
 import 'package:kover/models/enums/sort_direction.dart';
 import 'package:kover/riverpod/managers/sync_manager/sync_manager.dart';
 import 'package:kover/riverpod/providers/want_to_read.dart';
-import 'package:kover/widgets/sliver_list_page/sliver_series_page_body.dart';
+import 'package:kover/widgets/sliver_list_page/series_list_page.dart';
 import 'package:kover/widgets/sliver_list_page/sort_options_menu.dart';
 import 'package:kover/widgets/util/login_guard.dart';
 import 'package:material_ui/material_ui.dart';

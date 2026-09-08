@@ -5,7 +5,7 @@ import 'package:kover/models/chapter_model.dart';
 import 'package:kover/models/enums/order_by_option.dart';
 import 'package:kover/models/enums/sort_direction.dart';
 import 'package:kover/riverpod/providers/chapter.dart';
-import 'package:kover/widgets/sliver_list_page/sliver_chapters_page_body.dart';
+import 'package:kover/widgets/sliver_list_page/chapters_list_page.dart';
 import 'package:kover/widgets/sliver_list_page/sort_options_menu.dart';
 import 'package:material_ui/material_ui.dart';
 

@@ -4,7 +4,7 @@ import 'package:kover/generated/l10n/app_localizations.dart';
 import 'package:kover/models/enums/order_by_option.dart';
 import 'package:kover/models/enums/sort_direction.dart';
 import 'package:kover/riverpod/providers/volume.dart';
-import 'package:kover/widgets/sliver_list_page/sliver_volumes_page_body.dart';
+import 'package:kover/widgets/sliver_list_page/volumes_list_page.dart.dart';
 import 'package:kover/widgets/sliver_list_page/sort_options_menu.dart';
 import 'package:material_ui/material_ui.dart';
 
