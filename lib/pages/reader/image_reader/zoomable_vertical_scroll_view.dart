@@ -142,8 +142,9 @@ class ZoomableVerticalScrollView extends HookWidget {
 
       if (gestureIncludedPinch.value) return;
 
-      if (!lockHorizontalPan)
+      if (!lockHorizontalPan) {
         gestureController.panHorizontally(focalPointDelta.dx);
+      }
       scrollByVisualDelta(focalPointDelta.dy);
     }
 
@@ -174,10 +175,11 @@ class ZoomableVerticalScrollView extends HookWidget {
           onPointerSignal: (pointerSignal) {
             if (pointerSignal is PointerScrollEvent) {
               scrollByVisualDelta(-pointerSignal.scrollDelta.dy);
-              if (!lockHorizontalPan)
+              if (!lockHorizontalPan) {
                 gestureController.panHorizontally(
                   -pointerSignal.scrollDelta.dx,
                 );
+              }
             }
           },
           child: GestureDetector(
