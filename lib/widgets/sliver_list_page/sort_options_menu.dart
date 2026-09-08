@@ -40,7 +40,11 @@ class UnorderedSortMenu extends StatelessWidget {
           (l.name, orderBy == .name, () => onOrderByChanged(.name)),
           (l.lastRead, orderBy == .lastRead, () => onOrderByChanged(.lastRead)),
           (l.progress, orderBy == .progress, () => onOrderByChanged(.progress)),
-          (l.dateAdded, orderBy == .dateAdded, () => onOrderByChanged(.dateAdded)),
+          (
+            l.dateAdded,
+            orderBy == .dateAdded,
+            () => onOrderByChanged(.dateAdded),
+          ),
           (
             l.lastModified,
             orderBy == .dateUpdated,
@@ -84,11 +88,19 @@ class OrderedSortMenu extends StatelessWidget {
         hideRead: hideRead,
         onHideReadChanged: onHideReadChanged,
         orderEntries: [
-          (l.sortOrder, orderBy == .sortOrder, () => onOrderByChanged(.sortOrder)),
+          (
+            l.sortOrder,
+            orderBy == .sortOrder,
+            () => onOrderByChanged(.sortOrder),
+          ),
           (l.name, orderBy == .name, () => onOrderByChanged(.name)),
           (l.lastRead, orderBy == .lastRead, () => onOrderByChanged(.lastRead)),
           (l.progress, orderBy == .progress, () => onOrderByChanged(.progress)),
-          (l.dateAdded, orderBy == .dateAdded, () => onOrderByChanged(.dateAdded)),
+          (
+            l.dateAdded,
+            orderBy == .dateAdded,
+            () => onOrderByChanged(.dateAdded),
+          ),
           (
             l.lastModified,
             orderBy == .dateUpdated,

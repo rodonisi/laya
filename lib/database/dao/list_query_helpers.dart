@@ -5,7 +5,9 @@ Expression<bool> containsAny(
   String query,
   Iterable<GeneratedColumn<String>> columns,
 ) {
-  return columns.map((column) => column.contains(query)).reduce((a, b) => a | b);
+  return columns
+      .map((column) => column.contains(query))
+      .reduce((a, b) => a | b);
 }
 
 /// Progress ratio (pages read / total pages) as a double expression.
