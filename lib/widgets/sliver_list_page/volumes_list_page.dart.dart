@@ -1,7 +1,7 @@
 import 'package:kover/models/volume_model.dart';
 import 'package:kover/widgets/cards/volume_card.dart';
 import 'package:kover/widgets/lists/list_entries/volume_list_entry.dart';
-import 'package:kover/widgets/sliver_list_page/entities_list_page.dart';
+import 'package:kover/widgets/list_page/entities_list_page.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 

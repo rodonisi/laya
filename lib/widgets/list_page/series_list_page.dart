@@ -1,7 +1,7 @@
 import 'package:kover/models/series_model.dart';
 import 'package:kover/widgets/cards/series_card.dart';
-import 'package:kover/widgets/lists/list_entries/series_list_entry.dart';
 import 'package:kover/widgets/list_page/entities_list_page.dart';
+import 'package:kover/widgets/lists/list_entries/series_list_entry.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
