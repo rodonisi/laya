@@ -74,6 +74,15 @@ class PdfReaderSettingsBottomSheet extends ConsumerWidget {
                               .setReaderMode(newValue);
                         },
                       ),
+                      if (settings.readerMode == .vertical)
+                        BooleanOption(
+                          title: l.lockHorizontalPan,
+                          icon: KoverIcons.horizontalPan,
+                          value: settings.lockHorizontalPan,
+                          onChanged: (newValue) async => await ref
+                              .read(pdfSettings.notifier)
+                              .setLockHorizontalPan(newValue),
+                        ),
                       if (SafePlatform.isMobile)
                         OrientationOption(seriesId: seriesId),
                       BooleanOption(

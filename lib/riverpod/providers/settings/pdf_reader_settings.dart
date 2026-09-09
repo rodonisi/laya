@@ -19,6 +19,7 @@ sealed class PdfReaderSettingsState with _$PdfReaderSettingsState {
   const factory PdfReaderSettingsState({
     @Default(PdfReaderMode.vertical) PdfReaderMode readerMode,
     @Default(true) bool ignoreSafeAreas,
+    @Default(false) bool lockHorizontalPan,
   }) = _PdfReaderSettingsState;
 
   factory PdfReaderSettingsState.fromJson(Map<String, Object?> json) =>
@@ -68,6 +69,16 @@ class PdfReaderSettings extends _$PdfReaderSettings {
         'value': newMode,
         'reader': 'pdf',
       },
+    );
+  }
+
+  Future<void> setLockHorizontalPan(bool value) async {
+    final current = await future;
+
+    state = AsyncData(current.copyWith(lockHorizontalPan: value));
+    log.info(
+      'set lock horizontal pan',
+      attributes: {'value': value, 'reader': 'pdf'},
     );
   }
 
