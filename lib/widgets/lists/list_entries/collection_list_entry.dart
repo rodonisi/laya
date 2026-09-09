@@ -26,7 +26,7 @@ class CollectionListEntry extends ConsumerWidget {
           cover: CollectionCoverImage(collectionId: collectionId),
           trailing: const Icon(KoverIcons.chevronRight),
           onTap: () {
-            CollectionSeriesRoute(collectionId: collectionId).go(context);
+            CollectionSeriesRoute(collectionId: collectionId).push(context);
           },
         );
       },

@@ -30,7 +30,7 @@ class ReadingListListEntry extends ConsumerWidget {
           cover: ReadingListCoverImage(readingListId: readingListId),
           trailing: const Icon(KoverIcons.chevronRight),
           onTap: () {
-            ReadingListDetailsRoute(readingListId: readingListId).go(context);
+            ReadingListDetailsRoute(readingListId: readingListId).push(context);
           },
         );
       },

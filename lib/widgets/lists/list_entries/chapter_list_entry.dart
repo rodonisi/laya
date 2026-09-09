@@ -30,7 +30,7 @@ class ChapterListEntry extends ConsumerWidget {
             ChapterDetailRoute(
               seriesId: seriesId,
               chapterId: chapterId,
-            ).go(context);
+            ).push(context);
           },
         );
       },

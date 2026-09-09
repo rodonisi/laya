@@ -29,7 +29,7 @@ class VolumeListEntry extends ConsumerWidget {
             VolumeDetailRoute(
               seriesId: data.seriesId,
               volumeId: volumeId,
-            ).go(context);
+            ).push(context);
           },
         );
       },
