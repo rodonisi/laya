@@ -6,7 +6,8 @@ import 'package:kover/utils/constants/kover_icons.dart';
 import 'package:kover/widgets/context_menu/context_menu_button.dart';
 import 'package:material_ui/material_ui.dart';
 
-/// Sort menu for unordered entities (series, collections, reading lists).
+/// Sort menu for unordered entities (series, collections, libraries) that do
+/// not define a [OrderedSortOption.sortOrder].
 class UnorderedSortMenu extends StatelessWidget {
   final SortDirection sortDirection;
   final void Function(SortDirection) onSortDirectionChanged;

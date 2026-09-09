@@ -15,15 +15,9 @@ import 'package:rxdart/rxdart.dart';
 
 part 'chapters_dao.g.dart';
 
-/// Which chapter slice of a series to return.
 enum ChapterKind {
-  /// Regular chapters (above the single-volume threshold).
   chapters,
-
-  /// Chapters flagged as storyline.
   storyline,
-
-  /// Chapters flagged as special.
   specials,
 }
 

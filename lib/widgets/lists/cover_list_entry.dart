@@ -27,7 +27,7 @@ class CoverListEntry extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Card.filled(
       clipBehavior: .hardEdge,
-      margin: margin,
+      margin: margin ?? .zero,
       child: InkWell(
         onTap: onTap,
         child: Padding(

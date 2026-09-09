@@ -9,11 +9,11 @@ import 'package:kover/widgets/list_page/sort_options_menu.dart';
 import 'package:kover/widgets/util/login_guard.dart';
 import 'package:material_ui/material_ui.dart';
 
-class RecentlyAddedPage extends HookConsumerWidget {
+class RecentlyAddedPage extends StatelessWidget {
   const new({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return const Scaffold(
       extendBody: true,
       body: LoginGuard(

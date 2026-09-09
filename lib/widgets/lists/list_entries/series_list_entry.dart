@@ -25,7 +25,6 @@ class SeriesListEntry extends ConsumerWidget {
           progress: progress.value,
           cover: SeriesCoverImage(seriesId: seriesId),
           trailing: const Icon(KoverIcons.chevronRight),
-          margin: .zero,
           onTap: () {
             SeriesDetailRoute(seriesId: seriesId).push(context);
           },
