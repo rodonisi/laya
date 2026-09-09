@@ -1,14 +1,25 @@
 import 'package:drift/drift.dart';
 import 'package:kover/database/app_database.dart';
+import 'package:kover/database/dao/list_query_helpers.dart';
 import 'package:kover/database/tables/chapters.dart';
 import 'package:kover/database/tables/libraries.dart';
 import 'package:kover/database/tables/progress.dart';
 import 'package:kover/database/tables/series.dart';
 import 'package:kover/database/tables/series_metadata.dart';
+import 'package:kover/mapping/enums/sort_direction.dart';
+import 'package:kover/models/enums/order_by_option.dart';
 import 'package:kover/models/enums/person_role.dart';
+import 'package:kover/models/enums/sort_direction.dart';
+import 'package:kover/utils/data_constants.dart';
 import 'package:rxdart/rxdart.dart';
 
 part 'chapters_dao.g.dart';
+
+enum ChapterKind {
+  chapters,
+  storyline,
+  specials,
+}
 
 @DriftAccessor(
   tables: [
@@ -43,7 +54,7 @@ class ChaptersDao extends DatabaseAccessor<AppDatabase>
     final q = managers.chapters
         .filter((f) => f.seriesId.libraryId.includeInSearch(true))
         .filter(
-          (f) => f.titleName.contains(query) | f.titleName.contains(query),
+          (f) => f.titleName.contains(query),
         );
 
     if (volumeId != null) {
@@ -64,6 +75,70 @@ class ChaptersDao extends DatabaseAccessor<AppDatabase>
     );
 
     return q.get();
+  }
+
+  /// Watch chapters for series [seriesId], sliced by [kind], optionally
+  /// restricted to [volumeId], filtered by [query] (chapter title), and
+  /// excluding fully read chapters when [hideRead] is true.
+  MultiSelectable<Chapter> watchFilteredChapters({
+    required int seriesId,
+    int? volumeId,
+    ChapterKind kind = .chapters,
+    String query = '',
+    OrderedSortOption orderBy = .sortOrder,
+    SortDirection direction = .ascending,
+    bool hideRead = false,
+  }) {
+    final pagesReadSum = readingProgress.pagesRead.sum();
+
+    final q = select(chapters).join([
+      leftOuterJoin(
+        readingProgress,
+        readingProgress.chapterId.equalsExp(chapters.id),
+      ),
+    ]);
+
+    q.where(
+      chapters.seriesId.equals(seriesId) &
+          switch (kind) {
+            .chapters => chapters.minNumber.isBiggerThanValue(
+              DataConstants.singleVolumeChapterMinNumber,
+            ),
+            .storyline => chapters.isStoryline.equals(true),
+            .specials => chapters.isSpecial.equals(true),
+          },
+    );
+
+    if (volumeId != null) {
+      q.where(chapters.volumeId.equals(volumeId));
+    }
+
+    if (query.isNotEmpty) {
+      q.where(containsAny(query, [chapters.title]));
+    }
+
+    q
+      ..orderBy([
+        OrderingTerm(
+          expression: switch (orderBy) {
+            .sortOrder => chapters.sortOrder,
+            .name => chapters.title,
+            .progress => pagesReadSum,
+            .lastRead => readingProgress.lastModified.max(),
+            .dateAdded => chapters.created,
+            .dateUpdated => chapters.lastModified,
+          },
+          mode: direction.toOrderingMode(),
+        ),
+      ])
+      ..groupBy(
+        [chapters.id],
+        having: hideRead
+            ? hasUnreadProgress(pagesReadSum, chapters.pages)
+            : null,
+      );
+
+    return q.map((row) => row.readTable(chapters));
   }
 
   /// Watch pages read for chapter [chapterId]

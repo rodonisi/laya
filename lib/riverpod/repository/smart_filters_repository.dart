@@ -1,4 +1,6 @@
 import 'package:kover/database/app_database.dart';
+import 'package:kover/models/enums/order_by_option.dart';
+import 'package:kover/models/enums/sort_direction.dart';
 import 'package:kover/models/reading_list_model.dart';
 import 'package:kover/models/series_model.dart';
 import 'package:kover/models/smart_filter_model.dart';
@@ -33,18 +35,40 @@ class const SmartFiltersRepository({
   }
 
   /// Watch the series linked to [smartFilterId].
-  Stream<List<SeriesModel>> watchSeries(int smartFilterId) {
+  Stream<List<SeriesModel>> watchSeries(
+    int smartFilterId, {
+    String query = '',
+    UnorderedSortOption orderBy = .name,
+    SortDirection direction = .ascending,
+    bool hideRead = false,
+  }) {
     return _db.smartFiltersDao
-        .watchSeriesForSmartFilter(smartFilterId)
+        .watchSeriesForSmartFilter(
+          smartFilterId,
+          query: query,
+          orderBy: orderBy,
+          direction: direction,
+          hideRead: hideRead,
+        )
         .map(
           (series) => series.map(SeriesModel.fromDatabaseModel).toList(),
         );
   }
 
   /// Watch the reading lists linked to [smartFilterId].
-  Stream<List<ReadingListModel>> watchReadingLists(int smartFilterId) {
+  Stream<List<ReadingListModel>> watchReadingLists(
+    int smartFilterId, {
+    String query = '',
+    UnorderedSortOption orderBy = .name,
+    SortDirection direction = .ascending,
+  }) {
     return _db.smartFiltersDao
-        .watchReadingListsForSmartFilter(smartFilterId)
+        .watchReadingListsForSmartFilter(
+          smartFilterId,
+          query: query,
+          orderBy: orderBy,
+          direction: direction,
+        )
         .map(
           (readingLists) =>
               readingLists.map(ReadingListModel.fromDatabaseModel).toList(),

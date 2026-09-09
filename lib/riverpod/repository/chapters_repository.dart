@@ -1,5 +1,8 @@
 import 'package:kover/database/app_database.dart';
+import 'package:kover/database/dao/chapters_dao.dart';
 import 'package:kover/models/chapter_model.dart';
+import 'package:kover/models/enums/order_by_option.dart';
+import 'package:kover/models/enums/sort_direction.dart';
 import 'package:kover/models/image_model.dart';
 import 'package:kover/riverpod/providers/client.dart';
 import 'package:kover/riverpod/repository/database.dart';
@@ -68,6 +71,34 @@ class const ChaptersRepository({
     );
 
     return results.map(ChapterModel.fromDatabaseModel).toList();
+  }
+
+  /// Watch chapters for series [seriesId], sliced by [kind], optionally
+  /// restricted to [volumeId], filtered by [query], and excluding fully read
+  /// chapters when [hideRead] is true.
+  Stream<List<ChapterModel>> watchFilteredChapters({
+    required int seriesId,
+    int? volumeId,
+    ChapterKind kind = .chapters,
+    String query = '',
+    OrderedSortOption orderBy = .sortOrder,
+    SortDirection direction = .ascending,
+    bool hideRead = false,
+  }) {
+    return _db.chaptersDao
+        .watchFilteredChapters(
+          seriesId: seriesId,
+          volumeId: volumeId,
+          kind: kind,
+          query: query,
+          orderBy: orderBy,
+          direction: direction,
+          hideRead: hideRead,
+        )
+        .watch()
+        .map(
+          (chapters) => chapters.map(ChapterModel.fromDatabaseModel).toList(),
+        );
   }
 
   /// Watch the number of pages read for [chapterId]

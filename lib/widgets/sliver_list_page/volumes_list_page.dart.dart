@@ -1,21 +1,21 @@
-import 'package:kover/models/series_model.dart';
-import 'package:kover/widgets/cards/series_card.dart';
-import 'package:kover/widgets/lists/list_entries/series_list_entry.dart';
+import 'package:kover/models/volume_model.dart';
+import 'package:kover/widgets/cards/volume_card.dart';
+import 'package:kover/widgets/lists/list_entries/volume_list_entry.dart';
 import 'package:kover/widgets/list_page/entities_list_page.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-class SeriesListPage extends StatelessWidget {
+class VolumesListPage extends StatelessWidget {
   final String title;
   final TextEditingController controller;
-  final AsyncValue<List<SeriesModel>> series;
+  final AsyncValue<List<VolumeModel>> volumes;
   final Widget? sortMenu;
 
   const new({
     super.key,
     required this.title,
     required this.controller,
-    required this.series,
+    required this.volumes,
     this.sortMenu,
   });
 
@@ -24,12 +24,12 @@ class SeriesListPage extends StatelessWidget {
     return EntitiesListPage(
       title: title,
       filterController: controller,
-      items: series,
+      items: volumes,
       sortMenu: sortMenu,
-      gridBuilder: (context, series) =>
-          SeriesCard(key: ValueKey(series.id), seriesId: series.id),
-      listBuilder: (context, series) =>
-          SeriesListEntry(key: ValueKey(series.id), seriesId: series.id),
+      gridBuilder: (context, volume) =>
+          VolumeCard(key: ValueKey(volume.id), volumeId: volume.id),
+      listBuilder: (context, volume) =>
+          VolumeListEntry(key: ValueKey(volume.id), volumeId: volume.id),
     );
   }
 }

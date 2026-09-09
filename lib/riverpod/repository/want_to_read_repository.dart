@@ -1,5 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:kover/database/app_database.dart';
+import 'package:kover/models/enums/order_by_option.dart';
+import 'package:kover/models/enums/sort_direction.dart';
 import 'package:kover/models/series_model.dart';
 import 'package:kover/riverpod/providers/client.dart';
 import 'package:kover/riverpod/repository/database.dart';
@@ -27,11 +29,23 @@ class WantToReadRepository {
     return _db.seriesDao.watchWantToRead(seriesId);
   }
 
-  /// Watch all series in want-to-read
-  Stream<List<SeriesModel>> watchWantToReadList() {
-    return _db.seriesDao.watchWantToReadList().map(
-      (list) => list.map(SeriesModel.fromDatabaseModel).toList(),
-    );
+  /// Watch all series in want-to-read, optionally filtered by [query], ordered
+  /// by [orderBy] in [direction], and excluding fully read series when
+  /// [hideRead] is true.
+  Stream<List<SeriesModel>> watchWantToReadList({
+    String query = '',
+    UnorderedSortOption orderBy = .name,
+    SortDirection direction = .ascending,
+    bool hideRead = false,
+  }) {
+    return _db.seriesDao
+        .watchWantToReadList(
+          query: query,
+          orderBy: orderBy,
+          direction: direction,
+          hideRead: hideRead,
+        )
+        .map((list) => list.map(SeriesModel.fromDatabaseModel).toList());
   }
 
   /// Add [seriesId] to want-to-read

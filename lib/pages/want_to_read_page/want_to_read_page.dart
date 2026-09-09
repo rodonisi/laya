@@ -1,14 +1,14 @@
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:kover/generated/l10n/app_localizations.dart';
+import 'package:kover/models/enums/order_by_option.dart';
+import 'package:kover/models/enums/sort_direction.dart';
 import 'package:kover/riverpod/managers/sync_manager/sync_manager.dart';
 import 'package:kover/riverpod/providers/want_to_read.dart';
-import 'package:kover/utils/layout_constants.dart';
-import 'package:kover/widgets/actions_app_bar/actions_app_bar.dart';
-import 'package:kover/widgets/lists/series_sliver_grid.dart';
-import 'package:kover/widgets/util/async_value.dart';
+import 'package:kover/widgets/list_page/series_list_page.dart';
+import 'package:kover/widgets/list_page/sort_options_menu.dart';
 import 'package:kover/widgets/util/login_guard.dart';
-import 'package:kover/widgets/util/sliver_bottom_padding.dart';
+import 'package:material_ui/material_ui.dart';
 
 class WantToReadPage extends StatelessWidget {
   const WantToReadPage({super.key});
@@ -22,60 +22,49 @@ class WantToReadPage extends StatelessWidget {
   }
 }
 
-class WantToReadPageContent extends ConsumerWidget {
+class WantToReadPageContent extends HookConsumerWidget {
   const WantToReadPageContent({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
+    final controller = useTextEditingController();
+    final orderBy = useState(UnorderedSortOption.name);
+    final sortDirection = useState(SortDirection.ascending);
+    final hideRead = useState(false);
+    final series = ref.watch(
+      wantToReadListProvider(
+        query: controller.text,
+        orderBy: orderBy.value,
+        direction: sortDirection.value,
+        hideRead: hideRead.value,
+      ),
+    );
+
+    useListenable(controller);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(syncManagerProvider.notifier).syncLibraries();
     });
 
-    return CustomScrollView(
-      clipBehavior: .none,
-      slivers: [
-        const ActionsAppBar(),
-        SliverSafeArea(
-          top: false,
-          bottom: false,
-          sliver: SliverMainAxisGroup(
-            slivers: [
-              SliverPadding(
-                padding: LayoutConstants.smallEdgeInsets,
-                sliver: SliverToBoxAdapter(
-                  child: Text(
-                    l.wantToRead,
-                    style: Theme.of(context).textTheme.headlineMedium,
-                  ),
-                ),
-              ),
-              const WantToReadGrid(),
-            ],
-          ),
-        ),
-        const SliverBottomPadding(),
-      ],
-    );
-  }
-}
-
-class WantToReadGrid extends ConsumerWidget {
-  const WantToReadGrid({
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final series = ref.watch(wantToReadListProvider);
-    return AsyncSliver(
-      asyncValue: series,
-      data: (data) => SliverPadding(
-        padding: LayoutConstants.smallEdgeInsets,
-        sliver: SeriesSliverGrid(
-          series: data,
-        ),
+    return SeriesListPage(
+      title: l.wantToRead,
+      controller: controller,
+      sortMenu: UnorderedSortMenu(
+        sortDirection: sortDirection.value,
+        onSortDirectionChanged: (SortDirection newDirection) {
+          sortDirection.value = newDirection;
+        },
+        orderBy: orderBy.value,
+        onOrderByChanged: (UnorderedSortOption newOrderBy) {
+          orderBy.value = newOrderBy;
+        },
+        hideRead: hideRead.value,
+        onHideReadChanged: (bool newHideRead) {
+          hideRead.value = newHideRead;
+        },
       ),
+      series: series,
     );
   }
 }

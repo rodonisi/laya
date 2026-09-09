@@ -1,10 +1,12 @@
 import 'package:drift/drift.dart';
 import 'package:kover/database/app_database.dart';
 import 'package:kover/database/dao/series_metadata_dao.dart';
+import 'package:kover/models/enums/sort_direction.dart';
 import 'package:kover/models/image_model.dart';
 import 'package:kover/models/series_model.dart';
 import 'package:kover/riverpod/providers/client.dart';
 import 'package:kover/riverpod/repository/database.dart';
+import 'package:kover/models/enums/order_by_option.dart';
 import 'package:kover/sync/chapter_sync_operations.dart';
 import 'package:kover/sync/series_sync_operations.dart';
 import 'package:kover/sync/volume_sync_operations.dart';
@@ -62,10 +64,9 @@ class const SeriesRepository({
     String query, {
     int? libraryId,
     int? collectionId,
-    bool orderByName = false,
-    bool orderByRecentlyAdded = false,
-    bool orderByRecentlyUpdated = false,
-    bool ascending = true,
+    UnorderedSortOption orderBy = .name,
+    SortDirection direction = .ascending,
+    bool hideRead = false,
   }) async {
     if (query.isEmpty) {
       return [];
@@ -75,10 +76,9 @@ class const SeriesRepository({
       query,
       libraryId: libraryId,
       collectionId: collectionId,
-      orderByName: orderByName,
-      orderByRecentlyAdded: orderByRecentlyAdded,
-      orderByRecentlyUpdated: orderByRecentlyUpdated,
-      ascending: ascending,
+      orderBy: orderBy,
+      direction: direction,
+      hideRead: hideRead,
     );
 
     return result.map(SeriesModel.fromDatabaseModel).toList();
@@ -152,19 +152,17 @@ class const SeriesRepository({
   Stream<List<SeriesModel>> watchAllSeries({
     int? libraryId,
     int? collectionId,
-    bool orderByName = false,
-    bool orderByRecentlyAdded = false,
-    bool orderByRecentlyUpdated = false,
-    bool ascending = true,
+    UnorderedSortOption orderBy = .name,
+    SortDirection direction = .ascending,
+    bool hideRead = false,
   }) {
     return _db.seriesDao
         .allSeries(
           libraryId: libraryId,
           collectionId: collectionId,
-          orderByName: orderByName,
-          orderByRecentlyAdded: orderByRecentlyAdded,
-          orderByRecentlyUpdated: orderByRecentlyUpdated,
-          ascending: ascending,
+          orderBy: orderBy,
+          direction: direction,
+          hideRead: hideRead,
         )
         .watch()
         .distinct()
@@ -174,24 +172,54 @@ class const SeriesRepository({
   }
 
   /// Watch series marked as on deck
-  Stream<List<SeriesModel>> watchOnDeck() {
-    return _db.seriesDao.watchOnDeck().map(
-      (list) => list.map(SeriesModel.fromDatabaseModel).toList(),
-    );
+  Stream<List<SeriesModel>> watchOnDeck({
+    String query = '',
+    UnorderedSortOption orderBy = .lastRead,
+    SortDirection direction = .descending,
+  }) {
+    return _db.seriesDao
+        .watchOnDeck(query: query, orderBy: orderBy, direction: direction)
+        .map(
+          (list) => list.map(SeriesModel.fromDatabaseModel).toList(),
+        );
   }
 
   /// Watch series marked as recently added
-  Stream<List<SeriesModel>> watchRecentlyAdded() {
-    return _db.seriesDao.watchRecentlyAdded().map(
-      (list) => list.map(SeriesModel.fromDatabaseModel).toList(),
-    );
+  Stream<List<SeriesModel>> watchRecentlyAdded({
+    String query = '',
+    UnorderedSortOption orderBy = .dateAdded,
+    SortDirection direction = .descending,
+    bool hideRead = false,
+  }) {
+    return _db.seriesDao
+        .watchRecentlyAdded(
+          query: query,
+          orderBy: orderBy,
+          direction: direction,
+          hideRead: hideRead,
+        )
+        .map(
+          (list) => list.map(SeriesModel.fromDatabaseModel).toList(),
+        );
   }
 
   /// Watch series marked as recently updated
-  Stream<List<SeriesModel>> watchRecentlyUpdated() {
-    return _db.seriesDao.watchRecentlyUpdated().map(
-      (list) => list.map(SeriesModel.fromDatabaseModel).toList(),
-    );
+  Stream<List<SeriesModel>> watchRecentlyUpdated({
+    String query = '',
+    UnorderedSortOption orderBy = .dateUpdated,
+    SortDirection direction = .descending,
+    bool hideRead = false,
+  }) {
+    return _db.seriesDao
+        .watchRecentlyUpdated(
+          query: query,
+          orderBy: orderBy,
+          direction: direction,
+          hideRead: hideRead,
+        )
+        .map(
+          (list) => list.map(SeriesModel.fromDatabaseModel).toList(),
+        );
   }
 
   /// Refresh all series and align the local library to the remote.

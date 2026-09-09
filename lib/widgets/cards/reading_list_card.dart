@@ -44,7 +44,7 @@ class ReadingListCard extends ConsumerWidget {
             seriesId: continuePoint.seriesId,
             chapterId: continuePoint.id,
             readingListId: readingListId,
-          );
+          ).push(context);
         },
         onTap: () {
           ReadingListDetailsRoute(readingListId: readingListId).push(context);

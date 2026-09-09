@@ -208,6 +208,10 @@
     "@name": {
         "description": "Label for sorting by name option"
     },
+    "sortOrder": "Sort Order",
+    "@sortOrder": {
+        "description": "Label for the sort order option in list"
+    },
     "dateAdded": "Date Added",
     "@dateAdded": {
         "description": "Label for sorting by date added option"
@@ -215,6 +219,14 @@
     "lastModified": "Last Modified",
     "@lastModified": {
         "description": "Label for sorting by last modified option"
+    },
+    "progress": "Progress",
+    "@progress": {
+        "description": "Label for sorting by progress option"
+    },
+    "lastRead": "Last Read",
+    "@lastRead": {
+        "description": "Label for sorting by last read option"
     },
     "sortDirection": "Sort Direction",
     "@sortDirection": {

@@ -1,3 +1,5 @@
+import 'package:kover/models/enums/order_by_option.dart';
+import 'package:kover/models/enums/sort_direction.dart';
 import 'package:kover/models/series_model.dart';
 import 'package:kover/riverpod/repository/want_to_read_repository.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -27,7 +29,20 @@ class WantToRead extends _$WantToRead {
 }
 
 @riverpod
-Stream<List<SeriesModel>> wantToReadList(Ref ref) {
+Stream<List<SeriesModel>> wantToReadList(
+  Ref ref, {
+  String query = '',
+  UnorderedSortOption orderBy = .name,
+  SortDirection direction = .ascending,
+  bool hideRead = false,
+}) {
   final repo = ref.watch(wantToReadRepositoryProvider);
-  return repo.watchWantToReadList().distinct();
+  return repo
+      .watchWantToReadList(
+        query: query,
+        orderBy: orderBy,
+        direction: direction,
+        hideRead: hideRead,
+      )
+      .distinct();
 }
